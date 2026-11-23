@@ -1,0 +1,138 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --fc-bg-deep: #071117;
+    --fc-bg-panel: rgba(18, 30, 42, 0.84);
+    --fc-bg-panel-solid: #121f2b;
+    --fc-border: rgba(255, 255, 255, 0.11);
+    --fc-border-active: rgba(176, 240, 224, 0.58);
+    --fc-mint: #38f2c8;
+    --fc-emerald: #10c482;
+    --fc-lavender: #dcd2ff;
+    --fc-gold: #f5c344;
+    --fc-danger: #f05252;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+    background-color: #071117;
+    color: #f1f6f8;
+    overflow-x: hidden;
+  }
+}
+
+.font-display {
+  font-family: "Barlow Condensed", "Plus Jakarta Sans", sans-serif;
+  letter-spacing: 0.02em;
+}
+
+.font-mono-num {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Signature EA FC 27 reactive emerald-to-navy broadcast stadium backdrop */
+.fc-backdrop {
+  background-color: #071117;
+  background-image:
+    radial-gradient(62% 72% at 82% 24%, rgba(16, 168, 128, 0.34) 0%, rgba(11, 74, 72, 0.16) 44%, transparent 78%),
+    radial-gradient(50% 60% at 14% 88%, rgba(30, 56, 92, 0.28) 0%, transparent 70%),
+    linear-gradient(128deg, #071017 0%, #0a1b24 44%, #0b2d30 78%, #071820 100%);
+}
+
+/* Subtle diagonal stadium polygon facet lines */
+.fc-facet-overlay {
+  background-image:
+    linear-gradient(125deg, transparent 48%, rgba(56, 242, 200, 0.045) 48.2%, rgba(56, 242, 200, 0.045) 48.6%, transparent 48.8%),
+    linear-gradient(35deg, transparent 62%, rgba(255, 255, 255, 0.03) 62.15%, rgba(255, 255, 255, 0.03) 62.4%, transparent 62.55%);
+}
+
+.fc-panel {
+  background: linear-gradient(180deg, rgba(22, 36, 50, 0.86) 0%, rgba(13, 24, 34, 0.90) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.32);
+}
+
+.fc-panel-active {
+  background: linear-gradient(96deg, rgba(50, 146, 130, 0.44) 0%, rgba(44, 62, 86, 0.78) 54%, rgba(92, 80, 134, 0.56) 100%);
+  border: 1px solid rgba(186, 245, 232, 0.58);
+  box-shadow: 0 0 0 1px rgba(186, 245, 232, 0.16), 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+/* Signature FC 27 luminous ice-mint to soft-lavender CTA */
+.fc-btn-primary {
+  background: linear-gradient(90deg, #b8fff0 0%, #e4dcff 100%);
+  color: #091118;
+  font-weight: 800;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow: 0 4px 20px rgba(164, 245, 230, 0.25);
+  transition: transform 140ms ease, filter 140ms ease, box-shadow 140ms ease;
+}
+
+.fc-btn-primary:hover:not(:disabled) {
+  filter: brightness(1.06);
+  box-shadow: 0 6px 26px rgba(184, 255, 240, 0.38);
+}
+
+.fc-btn-primary:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.fc-btn-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.fc-btn-secondary {
+  background: rgba(16, 28, 40, 0.85);
+  color: #e6f0f4;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.fc-btn-secondary:hover:not(:disabled) {
+  background: rgba(30, 50, 68, 0.92);
+  border-color: rgba(184, 255, 240, 0.42);
+}
+
+/* Perspective pitch trapezoid for Team Management */
+.fc-pitch-surface {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(18, 96, 60, 0.92) 0px,
+      rgba(18, 96, 60, 0.92) 38px,
+      rgba(14, 82, 52, 0.92) 38px,
+      rgba(14, 82, 52, 0.92) 76px
+    );
+  border: 1px solid rgba(154, 232, 192, 0.35);
+  box-shadow: inset 0 0 60px rgba(4, 26, 18, 0.65), 0 18px 40px rgba(0, 0, 0, 0.42);
+}
+
+/* Custom slim scrollbar matching FC dark console chrome */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(8, 16, 24, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(140, 178, 192, 0.32);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(140, 224, 206, 0.52);
+}

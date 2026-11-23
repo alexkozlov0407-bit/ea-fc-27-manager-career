@@ -1,0 +1,6 @@
+{
+  "name": "EA FC 27 Manager Career",
+  "description": "Browser-based EA Sports FC 27 Manager Career Mode simulation featuring Dynamic OVR, 6 Growth Profiles, Match Fitness & Risky Injuries, TransferRoom xTV 2D Negotiations, Tactical Pitch, and Live Match Simulation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
