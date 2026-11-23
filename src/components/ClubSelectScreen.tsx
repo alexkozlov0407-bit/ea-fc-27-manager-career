@@ -2,8 +2,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
+  Info,
   Keyboard,
   Search,
+  Sparkles,
   Star,
   Trophy,
   X,
@@ -297,9 +299,6 @@ const CLUB_TROPHIES: Record<string, { leagues: number; cups: number }> = {
   'Stade de Reims': { leagues: 6, cups: 2 },
 };
 
-// ============================================================================
-// REALISTIC CLUB DNA PROFILES (Fanbase Devotion, Youth Facilities, Financial Stability)
-// ============================================================================
 export interface ClubDNA {
   devotion: 'VERY HIGH' | 'HIGH' | 'MEDIUM' | 'LOW';
   youth: 'VERY HIGH' | 'HIGH' | 'MEDIUM' | 'LOW';
@@ -308,13 +307,13 @@ export interface ClubDNA {
 
 const CLUB_DNA_PROFILES: Record<string, ClubDNA> = {
   // Spain (LaLiga)
-  'FC Barcelona': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'MODERATE' }, // La Masia (Yamal, Gavi, Cubarsí), debt/salary cap
-  'Real Madrid': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'VERY HIGH' }, // La Fábrica, top world revenue
-  'Athletic Club': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'HIGH' }, // Lezama (100% Basque cantera policy), zero net debt
+  'FC Barcelona': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'MODERATE' }, // La Masia, legacy debt
+  'Real Madrid': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'VERY HIGH' }, // La Fábrica, record revenue
+  'Athletic Club': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'HIGH' }, // Lezama cantera policy
   'Atlético de Madrid': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' },
-  'Real Sociedad': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'HIGH' }, // Zubieta (Zubimendi, Oyarzabal)
-  'Valencia CF': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'MODERATE' }, // Paterna (Ferran, Gaya, Soler)
-  'Villarreal CF': { devotion: 'HIGH', youth: 'VERY HIGH', stability: 'HIGH' }, // Miralcamp (Rodri, Pau Torres, Baena)
+  'Real Sociedad': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'HIGH' }, // Zubieta
+  'Valencia CF': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'MODERATE' }, // Paterna
+  'Villarreal CF': { devotion: 'HIGH', youth: 'VERY HIGH', stability: 'HIGH' }, // Miralcamp
   'Sevilla FC': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'MODERATE' },
   'Real Betis': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' },
   'Girona FC': { devotion: 'HIGH', youth: 'MEDIUM', stability: 'HIGH' },
@@ -330,36 +329,36 @@ const CLUB_DNA_PROFILES: Record<string, ClubDNA> = {
   'CD Leganés': { devotion: 'MEDIUM', youth: 'LOW', stability: 'LOW' },
 
   // England (Premier League)
-  Arsenal: { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'HIGH' }, // Hale End (Saka, Nwaneri)
-  'Manchester City': { devotion: 'HIGH', youth: 'VERY HIGH', stability: 'VERY HIGH' }, // City Football Academy (Foden, Palmer, Lewis)
-  Liverpool: { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'VERY HIGH' }, // Kirkby (Alexander-Arnold, Bradley, Jones)
-  'Manchester United': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'HIGH' }, // Carrington (Mainoo, Garnacho, Rashford)
-  Chelsea: { devotion: 'HIGH', youth: 'VERY HIGH', stability: 'HIGH' }, // Cobham (James, Colwill, Mount)
-  'Tottenham Hotspur': { devotion: 'HIGH', youth: 'HIGH', stability: 'VERY HIGH' }, // World-class stadium matchday revenues
+  Arsenal: { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'HIGH' }, // Hale End
+  'Manchester City': { devotion: 'HIGH', youth: 'VERY HIGH', stability: 'VERY HIGH' }, // CFA
+  Liverpool: { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'VERY HIGH' }, // Kirkby
+  'Manchester United': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'HIGH' }, // Carrington
+  Chelsea: { devotion: 'HIGH', youth: 'VERY HIGH', stability: 'HIGH' }, // Cobham
+  'Tottenham Hotspur': { devotion: 'HIGH', youth: 'HIGH', stability: 'VERY HIGH' },
   'Aston Villa': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' },
-  'Newcastle United': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'VERY HIGH' }, // PIF backing, 0 net debt
+  'Newcastle United': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'VERY HIGH' },
   Everton: { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'LOW' },
-  'West Ham United': { devotion: 'HIGH', youth: 'HIGH', stability: 'HIGH' }, // Academy of Football (Rice, Ferdinand)
-  'Brighton & Hove Albion': { devotion: 'HIGH', youth: 'VERY HIGH', stability: 'VERY HIGH' }, // Elite analytics & academy
+  'West Ham United': { devotion: 'HIGH', youth: 'HIGH', stability: 'HIGH' },
+  'Brighton & Hove Albion': { devotion: 'HIGH', youth: 'VERY HIGH', stability: 'VERY HIGH' },
   'Wolverhampton Wanderers': { devotion: 'HIGH', youth: 'MEDIUM', stability: 'MODERATE' },
   'AFC Bournemouth': { devotion: 'HIGH', youth: 'MEDIUM', stability: 'HIGH' },
   Bournemouth: { devotion: 'HIGH', youth: 'MEDIUM', stability: 'HIGH' },
   Brentford: { devotion: 'HIGH', youth: 'MEDIUM', stability: 'HIGH' },
-  'Crystal Palace': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' }, // South London talent
+  'Crystal Palace': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' },
   Fulham: { devotion: 'HIGH', youth: 'MEDIUM', stability: 'HIGH' },
   'Nottingham Forest': { devotion: 'VERY HIGH', youth: 'MEDIUM', stability: 'MODERATE' },
   'Leicester City': { devotion: 'HIGH', youth: 'MEDIUM', stability: 'MODERATE' },
-  Southampton: { devotion: 'HIGH', youth: 'VERY HIGH', stability: 'MODERATE' }, // Staplewood (Bale, Walcott, Ward-Prowse)
+  Southampton: { devotion: 'HIGH', youth: 'VERY HIGH', stability: 'MODERATE' },
   'Ipswich Town': { devotion: 'VERY HIGH', youth: 'MEDIUM', stability: 'MODERATE' },
 
   // Germany (Bundesliga)
-  'FC Bayern München': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'VERY HIGH' }, // FC Bayern Campus, 30+ yrs profit
-  'Borussia Dortmund': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'HIGH' }, // Yellow Wall, Brackel academy
-  'Bayer 04 Leverkusen': { devotion: 'HIGH', youth: 'HIGH', stability: 'VERY HIGH' }, // Bayer AG backing
-  'RB Leipzig': { devotion: 'HIGH', youth: 'HIGH', stability: 'VERY HIGH' }, // Red Bull network
-  'VfB Stuttgart': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'HIGH' }, // VfB Jugendakademie (Kimmich, Werner, Gnabry)
+  'FC Bayern München': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'VERY HIGH' },
+  'Borussia Dortmund': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'HIGH' },
+  'Bayer 04 Leverkusen': { devotion: 'HIGH', youth: 'HIGH', stability: 'VERY HIGH' },
+  'RB Leipzig': { devotion: 'HIGH', youth: 'HIGH', stability: 'VERY HIGH' },
+  'VfB Stuttgart': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'HIGH' },
   'Eintracht Frankfurt': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' },
-  'SC Freiburg': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'HIGH' }, // Sustainable academy model
+  'SC Freiburg': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'HIGH' },
   'Borussia Mönchengladbach': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'MODERATE' },
   'SV Werder Bremen': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'MODERATE' },
   '1. FC Union Berlin': { devotion: 'VERY HIGH', youth: 'MEDIUM', stability: 'MODERATE' },
@@ -373,34 +372,34 @@ const CLUB_DNA_PROFILES: Record<string, ClubDNA> = {
   'Holstein Kiel': { devotion: 'HIGH', youth: 'LOW', stability: 'LOW' },
 
   // Italy (Serie A)
-  Juventus: { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' }, // Next Gen project
+  Juventus: { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' },
   'FC Internazionale Milano': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' },
-  'AC Milan': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' }, // RedBird debt-free
-  'SSC Napoli': { devotion: 'VERY HIGH', youth: 'MEDIUM', stability: 'HIGH' }, // Zero debt
-  'AS Roma': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' }, // Trigoria heritage
+  'AC Milan': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' },
+  'SSC Napoli': { devotion: 'VERY HIGH', youth: 'MEDIUM', stability: 'HIGH' },
+  'AS Roma': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' },
   'SS Lazio': { devotion: 'VERY HIGH', youth: 'MEDIUM', stability: 'MODERATE' },
-  'Atalanta BC': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'HIGH' }, // Zingonia Academy (Bastoni, Scalvini)
-  'ACF Fiorentina': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' }, // Viola Park
+  'Atalanta BC': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'HIGH' },
+  'ACF Fiorentina': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' },
   'Bologna FC 1909': { devotion: 'HIGH', youth: 'HIGH', stability: 'HIGH' },
   'Torino FC': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'MODERATE' },
   'Genoa CFC': { devotion: 'VERY HIGH', youth: 'MEDIUM', stability: 'MODERATE' },
   'Udinese Calcio': { devotion: 'HIGH', youth: 'HIGH', stability: 'HIGH' },
   'Parma Calcio 1913': { devotion: 'HIGH', youth: 'HIGH', stability: 'HIGH' },
-  'Como 1907': { devotion: 'HIGH', youth: 'MEDIUM', stability: 'VERY HIGH' }, // Djarum Group
+  'Como 1907': { devotion: 'HIGH', youth: 'MEDIUM', stability: 'VERY HIGH' },
   'Cagliari Calcio': { devotion: 'VERY HIGH', youth: 'MEDIUM', stability: 'MODERATE' },
   'Hellas Verona FC': { devotion: 'HIGH', youth: 'MEDIUM', stability: 'LOW' },
   'US Lecce': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'MODERATE' },
-  'Empoli FC': { devotion: 'HIGH', youth: 'VERY HIGH', stability: 'MODERATE' }, // Tuscan youth factory
+  'Empoli FC': { devotion: 'HIGH', youth: 'VERY HIGH', stability: 'MODERATE' },
   'AC Monza': { devotion: 'HIGH', youth: 'MEDIUM', stability: 'HIGH' },
   'Venezia FC': { devotion: 'HIGH', youth: 'MEDIUM', stability: 'MODERATE' },
 
   // France (Ligue 1)
-  'Paris Saint-Germain': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'VERY HIGH' }, // Campus Poissy, QSI
-  'Olympique de Marseille': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' }, // Vélodrome 65k
-  'Olympique Lyonnais': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'MODERATE' }, // OL Academy (Benzema, Cherki, Barcola)
-  'AS Monaco': { devotion: 'MEDIUM', youth: 'VERY HIGH', stability: 'HIGH' }, // La Diagonale (Mbappé, Henry)
-  'LOSC Lille': { devotion: 'HIGH', youth: 'HIGH', stability: 'HIGH' }, // Hazard, Pavard, Yoro
-  'Stade Rennais FC': { devotion: 'HIGH', youth: 'VERY HIGH', stability: 'HIGH' }, // La Piverdière (Camavinga, Dembélé, Doué)
+  'Paris Saint-Germain': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'VERY HIGH' },
+  'Olympique de Marseille': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' },
+  'Olympique Lyonnais': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'MODERATE' },
+  'AS Monaco': { devotion: 'MEDIUM', youth: 'VERY HIGH', stability: 'HIGH' },
+  'LOSC Lille': { devotion: 'HIGH', youth: 'HIGH', stability: 'HIGH' },
+  'Stade Rennais FC': { devotion: 'HIGH', youth: 'VERY HIGH', stability: 'HIGH' },
   'OGC Nice': { devotion: 'HIGH', youth: 'HIGH', stability: 'VERY HIGH' },
   'RC Lens': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' },
   'RC Strasbourg Alsace': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' },
@@ -412,7 +411,7 @@ const CLUB_DNA_PROFILES: Record<string, ClubDNA> = {
   'AJ Auxerre': { devotion: 'HIGH', youth: 'HIGH', stability: 'MODERATE' },
   'Angers SCO': { devotion: 'MEDIUM', youth: 'MEDIUM', stability: 'LOW' },
   'AS Saint-Étienne': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' },
-  'Le Havre AC': { devotion: 'HIGH', youth: 'VERY HIGH', stability: 'MODERATE' }, // Cavée Verte (Pogba, Mahrez)
+  'Le Havre AC': { devotion: 'HIGH', youth: 'VERY HIGH', stability: 'MODERATE' },
 };
 
 function getClubCity(name: string): string {
@@ -466,7 +465,6 @@ function getClubDNA(club: Club): ClubDNA {
     }
   }
 
-  // Realistic fallback based on club data
   const devotion =
     club.domesticPrestige >= 8
       ? 'VERY HIGH'
@@ -520,23 +518,18 @@ const ClubKitJersey: React.FC<{
 
   return (
     <svg viewBox="0 0 120 140" className="w-28 h-32 drop-shadow-2xl select-none" fill="none">
-      {/* Jersey Body */}
       <path
         d="M38 18 L18 36 L30 52 L40 42 L40 122 L80 122 L80 42 L90 52 L102 36 L82 18 C74 26 46 26 38 18 Z"
         fill={bodyColor}
         stroke="rgba(255,255,255,0.25)"
         strokeWidth="1.5"
       />
-      {/* Sleeves */}
       <path d="M38 18 L18 36 L30 52 L40 42 Z" fill={sleeveColor} opacity="0.95" />
       <path d="M82 18 L102 36 L90 52 L80 42 Z" fill={sleeveColor} opacity="0.95" />
-      {/* Collar */}
       <path d="M46 20 C54 28 66 28 74 20" stroke={accentColor} strokeWidth="3" strokeLinecap="round" />
-      {/* Chest Stripes */}
       <rect x="42" y="62" width="36" height="5" rx="1.5" fill={accentColor} opacity="0.85" />
       <rect x="42" y="71" width="36" height="5" rx="1.5" fill={accentColor} opacity="0.85" />
       <rect x="42" y="80" width="36" height="5" rx="1.5" fill={accentColor} opacity="0.85" />
-      {/* Sponsor Box */}
       <rect x="44" y="92" width="32" height="12" rx="2" fill="rgba(0,0,0,0.35)" stroke="rgba(255,255,255,0.2)" />
       <text
         x="60"
@@ -550,6 +543,134 @@ const ClubKitJersey: React.FC<{
         FC 27
       </text>
     </svg>
+  );
+};
+
+// ============================================================================
+// 2D SPATIAL FOCUS SELECTOR SYSTEM (EA FC 27 TILE CURSOR)
+// ============================================================================
+export type SelectableTile =
+  | 'header_mens'
+  | 'header_womens'
+  | 'header_country'
+  | 'club_card'
+  | 'kit_card'
+  | 'founded_card'
+  | 'city_card'
+  | 'stature_card'
+  | 'devotion_card'
+  | 'youth_card'
+  | 'stability_card'
+  | 'btn_advance'
+  | 'btn_back'
+  | 'btn_browse'
+  | 'btn_random';
+
+const SPATIAL_MAP: Record<
+  SelectableTile,
+  { up?: SelectableTile; down?: SelectableTile; left?: SelectableTile; right?: SelectableTile }
+> = {
+  header_mens: {
+    down: 'club_card',
+    right: 'header_womens',
+  },
+  header_womens: {
+    left: 'header_mens',
+    right: 'header_country',
+    down: 'kit_card',
+  },
+  header_country: {
+    left: 'header_womens',
+    right: 'devotion_card',
+    down: 'founded_card',
+  },
+  club_card: {
+    up: 'header_mens',
+    right: 'kit_card',
+    down: 'btn_advance',
+  },
+  kit_card: {
+    up: 'header_womens',
+    left: 'club_card',
+    right: 'founded_card',
+    down: 'city_card',
+  },
+  founded_card: {
+    up: 'header_country',
+    left: 'kit_card',
+    right: 'devotion_card',
+    down: 'stature_card',
+  },
+  city_card: {
+    up: 'kit_card',
+    left: 'club_card',
+    right: 'stature_card',
+    down: 'btn_back',
+  },
+  stature_card: {
+    up: 'founded_card',
+    left: 'city_card',
+    right: 'youth_card',
+    down: 'btn_browse',
+  },
+  devotion_card: {
+    up: 'header_country',
+    left: 'founded_card',
+    down: 'youth_card',
+  },
+  youth_card: {
+    up: 'devotion_card',
+    left: 'stature_card',
+    down: 'stability_card',
+  },
+  stability_card: {
+    up: 'youth_card',
+    left: 'stature_card',
+    down: 'btn_random',
+  },
+  btn_advance: {
+    up: 'club_card',
+    right: 'btn_back',
+  },
+  btn_back: {
+    up: 'city_card',
+    left: 'btn_advance',
+    right: 'btn_browse',
+  },
+  btn_browse: {
+    up: 'stature_card',
+    left: 'btn_back',
+    right: 'btn_random',
+  },
+  btn_random: {
+    up: 'stability_card',
+    left: 'btn_browse',
+  },
+};
+
+// Signature EA FC 27 Tile Selection Cursor Indicator with Neon Corner Brackets
+const TileFocusIndicator: React.FC<{ active: boolean; label?: string }> = ({
+  active,
+  label = 'SELECT',
+}) => {
+  if (!active) return null;
+  return (
+    <>
+      {/* 4 Neon Cyan Glowing Corner Brackets matching EA FC 27 Tactical HUD */}
+      <span className="absolute -top-1.5 -left-1.5 w-3.5 h-3.5 border-t-2 border-l-2 border-[#38f2c8] pointer-events-none z-30 drop-shadow-[0_0_8px_#38f2c8]" />
+      <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 border-t-2 border-r-2 border-[#38f2c8] pointer-events-none z-30 drop-shadow-[0_0_8px_#38f2c8]" />
+      <span className="absolute -bottom-1.5 -left-1.5 w-3.5 h-3.5 border-b-2 border-l-2 border-[#38f2c8] pointer-events-none z-30 drop-shadow-[0_0_8px_#38f2c8]" />
+      <span className="absolute -bottom-1.5 -right-1.5 w-3.5 h-3.5 border-b-2 border-r-2 border-[#38f2c8] pointer-events-none z-30 drop-shadow-[0_0_8px_#38f2c8]" />
+
+      {/* Floating Active Neon Pill Tag */}
+      <div className="absolute -top-3.5 right-4 z-40 bg-[#38f2c8] text-[#051117] font-black text-[9px] uppercase px-2 py-0.5 rounded shadow-[0_0_18px_rgba(56,242,200,0.9)] tracking-wider flex items-center gap-1.5 animate-pulse pointer-events-none">
+        <span className="w-1.5 h-1.5 rounded-full bg-[#051117]" />
+        <span>{label}</span>
+        <span className="font-mono text-[8px] bg-black/25 px-1 py-0.2 rounded text-white font-extrabold">
+          SPACE
+        </span>
+      </div>
+    </>
   );
 };
 
@@ -567,8 +688,11 @@ export const ClubSelectScreen: React.FC = () => {
   const [showAllClubsModal, setShowAllClubsModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [modalFocusedIndex, setModalFocusedIndex] = useState(0);
-  const [energyRecovery, setEnergyRecovery] = useState<EnergyRecoveryPolicy>('Balanced');
-  const [currency, setCurrency] = useState<CurrencyCode>('USD');
+  const [energyRecovery] = useState<EnergyRecoveryPolicy>('Balanced');
+  const [currency] = useState<CurrencyCode>('USD');
+
+  // Active WASD Selector Tile (defaults to Hero Club Card)
+  const [focusedTile, setFocusedTile] = useState<SelectableTile>('club_card');
 
   const currentLeagueId = LEAGUE_ORDER[selectedLeagueIdx];
   const currentLeagueMeta = TOP_5_LEAGUES[currentLeagueId] ?? {
@@ -660,6 +784,53 @@ export const ClubSelectScreen: React.FC = () => {
     startNewCareer(selectedClub.id, { energyRecovery, currency });
   };
 
+  const handleRandomClub = () => {
+    if (!database) return;
+    const allClubs = Object.values(database.clubs);
+    const rand = allClubs[Math.floor(Math.random() * allClubs.length)];
+    if (rand) {
+      const lIdx = LEAGUE_ORDER.indexOf(rand.leagueId);
+      if (lIdx >= 0) setSelectedLeagueIdx(lIdx);
+      setSelectedClubId(rand.id);
+    }
+  };
+
+  const handleTileAction = (tile: SelectableTile) => {
+    switch (tile) {
+      case 'header_mens':
+        setIsMensTeam(true);
+        break;
+      case 'header_womens':
+        setIsMensTeam(false);
+        break;
+      case 'header_country':
+        nextLeague();
+        break;
+      case 'club_card':
+        setShowAllClubsModal(true);
+        setModalFocusedIndex(0);
+        break;
+      case 'kit_card':
+        cycleKit();
+        break;
+      case 'btn_advance':
+        handleStart();
+        break;
+      case 'btn_back':
+        if (hasAutoSave) resumeSavedCareer();
+        break;
+      case 'btn_browse':
+        setShowAllClubsModal(true);
+        setModalFocusedIndex(0);
+        break;
+      case 'btn_random':
+        handleRandomClub();
+        break;
+      default:
+        break;
+    }
+  };
+
   const filteredModalClubs = useMemo(() => {
     if (!database) return [];
     return Object.values(database.clubs).filter((c) =>
@@ -670,16 +841,12 @@ export const ClubSelectScreen: React.FC = () => {
   }, [database, searchQuery]);
 
   // ==========================================================================
-  // COMPREHENSIVE 60% KEYBOARD CONTROLLER (NO ARROW KEYS REQUIRED)
-  // [A / D] Previous / Next Club
-  // [W / S] Previous / Next Country / League
-  // [Q / E] L1 / R1 Bumpers (Country switch)
-  // [R] Cycle Kit (Home / Away / Third)
-  // [Space / Enter / X] Advance / Confirm
-  // [B / Escape] Back / Close Modal
-  // [F] Browse All 96 Clubs Modal
-  // [T / Y] Swap Teams / Random Club
-  // [1] Men's Teams | [2] Women's Teams
+  // EA FC 27 WASD SPATIAL TILE SELECTOR EVENT LISTENER
+  // [W / A / S / D] Move Selector Box around screen tiles
+  // [Space / Enter / X] Activate focused tile action
+  // [Q / E] Cycle Clubs left / right
+  // [R] Cycle Kit (when kit tile is selected or global)
+  // [Escape / B] Close modal or back
   // ==========================================================================
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -702,7 +869,7 @@ export const ClubSelectScreen: React.FC = () => {
         }
       }
 
-      // If user is currently typing in search input, do not intercept letters
+      // In search input: let user type normally
       if (isInputFocused) {
         if (e.key === 'Enter' && showAllClubsModal && filteredModalClubs.length > 0) {
           e.preventDefault();
@@ -719,21 +886,21 @@ export const ClubSelectScreen: React.FC = () => {
 
       const key = e.key.toLowerCase();
 
-      // Modal navigation with 60% keys
+      // Modal navigation with 60% WASD keys
       if (showAllClubsModal) {
         const total = filteredModalClubs.length;
         if (total === 0) return;
 
-        if (key === 'a') {
+        if (key === 'a' || e.key === 'ArrowLeft') {
           e.preventDefault();
           setModalFocusedIndex((prev) => (prev - 1 + total) % total);
-        } else if (key === 'd') {
+        } else if (key === 'd' || e.key === 'ArrowRight') {
           e.preventDefault();
           setModalFocusedIndex((prev) => (prev + 1) % total);
-        } else if (key === 'w') {
+        } else if (key === 'w' || e.key === 'ArrowUp') {
           e.preventDefault();
           setModalFocusedIndex((prev) => (prev - 4 + total) % total);
-        } else if (key === 's') {
+        } else if (key === 's' || e.key === 'ArrowDown') {
           e.preventDefault();
           setModalFocusedIndex((prev) => (prev + 4) % total);
         } else if (key === 'enter' || key === ' ' || key === 'x') {
@@ -752,51 +919,55 @@ export const ClubSelectScreen: React.FC = () => {
         return;
       }
 
-      // Main Screen 60% Keyboard Navigation
-      if (key === 'a' || e.key === 'ArrowLeft') {
+      // ======================================================================
+      // MAIN SCREEN WASD SPATIAL FOCUS SELECTOR
+      // ======================================================================
+      if (key === 'w' || e.key === 'ArrowUp') {
         e.preventDefault();
-        prevClub();
+        const next = SPATIAL_MAP[focusedTile]?.up;
+        if (next) setFocusedTile(next);
+      } else if (key === 's' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        const next = SPATIAL_MAP[focusedTile]?.down;
+        if (next) setFocusedTile(next);
+      } else if (key === 'a' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const next = SPATIAL_MAP[focusedTile]?.left;
+        if (next) setFocusedTile(next);
       } else if (key === 'd' || e.key === 'ArrowRight') {
         e.preventDefault();
+        const next = SPATIAL_MAP[focusedTile]?.right;
+        if (next) setFocusedTile(next);
+      } else if (key === ' ' || key === 'enter' || key === 'x') {
+        e.preventDefault();
+        handleTileAction(focusedTile);
+      } else if (key === 'q') {
+        e.preventDefault();
+        prevClub();
+      } else if (key === 'e') {
+        e.preventDefault();
         nextClub();
-      } else if (key === 'w' || key === 'q' || e.key === 'ArrowUp') {
-        e.preventDefault();
-        prevLeague();
-      } else if (key === 's' || key === 'e' || e.key === 'ArrowDown') {
-        e.preventDefault();
-        nextLeague();
       } else if (key === 'r') {
         e.preventDefault();
         cycleKit();
-      } else if (key === 'x' || key === 'enter' || key === ' ') {
-        e.preventDefault();
-        handleStart();
-      } else if (key === 'b') {
-        e.preventDefault();
-        if (hasAutoSave) {
-          resumeSavedCareer();
-        }
       } else if (key === 'f') {
         e.preventDefault();
         setShowAllClubsModal(true);
         setModalFocusedIndex(0);
       } else if (key === 't' || key === 'y') {
         e.preventDefault();
-        if (database) {
-          const allClubs = Object.values(database.clubs);
-          const rand = allClubs[Math.floor(Math.random() * allClubs.length)];
-          if (rand) {
-            const lIdx = LEAGUE_ORDER.indexOf(rand.leagueId);
-            if (lIdx >= 0) setSelectedLeagueIdx(lIdx);
-            setSelectedClubId(rand.id);
-          }
-        }
+        handleRandomClub();
+      } else if (key === 'b') {
+        e.preventDefault();
+        if (hasAutoSave) resumeSavedCareer();
       } else if (key === '1') {
         e.preventDefault();
         setIsMensTeam(true);
+        setFocusedTile('header_mens');
       } else if (key === '2') {
         e.preventDefault();
         setIsMensTeam(false);
+        setFocusedTile('header_womens');
       }
     };
 
@@ -806,6 +977,7 @@ export const ClubSelectScreen: React.FC = () => {
     showAllClubsModal,
     filteredModalClubs,
     modalFocusedIndex,
+    focusedTile,
     currentClubIndex,
     clubsInCurrentLeague,
     selectedLeagueIdx,
@@ -838,12 +1010,20 @@ export const ClubSelectScreen: React.FC = () => {
       {/* =================================================================== */}
       <header className="relative z-10 px-8 lg:px-14 pt-8">
         <div className="flex items-center gap-6 pb-2 border-b border-white/10 max-w-sm">
-          {/* Men's Teams Toggle Pill */}
+          {/* Men's Teams Toggle Pill (Selectable Tile) */}
           <button
             type="button"
-            onClick={() => setIsMensTeam(true)}
-            className="flex items-center gap-2 group cursor-pointer focus:outline-none"
-            title="Press [1] for Men's Teams"
+            onClick={() => {
+              setIsMensTeam(true);
+              setFocusedTile('header_mens');
+            }}
+            onMouseEnter={() => setFocusedTile('header_mens')}
+            className={`relative flex items-center gap-2 group cursor-pointer p-1.5 rounded-lg transition-all ${
+              focusedTile === 'header_mens'
+                ? 'bg-white/15 ring-2 ring-[#38f2c8] shadow-[0_0_20px_rgba(56,242,200,0.5)] scale-105'
+                : 'hover:bg-white/5'
+            }`}
+            title="Press [Space] to select Men's Teams"
           >
             <span
               className={`w-4 h-4 rounded-full flex items-center justify-center border transition-all ${
@@ -864,14 +1044,23 @@ export const ClubSelectScreen: React.FC = () => {
             <span className="rounded bg-white/10 px-1 py-0.5 text-[9px] font-mono-num font-bold text-white/50">
               1
             </span>
+            <TileFocusIndicator active={focusedTile === 'header_mens'} label="TOGGLE" />
           </button>
 
-          {/* Women's Teams Toggle Pill */}
+          {/* Women's Teams Toggle Pill (Selectable Tile) */}
           <button
             type="button"
-            onClick={() => setIsMensTeam(false)}
-            className="flex items-center gap-2 group cursor-pointer focus:outline-none"
-            title="Press [2] for Women's Teams"
+            onClick={() => {
+              setIsMensTeam(false);
+              setFocusedTile('header_womens');
+            }}
+            onMouseEnter={() => setFocusedTile('header_womens')}
+            className={`relative flex items-center gap-2 group cursor-pointer p-1.5 rounded-lg transition-all ${
+              focusedTile === 'header_womens'
+                ? 'bg-white/15 ring-2 ring-[#38f2c8] shadow-[0_0_20px_rgba(56,242,200,0.5)] scale-105'
+                : 'hover:bg-white/5'
+            }`}
+            title="Press [Space] to select Women's Teams"
           >
             <span
               className={`w-4 h-4 rounded-full flex items-center justify-center border transition-all ${
@@ -892,85 +1081,117 @@ export const ClubSelectScreen: React.FC = () => {
             <span className="rounded bg-white/10 px-1 py-0.5 text-[9px] font-mono-num font-bold text-white/50">
               2
             </span>
+            <TileFocusIndicator active={focusedTile === 'header_womens'} label="TOGGLE" />
           </button>
         </div>
 
-        {/* Selected Country Title with Prev / Next Arrow Switcher & 60% Keyboard Hints */}
-        <div className="mt-3 flex items-center gap-2">
+        {/* Selected Country Title (Selectable Tile) */}
+        <div
+          onClick={() => {
+            setFocusedTile('header_country');
+            nextLeague();
+          }}
+          onMouseEnter={() => setFocusedTile('header_country')}
+          className={`relative mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+            focusedTile === 'header_country'
+              ? 'bg-white/15 ring-2 ring-[#38f2c8] shadow-[0_0_25px_rgba(56,242,200,0.5)] scale-105'
+              : 'hover:bg-white/5'
+          }`}
+          title="Click or press [Space] to switch country"
+        >
           <button
             type="button"
-            onClick={prevLeague}
+            onClick={(e) => {
+              e.stopPropagation();
+              prevLeague();
+            }}
             className="p-1 text-white/50 hover:text-white transition-colors flex items-center gap-1 group"
-            title="Previous Country [W / Q]"
+            title="Previous Country"
           >
             <ChevronLeft className="w-5 h-5" />
-            <span className="hidden sm:inline-block rounded bg-white/10 px-1 py-0.2 text-[9px] font-mono-num font-bold text-white/60 group-hover:text-white">
-              W
-            </span>
           </button>
           <h2 className="font-display text-2xl font-black uppercase tracking-wide text-white">
             {currentLeagueMeta.country}
           </h2>
           <button
             type="button"
-            onClick={nextLeague}
+            onClick={(e) => {
+              e.stopPropagation();
+              nextLeague();
+            }}
             className="p-1 text-white/50 hover:text-white transition-colors flex items-center gap-1 group"
-            title="Next Country [S / E]"
+            title="Next Country"
           >
-            <span className="hidden sm:inline-block rounded bg-white/10 px-1 py-0.2 text-[9px] font-mono-num font-bold text-white/60 group-hover:text-white">
-              S
-            </span>
             <ChevronRight className="w-5 h-5" />
           </button>
+          <TileFocusIndicator active={focusedTile === 'header_country'} label="CYCLE LEAGUE" />
         </div>
       </header>
 
       {/* =================================================================== */}
-      {/* MAIN 3-COLUMN SELECTION STAGE (1:1 with image (9).png)              */}
+      {/* MAIN 3-COLUMN SELECTION STAGE (1:1 with EA FC 27 HUD)               */}
       {/* =================================================================== */}
       <main className="relative z-10 mx-auto w-full max-w-[1580px] px-8 lg:px-14 py-4 grid grid-cols-1 lg:grid-cols-12 gap-7 items-center flex-1">
         {/* ================================================================= */}
-        {/* COLUMN 1: MAIN CLUB CAROUSEL CARD (Left 4 cols)                  */}
+        {/* COLUMN 1: MAIN CLUB CAROUSEL HERO CARD (Left 4 cols)             */}
         {/* ================================================================= */}
         <div className="lg:col-span-4 flex flex-col items-center">
-          {/* Glowing Frosted Glass Card */}
-          <div className="w-full max-w-[390px] rounded-2xl bg-gradient-to-b from-[#13303c]/90 via-[#0a1e28]/95 to-[#061219]/95 border-2 border-white/20 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.65),0_0_40px_rgba(56,242,200,0.12)] flex flex-col justify-between min-h-[440px] relative">
+          {/* Glowing Frosted Glass Card with EA FC 27 Focus Select Box */}
+          <div
+            onClick={() => {
+              setFocusedTile('club_card');
+              setShowAllClubsModal(true);
+            }}
+            onMouseEnter={() => setFocusedTile('club_card')}
+            className={`w-full max-w-[390px] rounded-2xl bg-gradient-to-b from-[#13303c]/90 via-[#0a1e28]/95 to-[#061219]/95 p-6 flex flex-col justify-between min-h-[440px] relative transition-all duration-200 cursor-pointer ${
+              focusedTile === 'club_card'
+                ? 'border-2 border-[#38f2c8] ring-2 ring-[#38f2c8]/80 shadow-[0_20px_50px_rgba(0,0,0,0.7),0_0_45px_rgba(56,242,200,0.55),inset_0_0_25px_rgba(56,242,200,0.18)] scale-[1.03] z-20'
+                : 'border-2 border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.65),0_0_30px_rgba(56,242,200,0.08)] hover:border-white/40'
+            }`}
+          >
+            <TileFocusIndicator active={focusedTile === 'club_card'} label="BROWSE CLUBS" />
+
             {/* Top Club Name */}
             <h3 className="font-display text-3xl font-black uppercase tracking-wide text-white text-center leading-tight">
               {selectedClub.name}
             </h3>
 
-            {/* Crest with Left / Right Navigation Chevrons + 60% Badges */}
+            {/* Crest with Left / Right Navigation Chevrons + [Q] / [E] Badges */}
             <div className="my-6 flex items-center justify-between gap-3">
               <button
                 type="button"
-                onClick={prevClub}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  prevClub();
+                }}
                 className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 flex flex-col items-center justify-center text-white transition-all transform hover:scale-110 active:scale-95 shadow group relative"
-                title="Previous Club [A]"
+                title="Previous Club [Q]"
               >
                 <ChevronLeft className="w-6 h-6" />
-                <span className="absolute -bottom-2 rounded bg-black/60 border border-white/20 px-1 text-[8px] font-mono-num font-bold text-[#38f2c8]">
-                  A
+                <span className="absolute -bottom-2 rounded bg-black/75 border border-white/25 px-1 text-[8px] font-mono-num font-bold text-[#38f2c8]">
+                  Q
                 </span>
               </button>
 
               <div
                 className="cursor-pointer group relative transform transition-transform duration-300 hover:scale-105"
-                onClick={() => setShowAllClubsModal(true)}
-                title="Click or press [F] to browse all clubs"
+                title="Click to browse all clubs"
               >
                 <ClubCrest club={selectedClub} size={150} className="drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)]" />
               </div>
 
               <button
                 type="button"
-                onClick={nextClub}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  nextClub();
+                }}
                 className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 flex flex-col items-center justify-center text-white transition-all transform hover:scale-110 active:scale-95 shadow group relative"
-                title="Next Club [D]"
+                title="Next Club [E]"
               >
                 <ChevronRight className="w-6 h-6" />
-                <span className="absolute -bottom-2 rounded bg-black/60 border border-white/20 px-1 text-[8px] font-mono-num font-bold text-[#38f2c8]">
-                  D
+                <span className="absolute -bottom-2 rounded bg-black/75 border border-white/25 px-1 text-[8px] font-mono-num font-bold text-[#38f2c8]">
+                  E
                 </span>
               </button>
             </div>
@@ -980,7 +1201,10 @@ export const ClubSelectScreen: React.FC = () => {
               <div className="flex items-center gap-1 justify-center">
                 {[1, 2, 3, 4, 5].map((i) => {
                   const full = i <= Math.floor(clubStats.starRating);
-                  const half = !full && i === Math.floor(clubStats.starRating) + 1 && clubStats.starRating % 1 >= 0.5;
+                  const half =
+                    !full &&
+                    i === Math.floor(clubStats.starRating) + 1 &&
+                    clubStats.starRating % 1 >= 0.5;
                   return (
                     <span key={i} className="text-xl">
                       {full ? (
@@ -1011,7 +1235,7 @@ export const ClubSelectScreen: React.FC = () => {
               type="button"
               onClick={prevLeague}
               className="text-white/40 hover:text-white transition-colors flex items-center gap-1"
-              title="Previous Country [W / Q]"
+              title="Previous Country"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -1022,7 +1246,7 @@ export const ClubSelectScreen: React.FC = () => {
               type="button"
               onClick={nextLeague}
               className="text-white/40 hover:text-white transition-colors flex items-center gap-1"
-              title="Next Country [S / E]"
+              title="Next Country"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -1033,12 +1257,21 @@ export const ClubSelectScreen: React.FC = () => {
         {/* COLUMN 2: 2x2 QUADRANT DATA (Center 5 cols)                      */}
         {/* ================================================================= */}
         <div className="lg:col-span-5 grid grid-cols-2 gap-4">
-          {/* QUADRANT 1 (Top Left): KIT PREVIEW WITH R BUTTON CAROUSEL */}
+          {/* QUADRANT 1 (Top Left): KIT PREVIEW TILE */}
           <div
-            onClick={cycleKit}
-            className="rounded-2xl bg-[#091a24]/90 border border-white/10 p-5 flex flex-col justify-between min-h-[260px] cursor-pointer group hover:border-[#38f2c8]/40 transition-colors"
-            title="Click or press [R] to cycle kit"
+            onClick={() => {
+              setFocusedTile('kit_card');
+              cycleKit();
+            }}
+            onMouseEnter={() => setFocusedTile('kit_card')}
+            className={`rounded-2xl bg-[#091a24]/90 p-5 flex flex-col justify-between min-h-[260px] cursor-pointer group transition-all duration-200 relative ${
+              focusedTile === 'kit_card'
+                ? 'border-2 border-[#38f2c8] ring-2 ring-[#38f2c8]/70 shadow-[0_0_35px_rgba(56,242,200,0.5),inset_0_0_20px_rgba(56,242,200,0.12)] scale-[1.025] z-20'
+                : 'border border-white/10 hover:border-white/30'
+            }`}
+            title="Click or press [Space] to cycle kit"
           >
+            <TileFocusIndicator active={focusedTile === 'kit_card'} label="CYCLE KIT" />
             <div>
               <div className="text-[10px] uppercase tracking-widest text-[#8ea5b3] font-bold">
                 Kit
@@ -1075,8 +1308,17 @@ export const ClubSelectScreen: React.FC = () => {
             </div>
           </div>
 
-          {/* QUADRANT 2 (Top Right): FOUNDED & TROPHIES & FINANCIALS */}
-          <div className="rounded-2xl bg-[#091a24]/90 border border-white/10 p-5 flex flex-col justify-between min-h-[260px]">
+          {/* QUADRANT 2 (Top Right): FOUNDED & TROPHIES & FINANCIALS TILE */}
+          <div
+            onClick={() => setFocusedTile('founded_card')}
+            onMouseEnter={() => setFocusedTile('founded_card')}
+            className={`rounded-2xl bg-[#091a24]/90 p-5 flex flex-col justify-between min-h-[260px] transition-all duration-200 relative cursor-pointer ${
+              focusedTile === 'founded_card'
+                ? 'border-2 border-[#38f2c8] ring-2 ring-[#38f2c8]/70 shadow-[0_0_35px_rgba(56,242,200,0.5),inset_0_0_20px_rgba(56,242,200,0.12)] scale-[1.025] z-20'
+                : 'border border-white/10 hover:border-white/30'
+            }`}
+          >
+            <TileFocusIndicator active={focusedTile === 'founded_card'} label="HISTORY" />
             <div>
               <div className="text-center text-[11px] uppercase tracking-widest text-[#8ea5b3] font-bold flex items-center justify-center gap-1.5">
                 <span className="text-white/40">🌿</span>
@@ -1132,8 +1374,17 @@ export const ClubSelectScreen: React.FC = () => {
             </div>
           </div>
 
-          {/* QUADRANT 3 (Bottom Left): CITY WITH STADIUM ICON */}
-          <div className="rounded-2xl bg-[#091a24]/90 border border-white/10 p-5 flex flex-col justify-between min-h-[170px]">
+          {/* QUADRANT 3 (Bottom Left): CITY WITH STADIUM ICON TILE */}
+          <div
+            onClick={() => setFocusedTile('city_card')}
+            onMouseEnter={() => setFocusedTile('city_card')}
+            className={`rounded-2xl bg-[#091a24]/90 p-5 flex flex-col justify-between min-h-[170px] transition-all duration-200 relative cursor-pointer ${
+              focusedTile === 'city_card'
+                ? 'border-2 border-[#38f2c8] ring-2 ring-[#38f2c8]/70 shadow-[0_0_35px_rgba(56,242,200,0.5),inset_0_0_20px_rgba(56,242,200,0.12)] scale-[1.025] z-20'
+                : 'border border-white/10 hover:border-white/30'
+            }`}
+          >
+            <TileFocusIndicator active={focusedTile === 'city_card'} label="VENUE" />
             <div>
               <div className="text-[10px] uppercase tracking-widest text-[#8ea5b3] font-bold">
                 City
@@ -1143,7 +1394,7 @@ export const ClubSelectScreen: React.FC = () => {
               </div>
             </div>
 
-            {/* Stylized Stadium Icon with 3 Flags */}
+            {/* Stylized Stadium Icon */}
             <div className="my-2 flex justify-center">
               <svg
                 viewBox="0 0 48 36"
@@ -1169,8 +1420,17 @@ export const ClubSelectScreen: React.FC = () => {
             </div>
           </div>
 
-          {/* QUADRANT 4 (Bottom Right): CLUB STATURE */}
-          <div className="rounded-2xl bg-[#091a24]/90 border border-white/10 p-5 flex flex-col justify-between min-h-[170px]">
+          {/* QUADRANT 4 (Bottom Right): CLUB STATURE TILE */}
+          <div
+            onClick={() => setFocusedTile('stature_card')}
+            onMouseEnter={() => setFocusedTile('stature_card')}
+            className={`rounded-2xl bg-[#091a24]/90 p-5 flex flex-col justify-between min-h-[170px] transition-all duration-200 relative cursor-pointer ${
+              focusedTile === 'stature_card'
+                ? 'border-2 border-[#38f2c8] ring-2 ring-[#38f2c8]/70 shadow-[0_0_35px_rgba(56,242,200,0.5),inset_0_0_20px_rgba(56,242,200,0.12)] scale-[1.025] z-20'
+                : 'border border-white/10 hover:border-white/30'
+            }`}
+          >
+            <TileFocusIndicator active={focusedTile === 'stature_card'} label="STATURE" />
             <div>
               <div className="text-[10px] uppercase tracking-widest text-[#8ea5b3] font-bold text-center">
                 Club Stature
@@ -1191,8 +1451,17 @@ export const ClubSelectScreen: React.FC = () => {
         {/* COLUMN 3: 3 VERTICAL GLOWING CARDS (Right 3 cols)                 */}
         {/* ================================================================= */}
         <div className="lg:col-span-3 space-y-4">
-          {/* Card 1: Fanbase Devotion (Warm Golden Amber Glow) */}
-          <div className="rounded-2xl border border-amber-400/40 p-5 shadow-[0_10px_30px_rgba(245,158,11,0.18)] bg-gradient-to-br from-[#2a1d0d]/95 via-[#1b140d]/90 to-[#0e161c]/95 min-h-[135px] flex flex-col justify-between">
+          {/* Card 1: Fanbase Devotion TILE */}
+          <div
+            onClick={() => setFocusedTile('devotion_card')}
+            onMouseEnter={() => setFocusedTile('devotion_card')}
+            className={`rounded-2xl p-5 min-h-[135px] flex flex-col justify-between transition-all duration-200 relative cursor-pointer ${
+              focusedTile === 'devotion_card'
+                ? 'border-2 border-[#38f2c8] ring-2 ring-amber-400 shadow-[0_10px_35px_rgba(245,158,11,0.35),0_0_25px_rgba(56,242,200,0.5)] scale-[1.03] z-20 bg-gradient-to-br from-[#3b270f]/95 via-[#231a0e]/95 to-[#0e161c]/95'
+                : 'border border-amber-400/40 shadow-[0_10px_30px_rgba(245,158,11,0.18)] bg-gradient-to-br from-[#2a1d0d]/95 via-[#1b140d]/90 to-[#0e161c]/95 hover:border-amber-400/70'
+            }`}
+          >
+            <TileFocusIndicator active={focusedTile === 'devotion_card'} label="DNA: DEVOTION" />
             <div className="leading-tight">
               <div className="text-xs uppercase font-bold text-amber-200/80">Fanbase</div>
               <div className="text-xs uppercase font-bold text-amber-200/80">Devotion</div>
@@ -1202,8 +1471,17 @@ export const ClubSelectScreen: React.FC = () => {
             </div>
           </div>
 
-          {/* Card 2: Youth Facilities (Warm Orange Glow) */}
-          <div className="rounded-2xl border border-orange-500/40 p-5 shadow-[0_10px_30px_rgba(249,115,22,0.16)] bg-gradient-to-br from-[#28150a]/95 via-[#1a110a]/90 to-[#0d151c]/95 min-h-[135px] flex flex-col justify-between">
+          {/* Card 2: Youth Facilities TILE */}
+          <div
+            onClick={() => setFocusedTile('youth_card')}
+            onMouseEnter={() => setFocusedTile('youth_card')}
+            className={`rounded-2xl p-5 min-h-[135px] flex flex-col justify-between transition-all duration-200 relative cursor-pointer ${
+              focusedTile === 'youth_card'
+                ? 'border-2 border-[#38f2c8] ring-2 ring-orange-500 shadow-[0_10px_35px_rgba(249,115,22,0.35),0_0_25px_rgba(56,242,200,0.5)] scale-[1.03] z-20 bg-gradient-to-br from-[#3a1d0d]/95 via-[#22160d]/95 to-[#0d151c]/95'
+                : 'border border-orange-500/40 shadow-[0_10px_30px_rgba(249,115,22,0.16)] bg-gradient-to-br from-[#28150a]/95 via-[#1a110a]/90 to-[#0d151c]/95 hover:border-orange-500/70'
+            }`}
+          >
+            <TileFocusIndicator active={focusedTile === 'youth_card'} label="DNA: YOUTH" />
             <div className="leading-tight">
               <div className="text-xs uppercase font-bold text-orange-200/80">Youth</div>
               <div className="text-xs uppercase font-bold text-orange-200/80">Facilities</div>
@@ -1213,8 +1491,17 @@ export const ClubSelectScreen: React.FC = () => {
             </div>
           </div>
 
-          {/* Card 3: Financial Stability (Deep Slate Blue Glow) */}
-          <div className="rounded-2xl border border-sky-500/35 p-5 shadow-[0_10px_30px_rgba(56,189,248,0.12)] bg-gradient-to-br from-[#0c2230]/95 via-[#091823]/90 to-[#07131a]/95 min-h-[135px] flex flex-col justify-between">
+          {/* Card 3: Financial Stability TILE */}
+          <div
+            onClick={() => setFocusedTile('stability_card')}
+            onMouseEnter={() => setFocusedTile('stability_card')}
+            className={`rounded-2xl p-5 min-h-[135px] flex flex-col justify-between transition-all duration-200 relative cursor-pointer ${
+              focusedTile === 'stability_card'
+                ? 'border-2 border-[#38f2c8] ring-2 ring-sky-400 shadow-[0_10px_35px_rgba(56,189,248,0.35),0_0_25px_rgba(56,242,200,0.5)] scale-[1.03] z-20 bg-gradient-to-br from-[#123146]/95 via-[#0d202e]/95 to-[#07131a]/95'
+                : 'border border-sky-500/35 shadow-[0_10px_30px_rgba(56,189,248,0.12)] bg-gradient-to-br from-[#0c2230]/95 via-[#091823]/90 to-[#07131a]/95 hover:border-sky-500/60'
+            }`}
+          >
+            <TileFocusIndicator active={focusedTile === 'stability_card'} label="DNA: FINANCES" />
             <div className="leading-tight">
               <div className="text-xs uppercase font-bold text-sky-200/80">Financial</div>
               <div className="text-xs uppercase font-bold text-sky-200/80">Stability</div>
@@ -1227,119 +1514,146 @@ export const ClubSelectScreen: React.FC = () => {
       </main>
 
       {/* =================================================================== */}
-      {/* BOTTOM CONTROLLER BUMPER & ACTION BAR (60% Keyboard Support)       */}
+      {/* BOTTOM ACTION BAR (Selectable Tiles & EA FC 27 Legend)              */}
       {/* =================================================================== */}
       <footer className="relative z-10 border-t border-white/10 bg-[#061016]/95 backdrop-blur-md px-8 lg:px-14 py-3 flex flex-wrap items-center justify-between gap-4">
-        {/* Left Console Gamepad & 60% Keyboard Action Prompts */}
-        <div className="flex flex-wrap items-center gap-5 text-xs font-black tracking-wide">
-          {/* Cross / Enter / Space / X: Advance */}
+        {/* Left Action Prompts (Selectable Tiles) */}
+        <div className="flex flex-wrap items-center gap-4 text-xs font-black tracking-wide">
+          {/* Tile: Advance */}
           <button
             type="button"
-            onClick={handleStart}
-            className="flex items-center gap-2 group text-white hover:text-[#38f2c8] transition-colors focus:outline-none"
-            title="Press [Space] or [Enter] or [X]"
+            onClick={() => {
+              setFocusedTile('btn_advance');
+              handleStart();
+            }}
+            onMouseEnter={() => setFocusedTile('btn_advance')}
+            className={`relative flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+              focusedTile === 'btn_advance'
+                ? 'bg-[#38f2c8] text-[#07131a] ring-2 ring-white shadow-[0_0_25px_rgba(56,242,200,0.8)] scale-105 font-black'
+                : 'text-white hover:text-[#38f2c8] bg-white/5'
+            }`}
+            title="Press [Space] to Advance"
           >
-            <span className="w-5 h-5 rounded-full bg-white/15 border border-white/30 flex items-center justify-center font-mono text-[11px] font-black group-hover:border-[#38f2c8]">
+            <span
+              className={`w-5 h-5 rounded-full flex items-center justify-center font-mono text-[11px] font-black ${
+                focusedTile === 'btn_advance' ? 'bg-[#07131a] text-[#38f2c8]' : 'bg-white/15'
+              }`}
+            >
               ✕
             </span>
-            <span className="uppercase tracking-wider font-extrabold">Advance</span>
-            <span className="rounded bg-white/10 px-1.5 py-0.5 text-[9px] font-mono-num font-bold text-[#38f2c8]">
-              Space / X
-            </span>
+            <span className="uppercase tracking-wider">Advance</span>
+            <TileFocusIndicator active={focusedTile === 'btn_advance'} label="START CAREER" />
           </button>
 
-          {/* Circle / B / Esc: Back or Resume */}
+          {/* Tile: Back / Resume */}
           {hasAutoSave ? (
             <button
               type="button"
-              onClick={() => resumeSavedCareer()}
-              className="flex items-center gap-2 text-white/80 hover:text-white transition-colors focus:outline-none"
-              title="Press [B] to Resume"
+              onClick={() => {
+                setFocusedTile('btn_back');
+                resumeSavedCareer();
+              }}
+              onMouseEnter={() => setFocusedTile('btn_back')}
+              className={`relative flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                focusedTile === 'btn_back'
+                  ? 'bg-white/20 text-white ring-2 ring-[#38f2c8] shadow-[0_0_20px_rgba(56,242,200,0.6)] scale-105'
+                  : 'text-white/80 hover:text-white bg-white/5'
+              }`}
+              title="Press [Space] or [B] to Resume Active Career"
             >
-              <span className="w-5 h-5 rounded-full bg-white/10 border border-white/20 flex items-center justify-center font-mono text-[11px] font-black">
+              <span className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center font-mono text-[11px] font-black">
                 ○
               </span>
               <span className="uppercase tracking-wider">Resume Active Career</span>
-              <span className="rounded bg-white/10 px-1.5 py-0.5 text-[9px] font-mono-num font-bold text-white/60">
-                B
-              </span>
+              <TileFocusIndicator active={focusedTile === 'btn_back'} label="RESUME" />
             </button>
           ) : (
-            <div className="flex items-center gap-2 text-white/50">
-              <span className="w-5 h-5 rounded-full bg-white/10 border border-white/20 flex items-center justify-center font-mono text-[11px] font-black">
+            <div
+              onClick={() => setFocusedTile('btn_back')}
+              className={`relative flex items-center gap-2 px-3 py-1.5 rounded-xl text-white/50 transition-all ${
+                focusedTile === 'btn_back'
+                  ? 'bg-white/10 ring-2 ring-[#38f2c8] shadow-[0_0_15px_rgba(56,242,200,0.4)] scale-105'
+                  : ''
+              }`}
+            >
+              <span className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center font-mono text-[11px] font-black">
                 ○
               </span>
               <span className="uppercase tracking-wider">Back</span>
-              <span className="rounded bg-white/10 px-1.5 py-0.5 text-[9px] font-mono-num font-bold text-white/40">
-                B / Esc
-              </span>
+              <TileFocusIndicator active={focusedTile === 'btn_back'} label="BACK" />
             </div>
           )}
 
-          {/* Square / F: Browse All Clubs Drawer */}
+          {/* Tile: Browse All Clubs */}
           <button
             type="button"
             onClick={() => {
+              setFocusedTile('btn_browse');
               setShowAllClubsModal(true);
               setModalFocusedIndex(0);
             }}
-            className="flex items-center gap-2 text-white/80 hover:text-[#38f2c8] transition-colors focus:outline-none"
-            title="Press [F] to browse all clubs"
+            onMouseEnter={() => setFocusedTile('btn_browse')}
+            className={`relative flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+              focusedTile === 'btn_browse'
+                ? 'bg-white/20 text-[#38f2c8] ring-2 ring-[#38f2c8] shadow-[0_0_25px_rgba(56,242,200,0.6)] scale-105 font-bold'
+                : 'text-white/80 hover:text-[#38f2c8] bg-white/5'
+            }`}
+            title="Press [Space] or [F] to browse all 96 clubs"
           >
-            <span className="w-5 h-5 rounded-md bg-white/10 border border-white/20 flex items-center justify-center font-mono text-[11px] font-black">
+            <span className="w-5 h-5 rounded-md bg-white/10 flex items-center justify-center font-mono text-[11px] font-black">
               □
             </span>
             <span className="uppercase tracking-wider">Browse All 96 Clubs</span>
-            <span className="rounded bg-white/10 px-1.5 py-0.5 text-[9px] font-mono-num font-bold text-white/60">
-              F
-            </span>
+            <TileFocusIndicator active={focusedTile === 'btn_browse'} label="ALL CLUBS" />
           </button>
 
-          {/* Triangle / T / Y: Swap / Random Club */}
+          {/* Tile: Swap Teams (Random) */}
           <button
             type="button"
             onClick={() => {
-              const allClubs = Object.values(database.clubs);
-              const rand = allClubs[Math.floor(Math.random() * allClubs.length)];
-              if (rand) {
-                const lIdx = LEAGUE_ORDER.indexOf(rand.leagueId);
-                if (lIdx >= 0) setSelectedLeagueIdx(lIdx);
-                setSelectedClubId(rand.id);
-              }
+              setFocusedTile('btn_random');
+              handleRandomClub();
             }}
-            className="flex items-center gap-2 text-white/80 hover:text-white transition-colors focus:outline-none"
-            title="Press [T] to pick a random club"
+            onMouseEnter={() => setFocusedTile('btn_random')}
+            className={`relative flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+              focusedTile === 'btn_random'
+                ? 'bg-white/20 text-[#38f2c8] ring-2 ring-[#38f2c8] shadow-[0_0_25px_rgba(56,242,200,0.6)] scale-105 font-bold'
+                : 'text-white/80 hover:text-white bg-white/5'
+            }`}
+            title="Press [Space] or [T] to pick a random club"
           >
-            <span className="w-5 h-5 rounded-md bg-white/10 border border-white/20 flex items-center justify-center font-mono text-[11px] font-black">
+            <span className="w-5 h-5 rounded-md bg-white/10 flex items-center justify-center font-mono text-[11px] font-black">
               △
             </span>
             <span className="uppercase tracking-wider">Swap Teams (Random)</span>
-            <span className="rounded bg-white/10 px-1.5 py-0.5 text-[9px] font-mono-num font-bold text-white/60">
-              T
-            </span>
+            <TileFocusIndicator active={focusedTile === 'btn_random'} label="RANDOM" />
           </button>
         </div>
 
-        {/* Right 60% Keyboard Quick Map + Online Status */}
+        {/* Right Active Spatial Selector Status Legend */}
         <div className="flex items-center gap-3 text-xs font-mono-num text-white/70">
-          <div className="hidden xl:flex items-center gap-1.5 rounded-full bg-white/5 border border-white/10 px-3 py-1 text-[11px]">
-            <Keyboard className="w-3.5 h-3.5 text-[#38f2c8]" />
-            <span className="text-white/80 font-bold">60% KEYS:</span>
-            <span className="text-[#38f2c8] font-black">[A / D]</span> Club
-            <span className="text-white/30">|</span>
-            <span className="text-[#38f2c8] font-black">[W / S]</span> Country
-            <span className="text-white/30">|</span>
-            <span className="text-[#38f2c8] font-black">[R]</span> Kit
+          <div className="flex items-center gap-2 rounded-full bg-[#38f2c8]/10 border border-[#38f2c8]/40 px-3 py-1 text-[11px] text-[#38f2c8] shadow-[0_0_15px_rgba(56,242,200,0.2)]">
+            <Keyboard className="w-3.5 h-3.5 animate-pulse" />
+            <span className="font-extrabold uppercase tracking-wide">
+              [WASD] MOVE SELECTOR
+            </span>
+            <span className="text-white/40">|</span>
+            <span className="text-white font-bold">[SPACE] ACTIVATE</span>
+            <span className="text-white/40">|</span>
+            <span className="text-white font-bold">[Q / E] CLUB</span>
           </div>
-          <span className="text-white/30">|</span>
           <span className="text-[#38f2c8] font-bold">● ONLINE</span>
-          <span className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-bold text-white/80">R2</span>
-          <span className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-bold text-white/80">L2</span>
+          <span className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-bold text-white/80">
+            R2
+          </span>
+          <span className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-bold text-white/80">
+            L2
+          </span>
         </div>
       </footer>
 
       {/* =================================================================== */}
-      {/* BROWSE ALL 96 CLUBS DRAWER MODAL (60% Keyboard Enabled)             */}
+      {/* BROWSE ALL 96 CLUBS DRAWER MODAL (With Active WASD Selector)        */}
       {/* =================================================================== */}
       {showAllClubsModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto">
@@ -1350,7 +1664,9 @@ export const ClubSelectScreen: React.FC = () => {
                   Select Any European Club (96 Clubs Available)
                 </h3>
                 <p className="text-xs text-[#8ea5b3] mt-0.5">
-                  Navigate with <span className="text-[#38f2c8] font-bold">[W / A / S / D]</span>, confirm with <span className="text-[#38f2c8] font-bold">[Space / Enter]</span>, close with <span className="text-white/80 font-bold">[Esc / B]</span>
+                  Move selector with <span className="text-[#38f2c8] font-bold">[W / A / S / D]</span>, confirm with{' '}
+                  <span className="text-[#38f2c8] font-bold">[Space / Enter]</span>, close with{' '}
+                  <span className="text-white/80 font-bold">[Esc / B]</span>
                 </p>
               </div>
               <button
@@ -1379,7 +1695,7 @@ export const ClubSelectScreen: React.FC = () => {
               />
             </div>
 
-            {/* Club Grid */}
+            {/* Club Grid with Active Glowing Selector Box */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 max-h-[55vh] overflow-y-auto pr-1">
               {filteredModalClubs.map((club, idx) => {
                 const isSel = club.id === selectedClub.id;
@@ -1396,13 +1712,14 @@ export const ClubSelectScreen: React.FC = () => {
                     }}
                     onMouseEnter={() => setModalFocusedIndex(idx)}
                     className={`p-3 rounded-xl border flex flex-col items-center text-center gap-2 transition-all relative ${
-                      isSel
-                        ? 'fc-panel-active border-[#38f2c8] shadow-[0_0_15px_rgba(56,242,200,0.3)]'
-                        : isFocused
-                        ? 'bg-white/15 border-white/40 scale-[1.02]'
+                      isFocused
+                        ? 'border-2 border-[#38f2c8] ring-2 ring-[#38f2c8]/80 shadow-[0_0_25px_rgba(56,242,200,0.55)] scale-[1.04] bg-white/15 z-10'
+                        : isSel
+                        ? 'fc-panel-active border-[#38f2c8]/60 shadow-[0_0_15px_rgba(56,242,200,0.3)]'
                         : 'bg-[#0a1822]/80 border-white/8 hover:bg-white/10'
                     }`}
                   >
+                    <TileFocusIndicator active={isFocused} label="SELECT" />
                     <ClubCrest club={club} size={42} />
                     <div className="font-bold text-xs text-white truncate max-w-[140px]">
                       {club.name}
