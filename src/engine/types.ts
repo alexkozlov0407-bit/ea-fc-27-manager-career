@@ -226,6 +226,7 @@ export interface Club {
   slug: string;
   leagueId: number;
   isLaLiga: boolean;
+  crestUrl?: string;
   primaryColor: string;
   secondaryColor: string;
   managerName: string;

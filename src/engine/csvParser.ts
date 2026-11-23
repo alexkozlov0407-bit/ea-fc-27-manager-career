@@ -1,3 +1,4 @@
+import clubCrestsMap from './clubCrests.json';
 import {
   buildLineupForFormation,
   calculateCardFacets,
@@ -702,6 +703,7 @@ export function parseCareerDatabaseFromCsv(csvText: string): ParsedDatabase {
         slug: getStr(r, 'info.teams.club_team.slug', clubName.toLowerCase().replace(/\s+/g, '-')),
         leagueId: clubLeagueId,
         isLaLiga,
+        crestUrl: (clubCrestsMap as Record<string, string>)[String(clubId)] || undefined,
         primaryColor: meta?.primary ?? pCol,
         secondaryColor: meta?.secondary ?? sCol,
         managerName: meta?.manager ?? EXTERNAL_MANAGERS[h % EXTERNAL_MANAGERS.length],

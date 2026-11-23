@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import clubCrestsMap from '../engine/clubCrests.json';
 import { Club, Player, Position } from '../engine/types';
 
 interface PlayerAvatarProps {
@@ -59,17 +60,44 @@ export const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
 };
 
 interface ClubCrestProps {
-  club?: Pick<Club, 'name' | 'shortName' | 'primaryColor' | 'secondaryColor'> | null;
+  club?: {
+    id?: number;
+    name?: string;
+    shortName?: string;
+    primaryColor?: string;
+    secondaryColor?: string;
+    crestUrl?: string;
+  } | null;
   size?: number;
   className?: string;
 }
 
 export const ClubCrest: React.FC<ClubCrestProps> = ({ club, size = 32, className = '' }) => {
+  const [imgFailed, setImgFailed] = useState(false);
   const primary = club?.primaryColor ?? '#10b981';
   const secondary = club?.secondaryColor ?? '#0f172a';
   const label = club?.shortName ?? 'FC';
   const isLightPrimary = primary.toLowerCase() === '#f4f5f7' || primary.toLowerCase() === '#f5f5f5' || primary.toLowerCase() === '#f5d423';
   const textColor = isLightPrimary ? '#0b1320' : '#ffffff';
+
+  const crestUrl = club?.crestUrl || (club?.id ? (clubCrestsMap as Record<string, string>)[String(club.id)] : undefined);
+
+  if (crestUrl && !imgFailed) {
+    return (
+      <div
+        className={`relative shrink-0 flex items-center justify-center select-none ${className}`}
+        style={{ width: size, height: size }}
+      >
+        <img
+          src={crestUrl}
+          alt={club?.name ?? 'Club crest'}
+          loading="lazy"
+          onError={() => setImgFailed(true)}
+          className="w-full h-full object-contain drop-shadow"
+        />
+      </div>
+    );
+  }
 
   return (
     <svg
