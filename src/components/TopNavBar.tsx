@@ -35,6 +35,12 @@ export const TopNavBar: React.FC = () => {
         e.preventDefault();
         const nextIdx = (currentIdx + 1) % NAV_TABS.length;
         setActiveTab(NAV_TABS[nextIdx]);
+      } else if (['1', '2', '3', '4', '5', '6', '7', '8'].includes(e.key)) {
+        const numIdx = parseInt(e.key, 10) - 1;
+        if (numIdx >= 0 && numIdx < NAV_TABS.length) {
+          e.preventDefault();
+          setActiveTab(NAV_TABS[numIdx]);
+        }
       }
     };
 

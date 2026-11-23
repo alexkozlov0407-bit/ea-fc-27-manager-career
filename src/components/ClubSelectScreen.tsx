@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
+  Keyboard,
   Search,
   Star,
   Trophy,
@@ -296,6 +297,124 @@ const CLUB_TROPHIES: Record<string, { leagues: number; cups: number }> = {
   'Stade de Reims': { leagues: 6, cups: 2 },
 };
 
+// ============================================================================
+// REALISTIC CLUB DNA PROFILES (Fanbase Devotion, Youth Facilities, Financial Stability)
+// ============================================================================
+export interface ClubDNA {
+  devotion: 'VERY HIGH' | 'HIGH' | 'MEDIUM' | 'LOW';
+  youth: 'VERY HIGH' | 'HIGH' | 'MEDIUM' | 'LOW';
+  stability: 'VERY HIGH' | 'HIGH' | 'MODERATE' | 'LOW' | 'VERY LOW';
+}
+
+const CLUB_DNA_PROFILES: Record<string, ClubDNA> = {
+  // Spain (LaLiga)
+  'FC Barcelona': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'MODERATE' }, // La Masia (Yamal, Gavi, Cubarsí), debt/salary cap
+  'Real Madrid': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'VERY HIGH' }, // La Fábrica, top world revenue
+  'Athletic Club': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'HIGH' }, // Lezama (100% Basque cantera policy), zero net debt
+  'Atlético de Madrid': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' },
+  'Real Sociedad': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'HIGH' }, // Zubieta (Zubimendi, Oyarzabal)
+  'Valencia CF': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'MODERATE' }, // Paterna (Ferran, Gaya, Soler)
+  'Villarreal CF': { devotion: 'HIGH', youth: 'VERY HIGH', stability: 'HIGH' }, // Miralcamp (Rodri, Pau Torres, Baena)
+  'Sevilla FC': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'MODERATE' },
+  'Real Betis': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' },
+  'Girona FC': { devotion: 'HIGH', youth: 'MEDIUM', stability: 'HIGH' },
+  'RC Celta': { devotion: 'HIGH', youth: 'HIGH', stability: 'MODERATE' },
+  'RCD Espanyol': { devotion: 'HIGH', youth: 'HIGH', stability: 'MODERATE' },
+  'CA Osasuna': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'MODERATE' },
+  'Deportivo Alavés': { devotion: 'HIGH', youth: 'MEDIUM', stability: 'MODERATE' },
+  'Rayo Vallecano': { devotion: 'VERY HIGH', youth: 'MEDIUM', stability: 'LOW' },
+  'Getafe CF': { devotion: 'MEDIUM', youth: 'MEDIUM', stability: 'MODERATE' },
+  'RCD Mallorca': { devotion: 'HIGH', youth: 'MEDIUM', stability: 'MODERATE' },
+  'UD Las Palmas': { devotion: 'HIGH', youth: 'HIGH', stability: 'LOW' },
+  'Real Valladolid': { devotion: 'HIGH', youth: 'MEDIUM', stability: 'LOW' },
+  'CD Leganés': { devotion: 'MEDIUM', youth: 'LOW', stability: 'LOW' },
+
+  // England (Premier League)
+  Arsenal: { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'HIGH' }, // Hale End (Saka, Nwaneri)
+  'Manchester City': { devotion: 'HIGH', youth: 'VERY HIGH', stability: 'VERY HIGH' }, // City Football Academy (Foden, Palmer, Lewis)
+  Liverpool: { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'VERY HIGH' }, // Kirkby (Alexander-Arnold, Bradley, Jones)
+  'Manchester United': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'HIGH' }, // Carrington (Mainoo, Garnacho, Rashford)
+  Chelsea: { devotion: 'HIGH', youth: 'VERY HIGH', stability: 'HIGH' }, // Cobham (James, Colwill, Mount)
+  'Tottenham Hotspur': { devotion: 'HIGH', youth: 'HIGH', stability: 'VERY HIGH' }, // World-class stadium matchday revenues
+  'Aston Villa': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' },
+  'Newcastle United': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'VERY HIGH' }, // PIF backing, 0 net debt
+  Everton: { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'LOW' },
+  'West Ham United': { devotion: 'HIGH', youth: 'HIGH', stability: 'HIGH' }, // Academy of Football (Rice, Ferdinand)
+  'Brighton & Hove Albion': { devotion: 'HIGH', youth: 'VERY HIGH', stability: 'VERY HIGH' }, // Elite analytics & academy
+  'Wolverhampton Wanderers': { devotion: 'HIGH', youth: 'MEDIUM', stability: 'MODERATE' },
+  'AFC Bournemouth': { devotion: 'HIGH', youth: 'MEDIUM', stability: 'HIGH' },
+  Bournemouth: { devotion: 'HIGH', youth: 'MEDIUM', stability: 'HIGH' },
+  Brentford: { devotion: 'HIGH', youth: 'MEDIUM', stability: 'HIGH' },
+  'Crystal Palace': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' }, // South London talent
+  Fulham: { devotion: 'HIGH', youth: 'MEDIUM', stability: 'HIGH' },
+  'Nottingham Forest': { devotion: 'VERY HIGH', youth: 'MEDIUM', stability: 'MODERATE' },
+  'Leicester City': { devotion: 'HIGH', youth: 'MEDIUM', stability: 'MODERATE' },
+  Southampton: { devotion: 'HIGH', youth: 'VERY HIGH', stability: 'MODERATE' }, // Staplewood (Bale, Walcott, Ward-Prowse)
+  'Ipswich Town': { devotion: 'VERY HIGH', youth: 'MEDIUM', stability: 'MODERATE' },
+
+  // Germany (Bundesliga)
+  'FC Bayern München': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'VERY HIGH' }, // FC Bayern Campus, 30+ yrs profit
+  'Borussia Dortmund': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'HIGH' }, // Yellow Wall, Brackel academy
+  'Bayer 04 Leverkusen': { devotion: 'HIGH', youth: 'HIGH', stability: 'VERY HIGH' }, // Bayer AG backing
+  'RB Leipzig': { devotion: 'HIGH', youth: 'HIGH', stability: 'VERY HIGH' }, // Red Bull network
+  'VfB Stuttgart': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'HIGH' }, // VfB Jugendakademie (Kimmich, Werner, Gnabry)
+  'Eintracht Frankfurt': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' },
+  'SC Freiburg': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'HIGH' }, // Sustainable academy model
+  'Borussia Mönchengladbach': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'MODERATE' },
+  'SV Werder Bremen': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'MODERATE' },
+  '1. FC Union Berlin': { devotion: 'VERY HIGH', youth: 'MEDIUM', stability: 'MODERATE' },
+  'FC St. Pauli': { devotion: 'VERY HIGH', youth: 'MEDIUM', stability: 'MODERATE' },
+  'VfL Wolfsburg': { devotion: 'MEDIUM', youth: 'HIGH', stability: 'VERY HIGH' },
+  '1. FSV Mainz 05': { devotion: 'HIGH', youth: 'HIGH', stability: 'HIGH' },
+  'FC Augsburg': { devotion: 'HIGH', youth: 'MEDIUM', stability: 'HIGH' },
+  'TSG 1899 Hoffenheim': { devotion: 'MEDIUM', youth: 'HIGH', stability: 'HIGH' },
+  '1. FC Heidenheim 1846': { devotion: 'HIGH', youth: 'MEDIUM', stability: 'MODERATE' },
+  'VfL Bochum 1848': { devotion: 'VERY HIGH', youth: 'MEDIUM', stability: 'LOW' },
+  'Holstein Kiel': { devotion: 'HIGH', youth: 'LOW', stability: 'LOW' },
+
+  // Italy (Serie A)
+  Juventus: { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' }, // Next Gen project
+  'FC Internazionale Milano': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' },
+  'AC Milan': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' }, // RedBird debt-free
+  'SSC Napoli': { devotion: 'VERY HIGH', youth: 'MEDIUM', stability: 'HIGH' }, // Zero debt
+  'AS Roma': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' }, // Trigoria heritage
+  'SS Lazio': { devotion: 'VERY HIGH', youth: 'MEDIUM', stability: 'MODERATE' },
+  'Atalanta BC': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'HIGH' }, // Zingonia Academy (Bastoni, Scalvini)
+  'ACF Fiorentina': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' }, // Viola Park
+  'Bologna FC 1909': { devotion: 'HIGH', youth: 'HIGH', stability: 'HIGH' },
+  'Torino FC': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'MODERATE' },
+  'Genoa CFC': { devotion: 'VERY HIGH', youth: 'MEDIUM', stability: 'MODERATE' },
+  'Udinese Calcio': { devotion: 'HIGH', youth: 'HIGH', stability: 'HIGH' },
+  'Parma Calcio 1913': { devotion: 'HIGH', youth: 'HIGH', stability: 'HIGH' },
+  'Como 1907': { devotion: 'HIGH', youth: 'MEDIUM', stability: 'VERY HIGH' }, // Djarum Group
+  'Cagliari Calcio': { devotion: 'VERY HIGH', youth: 'MEDIUM', stability: 'MODERATE' },
+  'Hellas Verona FC': { devotion: 'HIGH', youth: 'MEDIUM', stability: 'LOW' },
+  'US Lecce': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'MODERATE' },
+  'Empoli FC': { devotion: 'HIGH', youth: 'VERY HIGH', stability: 'MODERATE' }, // Tuscan youth factory
+  'AC Monza': { devotion: 'HIGH', youth: 'MEDIUM', stability: 'HIGH' },
+  'Venezia FC': { devotion: 'HIGH', youth: 'MEDIUM', stability: 'MODERATE' },
+
+  // France (Ligue 1)
+  'Paris Saint-Germain': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'VERY HIGH' }, // Campus Poissy, QSI
+  'Olympique de Marseille': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' }, // Vélodrome 65k
+  'Olympique Lyonnais': { devotion: 'VERY HIGH', youth: 'VERY HIGH', stability: 'MODERATE' }, // OL Academy (Benzema, Cherki, Barcola)
+  'AS Monaco': { devotion: 'MEDIUM', youth: 'VERY HIGH', stability: 'HIGH' }, // La Diagonale (Mbappé, Henry)
+  'LOSC Lille': { devotion: 'HIGH', youth: 'HIGH', stability: 'HIGH' }, // Hazard, Pavard, Yoro
+  'Stade Rennais FC': { devotion: 'HIGH', youth: 'VERY HIGH', stability: 'HIGH' }, // La Piverdière (Camavinga, Dembélé, Doué)
+  'OGC Nice': { devotion: 'HIGH', youth: 'HIGH', stability: 'VERY HIGH' },
+  'RC Lens': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' },
+  'RC Strasbourg Alsace': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' },
+  'Stade de Reims': { devotion: 'HIGH', youth: 'HIGH', stability: 'HIGH' },
+  'Toulouse FC': { devotion: 'HIGH', youth: 'HIGH', stability: 'HIGH' },
+  'Montpellier HSC': { devotion: 'HIGH', youth: 'HIGH', stability: 'MODERATE' },
+  'FC Nantes': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'MODERATE' },
+  'Stade Brestois 29': { devotion: 'VERY HIGH', youth: 'MEDIUM', stability: 'MODERATE' },
+  'AJ Auxerre': { devotion: 'HIGH', youth: 'HIGH', stability: 'MODERATE' },
+  'Angers SCO': { devotion: 'MEDIUM', youth: 'MEDIUM', stability: 'LOW' },
+  'AS Saint-Étienne': { devotion: 'VERY HIGH', youth: 'HIGH', stability: 'HIGH' },
+  'Le Havre AC': { devotion: 'HIGH', youth: 'VERY HIGH', stability: 'MODERATE' }, // Cavée Verte (Pogba, Mahrez)
+};
+
 function getClubCity(name: string): string {
   if (CLUB_CITY[name]) return CLUB_CITY[name];
   for (const [key, city] of Object.entries(CLUB_CITY)) {
@@ -339,7 +458,15 @@ function getClubStature(prestige: number): string {
   return 'AN ESTABLISHED PROFESSIONAL CLUB WELL-KNOWN AT LOCAL LEVEL.';
 }
 
-function getClubDNA(club: Club) {
+function getClubDNA(club: Club): ClubDNA {
+  if (CLUB_DNA_PROFILES[club.name]) return CLUB_DNA_PROFILES[club.name];
+  for (const [key, profile] of Object.entries(CLUB_DNA_PROFILES)) {
+    if (club.name.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(club.name.toLowerCase())) {
+      return profile;
+    }
+  }
+
+  // Realistic fallback based on club data
   const devotion =
     club.domesticPrestige >= 8
       ? 'VERY HIGH'
@@ -348,8 +475,16 @@ function getClubDNA(club: Club) {
       : club.domesticPrestige >= 4
       ? 'MEDIUM'
       : 'LOW';
+
   const youth =
-    club.domesticPrestige >= 7 ? 'HIGH' : club.domesticPrestige >= 4 ? 'MEDIUM' : 'LOW';
+    club.domesticPrestige >= 8
+      ? 'VERY HIGH'
+      : club.domesticPrestige >= 6
+      ? 'HIGH'
+      : club.domesticPrestige >= 4
+      ? 'MEDIUM'
+      : 'LOW';
+
   const stability =
     club.transferBudgetEur >= 80_000_000
       ? 'VERY HIGH'
@@ -357,6 +492,8 @@ function getClubDNA(club: Club) {
       ? 'HIGH'
       : club.transferBudgetEur >= 12_000_000
       ? 'MODERATE'
+      : club.transferBudgetEur >= 4_000_000
+      ? 'LOW'
       : 'VERY LOW';
 
   return { devotion, youth, stability };
@@ -429,6 +566,7 @@ export const ClubSelectScreen: React.FC = () => {
   const [kitType, setKitType] = useState<'HOME' | 'AWAY' | 'THIRD'>('HOME');
   const [showAllClubsModal, setShowAllClubsModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [modalFocusedIndex, setModalFocusedIndex] = useState(0);
   const [energyRecovery, setEnergyRecovery] = useState<EnergyRecoveryPolicy>('Balanced');
   const [currency, setCurrency] = useState<CurrencyCode>('USD');
 
@@ -522,33 +660,159 @@ export const ClubSelectScreen: React.FC = () => {
     startNewCareer(selectedClub.id, { energyRecovery, currency });
   };
 
-  // Keyboard navigation matching gamepad D-Pad / LB / RB / Enter
+  const filteredModalClubs = useMemo(() => {
+    if (!database) return [];
+    return Object.values(database.clubs).filter((c) =>
+      searchQuery.trim() === ''
+        ? true
+        : c.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [database, searchQuery]);
+
+  // ==========================================================================
+  // COMPREHENSIVE 60% KEYBOARD CONTROLLER (NO ARROW KEYS REQUIRED)
+  // [A / D] Previous / Next Club
+  // [W / S] Previous / Next Country / League
+  // [Q / E] L1 / R1 Bumpers (Country switch)
+  // [R] Cycle Kit (Home / Away / Third)
+  // [Space / Enter / X] Advance / Confirm
+  // [B / Escape] Back / Close Modal
+  // [F] Browse All 96 Clubs Modal
+  // [T / Y] Swap Teams / Random Club
+  // [1] Men's Teams | [2] Women's Teams
+  // ==========================================================================
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement)?.tagName;
-      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+      const activeEl = document.activeElement as HTMLElement | null;
+      const isInputFocused =
+        activeEl?.tagName === 'INPUT' ||
+        activeEl?.tagName === 'SELECT' ||
+        activeEl?.tagName === 'TEXTAREA';
 
-      if (e.key === 'ArrowLeft') {
+      // Escape always closes modal or deselects input
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        if (showAllClubsModal) {
+          setShowAllClubsModal(false);
+          return;
+        }
+        if (isInputFocused) {
+          activeEl?.blur();
+          return;
+        }
+      }
+
+      // If user is currently typing in search input, do not intercept letters
+      if (isInputFocused) {
+        if (e.key === 'Enter' && showAllClubsModal && filteredModalClubs.length > 0) {
+          e.preventDefault();
+          const targetClub = filteredModalClubs[modalFocusedIndex] || filteredModalClubs[0];
+          if (targetClub) {
+            const lIdx = LEAGUE_ORDER.indexOf(targetClub.leagueId);
+            if (lIdx >= 0) setSelectedLeagueIdx(lIdx);
+            setSelectedClubId(targetClub.id);
+            setShowAllClubsModal(false);
+          }
+        }
+        return;
+      }
+
+      const key = e.key.toLowerCase();
+
+      // Modal navigation with 60% keys
+      if (showAllClubsModal) {
+        const total = filteredModalClubs.length;
+        if (total === 0) return;
+
+        if (key === 'a') {
+          e.preventDefault();
+          setModalFocusedIndex((prev) => (prev - 1 + total) % total);
+        } else if (key === 'd') {
+          e.preventDefault();
+          setModalFocusedIndex((prev) => (prev + 1) % total);
+        } else if (key === 'w') {
+          e.preventDefault();
+          setModalFocusedIndex((prev) => (prev - 4 + total) % total);
+        } else if (key === 's') {
+          e.preventDefault();
+          setModalFocusedIndex((prev) => (prev + 4) % total);
+        } else if (key === 'enter' || key === ' ' || key === 'x') {
+          e.preventDefault();
+          const targetClub = filteredModalClubs[modalFocusedIndex] || filteredModalClubs[0];
+          if (targetClub) {
+            const lIdx = LEAGUE_ORDER.indexOf(targetClub.leagueId);
+            if (lIdx >= 0) setSelectedLeagueIdx(lIdx);
+            setSelectedClubId(targetClub.id);
+            setShowAllClubsModal(false);
+          }
+        } else if (key === 'b') {
+          e.preventDefault();
+          setShowAllClubsModal(false);
+        }
+        return;
+      }
+
+      // Main Screen 60% Keyboard Navigation
+      if (key === 'a' || e.key === 'ArrowLeft') {
         e.preventDefault();
         prevClub();
-      } else if (e.key === 'ArrowRight') {
+      } else if (key === 'd' || e.key === 'ArrowRight') {
         e.preventDefault();
         nextClub();
-      } else if (e.key === 'ArrowUp' || e.key === 'q' || e.key === 'Q') {
+      } else if (key === 'w' || key === 'q' || e.key === 'ArrowUp') {
         e.preventDefault();
         prevLeague();
-      } else if (e.key === 'ArrowDown' || e.key === 'e' || e.key === 'E') {
+      } else if (key === 's' || key === 'e' || e.key === 'ArrowDown') {
         e.preventDefault();
         nextLeague();
-      } else if (e.key === 'Enter') {
+      } else if (key === 'r') {
+        e.preventDefault();
+        cycleKit();
+      } else if (key === 'x' || key === 'enter' || key === ' ') {
         e.preventDefault();
         handleStart();
+      } else if (key === 'b') {
+        e.preventDefault();
+        if (hasAutoSave) {
+          resumeSavedCareer();
+        }
+      } else if (key === 'f') {
+        e.preventDefault();
+        setShowAllClubsModal(true);
+        setModalFocusedIndex(0);
+      } else if (key === 't' || key === 'y') {
+        e.preventDefault();
+        if (database) {
+          const allClubs = Object.values(database.clubs);
+          const rand = allClubs[Math.floor(Math.random() * allClubs.length)];
+          if (rand) {
+            const lIdx = LEAGUE_ORDER.indexOf(rand.leagueId);
+            if (lIdx >= 0) setSelectedLeagueIdx(lIdx);
+            setSelectedClubId(rand.id);
+          }
+        }
+      } else if (key === '1') {
+        e.preventDefault();
+        setIsMensTeam(true);
+      } else if (key === '2') {
+        e.preventDefault();
+        setIsMensTeam(false);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  });
+  }, [
+    showAllClubsModal,
+    filteredModalClubs,
+    modalFocusedIndex,
+    currentClubIndex,
+    clubsInCurrentLeague,
+    selectedLeagueIdx,
+    hasAutoSave,
+    database,
+    selectedClub,
+  ]);
 
   if (!database || !selectedClub || !clubStats) return null;
 
@@ -579,6 +843,7 @@ export const ClubSelectScreen: React.FC = () => {
             type="button"
             onClick={() => setIsMensTeam(true)}
             className="flex items-center gap-2 group cursor-pointer focus:outline-none"
+            title="Press [1] for Men's Teams"
           >
             <span
               className={`w-4 h-4 rounded-full flex items-center justify-center border transition-all ${
@@ -596,6 +861,9 @@ export const ClubSelectScreen: React.FC = () => {
             >
               Men's Teams
             </span>
+            <span className="rounded bg-white/10 px-1 py-0.5 text-[9px] font-mono-num font-bold text-white/50">
+              1
+            </span>
           </button>
 
           {/* Women's Teams Toggle Pill */}
@@ -603,6 +871,7 @@ export const ClubSelectScreen: React.FC = () => {
             type="button"
             onClick={() => setIsMensTeam(false)}
             className="flex items-center gap-2 group cursor-pointer focus:outline-none"
+            title="Press [2] for Women's Teams"
           >
             <span
               className={`w-4 h-4 rounded-full flex items-center justify-center border transition-all ${
@@ -620,18 +889,24 @@ export const ClubSelectScreen: React.FC = () => {
             >
               Women's Teams
             </span>
+            <span className="rounded bg-white/10 px-1 py-0.5 text-[9px] font-mono-num font-bold text-white/50">
+              2
+            </span>
           </button>
         </div>
 
-        {/* Selected Country Title with Prev / Next Arrow Switcher */}
+        {/* Selected Country Title with Prev / Next Arrow Switcher & 60% Keyboard Hints */}
         <div className="mt-3 flex items-center gap-2">
           <button
             type="button"
             onClick={prevLeague}
-            className="p-1 text-white/50 hover:text-white transition-colors"
-            title="Previous Country (Q / Up)"
+            className="p-1 text-white/50 hover:text-white transition-colors flex items-center gap-1 group"
+            title="Previous Country [W / Q]"
           >
             <ChevronLeft className="w-5 h-5" />
+            <span className="hidden sm:inline-block rounded bg-white/10 px-1 py-0.2 text-[9px] font-mono-num font-bold text-white/60 group-hover:text-white">
+              W
+            </span>
           </button>
           <h2 className="font-display text-2xl font-black uppercase tracking-wide text-white">
             {currentLeagueMeta.country}
@@ -639,9 +914,12 @@ export const ClubSelectScreen: React.FC = () => {
           <button
             type="button"
             onClick={nextLeague}
-            className="p-1 text-white/50 hover:text-white transition-colors"
-            title="Next Country (E / Down)"
+            className="p-1 text-white/50 hover:text-white transition-colors flex items-center gap-1 group"
+            title="Next Country [S / E]"
           >
+            <span className="hidden sm:inline-block rounded bg-white/10 px-1 py-0.2 text-[9px] font-mono-num font-bold text-white/60 group-hover:text-white">
+              S
+            </span>
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
@@ -662,21 +940,24 @@ export const ClubSelectScreen: React.FC = () => {
               {selectedClub.name}
             </h3>
 
-            {/* Crest with Left / Right Navigation Chevrons */}
+            {/* Crest with Left / Right Navigation Chevrons + 60% Badges */}
             <div className="my-6 flex items-center justify-between gap-3">
               <button
                 type="button"
                 onClick={prevClub}
-                className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center text-white transition-all transform hover:scale-110 active:scale-95 shadow"
-                title="Previous Club (Left Arrow)"
+                className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 flex flex-col items-center justify-center text-white transition-all transform hover:scale-110 active:scale-95 shadow group relative"
+                title="Previous Club [A]"
               >
                 <ChevronLeft className="w-6 h-6" />
+                <span className="absolute -bottom-2 rounded bg-black/60 border border-white/20 px-1 text-[8px] font-mono-num font-bold text-[#38f2c8]">
+                  A
+                </span>
               </button>
 
               <div
                 className="cursor-pointer group relative transform transition-transform duration-300 hover:scale-105"
                 onClick={() => setShowAllClubsModal(true)}
-                title="Click to browse all clubs"
+                title="Click or press [F] to browse all clubs"
               >
                 <ClubCrest club={selectedClub} size={150} className="drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)]" />
               </div>
@@ -684,10 +965,13 @@ export const ClubSelectScreen: React.FC = () => {
               <button
                 type="button"
                 onClick={nextClub}
-                className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center text-white transition-all transform hover:scale-110 active:scale-95 shadow"
-                title="Next Club (Right Arrow)"
+                className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 flex flex-col items-center justify-center text-white transition-all transform hover:scale-110 active:scale-95 shadow group relative"
+                title="Next Club [D]"
               >
                 <ChevronRight className="w-6 h-6" />
+                <span className="absolute -bottom-2 rounded bg-black/60 border border-white/20 px-1 text-[8px] font-mono-num font-bold text-[#38f2c8]">
+                  D
+                </span>
               </button>
             </div>
 
@@ -726,7 +1010,8 @@ export const ClubSelectScreen: React.FC = () => {
             <button
               type="button"
               onClick={prevLeague}
-              className="text-white/40 hover:text-white transition-colors"
+              className="text-white/40 hover:text-white transition-colors flex items-center gap-1"
+              title="Previous Country [W / Q]"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -736,7 +1021,8 @@ export const ClubSelectScreen: React.FC = () => {
             <button
               type="button"
               onClick={nextLeague}
-              className="text-white/40 hover:text-white transition-colors"
+              className="text-white/40 hover:text-white transition-colors flex items-center gap-1"
+              title="Next Country [S / E]"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -751,6 +1037,7 @@ export const ClubSelectScreen: React.FC = () => {
           <div
             onClick={cycleKit}
             className="rounded-2xl bg-[#091a24]/90 border border-white/10 p-5 flex flex-col justify-between min-h-[260px] cursor-pointer group hover:border-[#38f2c8]/40 transition-colors"
+            title="Click or press [R] to cycle kit"
           >
             <div>
               <div className="text-[10px] uppercase tracking-widest text-[#8ea5b3] font-bold">
@@ -772,8 +1059,8 @@ export const ClubSelectScreen: React.FC = () => {
 
             {/* < R > Carousel Dots */}
             <div className="flex items-center justify-center gap-2 pt-2 border-t border-white/10 text-xs text-[#8ea5b3]">
-              <span className="px-1.5 py-0.2 rounded bg-white/10 text-[9px] font-mono-num font-bold text-white">
-                R
+              <span className="px-1.5 py-0.2 rounded bg-white/15 text-[9px] font-mono-num font-bold text-[#38f2c8] border border-white/20">
+                [R] Cycle
               </span>
               <div className="flex items-center gap-1.5">
                 {(['HOME', 'AWAY', 'THIRD'] as const).map((kt) => (
@@ -940,34 +1227,42 @@ export const ClubSelectScreen: React.FC = () => {
       </main>
 
       {/* =================================================================== */}
-      {/* BOTTOM CONTROLLER BUMPER & ACTION BAR (1:1 with image (9).png)     */}
+      {/* BOTTOM CONTROLLER BUMPER & ACTION BAR (60% Keyboard Support)       */}
       {/* =================================================================== */}
-      <footer className="relative z-10 border-t border-white/10 bg-[#061016]/95 backdrop-blur-md px-8 lg:px-14 py-3.5 flex flex-wrap items-center justify-between gap-4">
-        {/* Left Console Gamepad Action Prompts */}
-        <div className="flex flex-wrap items-center gap-6 text-xs font-black tracking-wide">
-          {/* Cross: Advance */}
+      <footer className="relative z-10 border-t border-white/10 bg-[#061016]/95 backdrop-blur-md px-8 lg:px-14 py-3 flex flex-wrap items-center justify-between gap-4">
+        {/* Left Console Gamepad & 60% Keyboard Action Prompts */}
+        <div className="flex flex-wrap items-center gap-5 text-xs font-black tracking-wide">
+          {/* Cross / Enter / Space / X: Advance */}
           <button
             type="button"
             onClick={handleStart}
             className="flex items-center gap-2 group text-white hover:text-[#38f2c8] transition-colors focus:outline-none"
+            title="Press [Space] or [Enter] or [X]"
           >
             <span className="w-5 h-5 rounded-full bg-white/15 border border-white/30 flex items-center justify-center font-mono text-[11px] font-black group-hover:border-[#38f2c8]">
               ✕
             </span>
             <span className="uppercase tracking-wider font-extrabold">Advance</span>
+            <span className="rounded bg-white/10 px-1.5 py-0.5 text-[9px] font-mono-num font-bold text-[#38f2c8]">
+              Space / X
+            </span>
           </button>
 
-          {/* Circle: Back / Resume */}
+          {/* Circle / B / Esc: Back or Resume */}
           {hasAutoSave ? (
             <button
               type="button"
               onClick={() => resumeSavedCareer()}
               className="flex items-center gap-2 text-white/80 hover:text-white transition-colors focus:outline-none"
+              title="Press [B] to Resume"
             >
               <span className="w-5 h-5 rounded-full bg-white/10 border border-white/20 flex items-center justify-center font-mono text-[11px] font-black">
                 ○
               </span>
               <span className="uppercase tracking-wider">Resume Active Career</span>
+              <span className="rounded bg-white/10 px-1.5 py-0.5 text-[9px] font-mono-num font-bold text-white/60">
+                B
+              </span>
             </button>
           ) : (
             <div className="flex items-center gap-2 text-white/50">
@@ -975,22 +1270,32 @@ export const ClubSelectScreen: React.FC = () => {
                 ○
               </span>
               <span className="uppercase tracking-wider">Back</span>
+              <span className="rounded bg-white/10 px-1.5 py-0.5 text-[9px] font-mono-num font-bold text-white/40">
+                B / Esc
+              </span>
             </div>
           )}
 
-          {/* Square: Browse All Clubs Drawer */}
+          {/* Square / F: Browse All Clubs Drawer */}
           <button
             type="button"
-            onClick={() => setShowAllClubsModal(true)}
+            onClick={() => {
+              setShowAllClubsModal(true);
+              setModalFocusedIndex(0);
+            }}
             className="flex items-center gap-2 text-white/80 hover:text-[#38f2c8] transition-colors focus:outline-none"
+            title="Press [F] to browse all clubs"
           >
             <span className="w-5 h-5 rounded-md bg-white/10 border border-white/20 flex items-center justify-center font-mono text-[11px] font-black">
               □
             </span>
             <span className="uppercase tracking-wider">Browse All 96 Clubs</span>
+            <span className="rounded bg-white/10 px-1.5 py-0.5 text-[9px] font-mono-num font-bold text-white/60">
+              F
+            </span>
           </button>
 
-          {/* Triangle: Swap / Random Club */}
+          {/* Triangle / T / Y: Swap / Random Club */}
           <button
             type="button"
             onClick={() => {
@@ -1003,38 +1308,56 @@ export const ClubSelectScreen: React.FC = () => {
               }
             }}
             className="flex items-center gap-2 text-white/80 hover:text-white transition-colors focus:outline-none"
+            title="Press [T] to pick a random club"
           >
             <span className="w-5 h-5 rounded-md bg-white/10 border border-white/20 flex items-center justify-center font-mono text-[11px] font-black">
               △
             </span>
             <span className="uppercase tracking-wider">Swap Teams (Random)</span>
+            <span className="rounded bg-white/10 px-1.5 py-0.5 text-[9px] font-mono-num font-bold text-white/60">
+              T
+            </span>
           </button>
         </div>
 
-        {/* Right Console Status Bar */}
-        <div className="flex items-center gap-4 text-xs font-mono-num text-white/60">
-          <span className="font-display font-black text-white/80 tracking-widest uppercase">EA SPORTS</span>
+        {/* Right 60% Keyboard Quick Map + Online Status */}
+        <div className="flex items-center gap-3 text-xs font-mono-num text-white/70">
+          <div className="hidden xl:flex items-center gap-1.5 rounded-full bg-white/5 border border-white/10 px-3 py-1 text-[11px]">
+            <Keyboard className="w-3.5 h-3.5 text-[#38f2c8]" />
+            <span className="text-white/80 font-bold">60% KEYS:</span>
+            <span className="text-[#38f2c8] font-black">[A / D]</span> Club
+            <span className="text-white/30">|</span>
+            <span className="text-[#38f2c8] font-black">[W / S]</span> Country
+            <span className="text-white/30">|</span>
+            <span className="text-[#38f2c8] font-black">[R]</span> Kit
+          </div>
           <span className="text-white/30">|</span>
-          <span className="text-[#38f2c8]">● ONLINE</span>
+          <span className="text-[#38f2c8] font-bold">● ONLINE</span>
           <span className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-bold text-white/80">R2</span>
           <span className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-bold text-white/80">L2</span>
         </div>
       </footer>
 
       {/* =================================================================== */}
-      {/* BROWSE ALL 96 CLUBS DRAWER MODAL                                    */}
+      {/* BROWSE ALL 96 CLUBS DRAWER MODAL (60% Keyboard Enabled)             */}
       {/* =================================================================== */}
       {showAllClubsModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto">
-          <div className="relative w-full max-w-[900px] rounded-2xl border border-white/20 bg-[#07141b] shadow-2xl p-6">
+          <div className="relative w-full max-w-[920px] rounded-2xl border border-white/20 bg-[#07141b] shadow-2xl p-6">
             <div className="flex items-center justify-between pb-4 border-b border-white/10">
-              <h3 className="font-display text-2xl font-black uppercase text-white">
-                Select Any European Club (96 Clubs Available)
-              </h3>
+              <div>
+                <h3 className="font-display text-2xl font-black uppercase text-white">
+                  Select Any European Club (96 Clubs Available)
+                </h3>
+                <p className="text-xs text-[#8ea5b3] mt-0.5">
+                  Navigate with <span className="text-[#38f2c8] font-bold">[W / A / S / D]</span>, confirm with <span className="text-[#38f2c8] font-bold">[Space / Enter]</span>, close with <span className="text-white/80 font-bold">[Esc / B]</span>
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={() => setShowAllClubsModal(false)}
-                className="p-1 rounded-lg hover:bg-white/10 text-white/70 hover:text-white"
+                className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white"
+                title="Close [Esc / B]"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1046,8 +1369,11 @@ export const ClubSelectScreen: React.FC = () => {
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search club name (e.g. Real Madrid, Arsenal, Bayern, PSG)..."
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setModalFocusedIndex(0);
+                }}
+                placeholder="Search club name (e.g. Real Madrid, Barcelona, Bayern, Arsenal, PSG)..."
                 className="w-full rounded-xl bg-[#0b1d28] border border-white/15 pl-10 pr-4 py-2.5 text-sm text-white placeholder-white/40 focus:border-[#38f2c8] focus:outline-none"
                 autoFocus
               />
@@ -1055,40 +1381,41 @@ export const ClubSelectScreen: React.FC = () => {
 
             {/* Club Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 max-h-[55vh] overflow-y-auto pr-1">
-              {Object.values(database.clubs)
-                .filter((c) =>
-                  searchQuery.trim() === ''
-                    ? true
-                    : c.name.toLowerCase().includes(searchQuery.toLowerCase())
-                )
-                .map((club) => {
-                  const isSel = club.id === selectedClub.id;
-                  return (
-                    <button
-                      key={club.id}
-                      type="button"
-                      onClick={() => {
-                        const lIdx = LEAGUE_ORDER.indexOf(club.leagueId);
-                        if (lIdx >= 0) setSelectedLeagueIdx(lIdx);
-                        setSelectedClubId(club.id);
-                        setShowAllClubsModal(false);
-                      }}
-                      className={`p-3 rounded-xl border flex flex-col items-center text-center gap-2 transition-all ${
-                        isSel
-                          ? 'fc-panel-active border-[#38f2c8]'
-                          : 'bg-[#0a1822]/80 border-white/8 hover:bg-white/10'
-                      }`}
-                    >
-                      <ClubCrest club={club} size={42} />
-                      <div className="font-bold text-xs text-white truncate max-w-[140px]">
-                        {club.name}
-                      </div>
-                      <div className="text-[10px] text-[#8ea5b3]">
-                        {TOP_5_LEAGUES[club.leagueId]?.name ?? 'League'}
-                      </div>
-                    </button>
-                  );
-                })}
+              {filteredModalClubs.map((club, idx) => {
+                const isSel = club.id === selectedClub.id;
+                const isFocused = idx === modalFocusedIndex;
+                return (
+                  <button
+                    key={club.id}
+                    type="button"
+                    onClick={() => {
+                      const lIdx = LEAGUE_ORDER.indexOf(club.leagueId);
+                      if (lIdx >= 0) setSelectedLeagueIdx(lIdx);
+                      setSelectedClubId(club.id);
+                      setShowAllClubsModal(false);
+                    }}
+                    onMouseEnter={() => setModalFocusedIndex(idx)}
+                    className={`p-3 rounded-xl border flex flex-col items-center text-center gap-2 transition-all relative ${
+                      isSel
+                        ? 'fc-panel-active border-[#38f2c8] shadow-[0_0_15px_rgba(56,242,200,0.3)]'
+                        : isFocused
+                        ? 'bg-white/15 border-white/40 scale-[1.02]'
+                        : 'bg-[#0a1822]/80 border-white/8 hover:bg-white/10'
+                    }`}
+                  >
+                    <ClubCrest club={club} size={42} />
+                    <div className="font-bold text-xs text-white truncate max-w-[140px]">
+                      {club.name}
+                    </div>
+                    <div className="text-[10px] text-[#8ea5b3]">
+                      {TOP_5_LEAGUES[club.leagueId]?.name ?? 'League'}
+                    </div>
+                    {isSel && (
+                      <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#38f2c8]" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

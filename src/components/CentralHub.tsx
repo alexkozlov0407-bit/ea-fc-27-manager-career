@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Activity,
   AlertTriangle,
@@ -327,6 +327,48 @@ export const CentralHub: React.FC = () => {
   } = computed;
 
   const isMatchDay = nextMatch?.date === career.currentDate;
+
+  // 60% Keyboard Controls for Central Hub:
+  // [Space / Enter]: Advance Day or Play Live Match
+  // [S]: Sim to Next Matchday
+  // [X]: Quick Sim on Matchday
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const activeEl = document.activeElement as HTMLElement | null;
+      if (
+        activeEl?.tagName === 'INPUT' ||
+        activeEl?.tagName === 'SELECT' ||
+        activeEl?.tagName === 'TEXTAREA'
+      ) {
+        return;
+      }
+
+      const key = e.key.toLowerCase();
+      if (key === ' ' || key === 'enter') {
+        e.preventDefault();
+        if (career.seasonCompleted) {
+          proceedToNextSeason();
+        } else if (isMatchDay) {
+          startLiveMatch();
+        } else {
+          advanceDay();
+        }
+      } else if (key === 's') {
+        if (!career.seasonCompleted && !isMatchDay) {
+          e.preventDefault();
+          simToNextMatchOrDate();
+        }
+      } else if (key === 'x') {
+        if (isMatchDay) {
+          e.preventDefault();
+          quickSimNextMatch();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [career.seasonCompleted, isMatchDay, proceedToNextSeason, startLiveMatch, advanceDay, simToNextMatchOrDate, quickSimNextMatch]);
 
   return (
     <div className="mx-auto max-w-[1560px] px-4 lg:px-8 py-5 space-y-6">
