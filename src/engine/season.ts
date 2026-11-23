@@ -136,8 +136,14 @@ export function computeStandings(
   fixtures: Fixture[]
 ): LeagueStanding[] {
   const map = new Map<number, LeagueStanding>();
-  for (const c of Object.values(clubs)) {
-    if (!c.isLaLiga) continue;
+  const participantIds = new Set<number>();
+  for (const f of fixtures) {
+    participantIds.add(f.homeClubId);
+    participantIds.add(f.awayClubId);
+  }
+  for (const cid of participantIds) {
+    const c = clubs[cid];
+    if (!c) continue;
     map.set(c.id, {
       clubId: c.id,
       clubName: c.name,
@@ -976,24 +982,27 @@ export function advanceToNextSeason(state: CareerState, rng: () => number = Math
     void clubPlayed;
   }
 
-  // Spawn FC 27 Randomized Regens into LaLiga clubs for retired players
-  const laLigaClubs = Object.values(clubs).filter((c) => c.isLaLiga);
+  // Spawn FC 27 Randomized Regens into active league clubs for retired players
+  const activeLeagueClubIds = Array.from(new Set(state.fixtures.map((f) => f.homeClubId))).filter((id) => Boolean(clubs[id]));
+  const activeClubs = activeLeagueClubIds.map((id) => clubs[id]);
+  const destClubs = activeClubs.length > 0 ? activeClubs : Object.values(clubs).filter((c) => c.isLaLiga);
+
   for (const ret of retiredList) {
     maxPlayerId++;
-    const destClub = laLigaClubs[Math.floor(rng() * laLigaClubs.length)] ?? userClub;
+    const destClub = destClubs[Math.floor(rng() * destClubs.length)] ?? userClub;
     const regen = createRandomizedRegen(ret, destClub, maxPlayerId, nextYear, rng);
     players[regen.id] = regen;
   }
 
-  // Rebuild lineups for all LaLiga clubs
-  const laLigaIds = laLigaClubs.map((c) => c.id);
-  for (const c of laLigaClubs) {
+  // Rebuild lineups for all active league clubs
+  const activeIds = destClubs.map((c) => c.id);
+  for (const c of destClubs) {
     const roster = Object.values(players).filter((p) => p.clubId === c.id);
     const { lineup, benchIds } = buildLineupForFormation(c.formation, roster);
     clubs[c.id] = { ...c, lineup, benchIds };
   }
 
-  const newFixtures = generateLaLigaSchedule(laLigaIds, nextYear, rng);
+  const newFixtures = generateLaLigaSchedule(activeIds, nextYear, rng);
   const newStandings = computeStandings(clubs, newFixtures);
 
   const inbox: InboxMessage[] = [

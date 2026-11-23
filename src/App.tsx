@@ -41,7 +41,7 @@ export default function App() {
       <div className="min-h-screen fc-backdrop flex flex-col items-center justify-center text-white gap-3">
         <div className="h-12 w-12 rounded-full border-2 border-[#38f2c8] border-t-transparent animate-spin" />
         <div className="font-display text-2xl font-extrabold uppercase tracking-wider">
-          Loading EA FC 27 Database (550 Players · 20 LaLiga Clubs)...
+          Loading EA FC 27 Database (2,600+ Players · Top 5 European Leagues)...
         </div>
       </div>
     );

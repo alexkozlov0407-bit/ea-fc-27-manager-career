@@ -35,7 +35,233 @@ interface ClubMeta {
   rivals: number[];
 }
 
+export const TOP_5_LEAGUES: Record<number, { name: string; country: string; flag: string; tier: number }> = {
+  13: { name: 'Premier League', country: 'England', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', tier: 1 },
+  53: { name: 'LALIGA EA SPORTS', country: 'Spain', flag: '🇪🇸', tier: 1 },
+  19: { name: 'Bundesliga', country: 'Germany', flag: '🇩🇪', tier: 1 },
+  31: { name: 'Serie A Enilive', country: 'Italy', flag: '🇮🇹', tier: 1 },
+  16: { name: 'Ligue 1 McDonald\'s', country: 'France', flag: '🇫🇷', tier: 1 },
+};
+
 const LALIGA_CLUB_META: Record<number, ClubMeta> = {
+  // Premier League (League 13)
+  1: {
+    shortName: 'ARS',
+    primary: '#ef0107',
+    secondary: '#063672',
+    manager: 'Mikel Arteta',
+    formation: '4-3-3 Attack',
+    vision: 'Tiki-Taka',
+    budgetEur: 130_000_000,
+    worthEur: 3_400_000_000,
+    rivals: [18, 5],
+  },
+  2: {
+    shortName: 'AVL',
+    primary: '#95bfe5',
+    secondary: '#670e36',
+    manager: 'Unai Emery',
+    formation: '4-2-3-1 Wide',
+    vision: 'Counter-Attack',
+    budgetEur: 70_000_000,
+    worthEur: 1_100_000_000,
+    rivals: [],
+  },
+  5: {
+    shortName: 'CHE',
+    primary: '#034694',
+    secondary: '#dba111',
+    manager: 'Enzo Maresca',
+    formation: '4-2-3-1 Wide',
+    vision: 'Tiki-Taka',
+    budgetEur: 145_000_000,
+    worthEur: 3_100_000_000,
+    rivals: [1, 18],
+  },
+  9: {
+    shortName: 'LIV',
+    primary: '#c8102e',
+    secondary: '#00b2a9',
+    manager: 'Arne Slot',
+    formation: '4-3-3 Attack',
+    vision: 'Gegenpressing',
+    budgetEur: 140_000_000,
+    worthEur: 4_100_000_000,
+    rivals: [7, 11],
+  },
+  10: {
+    shortName: 'MCI',
+    primary: '#6cabdd',
+    secondary: '#1c2c5b',
+    manager: 'Pep Guardiola',
+    formation: '4-3-3 Holding',
+    vision: 'Tiki-Taka',
+    budgetEur: 210_000_000,
+    worthEur: 4_900_000_000,
+    rivals: [11, 9],
+  },
+  11: {
+    shortName: 'MUN',
+    primary: '#da291c',
+    secondary: '#000000',
+    manager: 'Ruben Amorim',
+    formation: '3-5-2',
+    vision: 'Gegenpressing',
+    budgetEur: 115_000_000,
+    worthEur: 3_800_000_000,
+    rivals: [10, 9],
+  },
+  13: {
+    shortName: 'NEW',
+    primary: '#241f20',
+    secondary: '#ffffff',
+    manager: 'Eddie Howe',
+    formation: '4-3-3 Holding',
+    vision: 'Gegenpressing',
+    budgetEur: 85_000_000,
+    worthEur: 1_200_000_000,
+    rivals: [106],
+  },
+  18: {
+    shortName: 'TOT',
+    primary: '#132257',
+    secondary: '#ffffff',
+    manager: 'Ange Postecoglou',
+    formation: '4-3-3 Attack',
+    vision: 'Gegenpressing',
+    budgetEur: 105_000_000,
+    worthEur: 2_800_000_000,
+    rivals: [1, 5],
+  },
+
+  // Bundesliga (League 19)
+  21: {
+    shortName: 'FCB',
+    primary: '#dc052d',
+    secondary: '#0066b2',
+    manager: 'Vincent Kompany',
+    formation: '4-2-3-1 Wide',
+    vision: 'Gegenpressing',
+    budgetEur: 160_000_000,
+    worthEur: 4_200_000_000,
+    rivals: [22],
+  },
+  22: {
+    shortName: 'BVB',
+    primary: '#fde100',
+    secondary: '#000000',
+    manager: 'Nuri Şahin',
+    formation: '4-2-3-1 Wide',
+    vision: 'Gegenpressing',
+    budgetEur: 85_000_000,
+    worthEur: 1_900_000_000,
+    rivals: [21, 34],
+  },
+  32: {
+    shortName: 'B04',
+    primary: '#e32221',
+    secondary: '#000000',
+    manager: 'Xabi Alonso',
+    formation: '3-5-2',
+    vision: 'Gegenpressing',
+    budgetEur: 95_000_000,
+    worthEur: 1_600_000_000,
+    rivals: [31],
+  },
+  112172: {
+    shortName: 'RBL',
+    primary: '#ffffff',
+    secondary: '#ed1c24',
+    manager: 'Marco Rose',
+    formation: '4-2-2-2' as FormationId,
+    vision: 'Gegenpressing',
+    budgetEur: 75_000_000,
+    worthEur: 1_300_000_000,
+    rivals: [],
+  },
+
+  // Serie A (League 31)
+  45: {
+    shortName: 'JUV',
+    primary: '#000000',
+    secondary: '#ffffff',
+    manager: 'Thiago Motta',
+    formation: '4-2-3-1 Wide',
+    vision: 'Standard',
+    budgetEur: 90_000_000,
+    worthEur: 2_100_000_000,
+    rivals: [131682, 54],
+  },
+  131682: {
+    shortName: 'INT',
+    primary: '#001ea0',
+    secondary: '#000000',
+    manager: 'Simone Inzaghi',
+    formation: '3-5-2',
+    vision: 'Tiki-Taka',
+    budgetEur: 100_000_000,
+    worthEur: 2_200_000_000,
+    rivals: [131681, 45],
+  },
+  131681: {
+    shortName: 'MIL',
+    primary: '#fb090b',
+    secondary: '#000000',
+    manager: 'Paulo Fonseca',
+    formation: '4-2-3-1 Wide',
+    vision: 'Counter-Attack',
+    budgetEur: 85_000_000,
+    worthEur: 1_850_000_000,
+    rivals: [131682],
+  },
+  48: {
+    shortName: 'NAP',
+    primary: '#0080ff',
+    secondary: '#ffffff',
+    manager: 'Antonio Conte',
+    formation: '4-3-3 Holding',
+    vision: 'Counter-Attack',
+    budgetEur: 80_000_000,
+    worthEur: 1_500_000_000,
+    rivals: [52],
+  },
+
+  // Ligue 1 (League 16)
+  73: {
+    shortName: 'PSG',
+    primary: '#004170',
+    secondary: '#da291c',
+    manager: 'Luis Enrique',
+    formation: '4-3-3 Attack',
+    vision: 'Tiki-Taka',
+    budgetEur: 180_000_000,
+    worthEur: 4_100_000_000,
+    rivals: [219],
+  },
+  219: {
+    shortName: 'OM',
+    primary: '#2faee0',
+    secondary: '#ffffff',
+    manager: 'Roberto De Zerbi',
+    formation: '4-2-3-1 Wide',
+    vision: 'Gegenpressing',
+    budgetEur: 60_000_000,
+    worthEur: 850_000_000,
+    rivals: [73],
+  },
+  69: {
+    shortName: 'ASM',
+    primary: '#e51b24',
+    secondary: '#ffffff',
+    manager: 'Adi Hütter',
+    formation: '4-2-3-1 Wide',
+    vision: 'Wing Play',
+    budgetEur: 65_000_000,
+    worthEur: 900_000_000,
+    rivals: [72],
+  },
+
+  // LaLiga EA Sports (League 53)
   243: {
     shortName: 'RMA',
     primary: '#f4f5f7',
@@ -401,6 +627,8 @@ export interface ParsedDatabase {
   clubs: Record<number, Club>;
   players: Record<number, Player>;
   laLigaClubIds: number[];
+  top5ClubIds: number[];
+  clubsByLeague: Record<number, number[]>;
 }
 
 export function parseCareerDatabaseFromCsv(csvText: string): ParsedDatabase {
@@ -633,7 +861,7 @@ export function parseCareerDatabaseFromCsv(csvText: string): ParsedDatabase {
       otherPositions,
       clubId,
       clubName,
-      isExternalClub: !isLaLiga,
+      isExternalClub: !Boolean(TOP_5_LEAGUES[clubLeagueId]),
       isLoanedOut: getNum(r, 'info.contract.isloanedout', 0) === 1,
       attributes: attrs,
       cardFacets,
@@ -702,14 +930,25 @@ export function parseCareerDatabaseFromCsv(csvText: string): ParsedDatabase {
     playersByClub.set(clubId, list);
   }
 
-  // Assign Squad Roles, Relationships, Starting XIs, Set Piece Takers, and a realistic Recovering Injury per LaLiga squad
-  const laLigaClubIds = Object.values(clubs)
-    .filter((c) => c.isLaLiga)
-    .sort((a, b) => b.domesticPrestige - a.domesticPrestige || a.name.localeCompare(b.name))
-    .map((c) => c.id);
+  // Assign Squad Roles, Relationships, Starting XIs, Set Piece Takers for all Top 5 League squads
+  const clubsByLeague: Record<number, number[]> = {
+    13: [], // Premier League
+    53: [], // LaLiga
+    19: [], // Bundesliga
+    31: [], // Serie A
+    16: [], // Ligue 1
+  };
+  const top5ClubIds: number[] = [];
 
   for (const club of Object.values(clubs)) {
     const roster = (playersByClub.get(club.id) ?? []).sort((a, b) => b.baseOvr - a.baseOvr);
+    const isDomesticLeague = Boolean(TOP_5_LEAGUES[club.leagueId]);
+
+    if (isDomesticLeague && roster.length >= 12) {
+      if (!clubsByLeague[club.leagueId]) clubsByLeague[club.leagueId] = [];
+      clubsByLeague[club.leagueId].push(club.id);
+      top5ClubIds.push(club.id);
+    }
 
     // Assign Squad Roles relative to club roster
     roster.forEach((p, idx) => {
@@ -725,9 +964,9 @@ export function parseCareerDatabaseFromCsv(csvText: string): ParsedDatabase {
       }
     });
 
-    // Give 1 fringe/rotation player on each LaLiga club a Minor Recovering Injury at season start
+    // Give 1 fringe/rotation player on each domestic club a Minor Recovering Injury at season start
     // so the manager immediately sees & can test the Risky Recovering Injury mechanic!
-    if (club.isLaLiga && roster.length >= 14) {
+    if (isDomesticLeague && roster.length >= 14) {
       const candidate = roster[11] ?? roster[roster.length - 1];
       candidate.energy = 68;
       candidate.injury = {
@@ -751,7 +990,7 @@ export function parseCareerDatabaseFromCsv(csvText: string): ParsedDatabase {
       }
     }
 
-    if (club.isLaLiga && roster.length > 0) {
+    if (isDomesticLeague && roster.length > 0) {
       const { lineup, benchIds } = buildLineupForFormation(club.formation, roster);
       club.lineup = lineup;
       club.benchIds = benchIds;
@@ -776,5 +1015,14 @@ export function parseCareerDatabaseFromCsv(csvText: string): ParsedDatabase {
     }
   }
 
-  return { clubs, players, laLigaClubIds };
+  // Sort each league's clubs by domestic prestige
+  for (const lid of Object.keys(clubsByLeague).map(Number)) {
+    clubsByLeague[lid].sort(
+      (a, b) => clubs[b].domesticPrestige - clubs[a].domesticPrestige || clubs[a].name.localeCompare(clubs[b].name)
+    );
+  }
+
+  const laLigaClubIds = clubsByLeague[53] ?? [];
+
+  return { clubs, players, laLigaClubIds, top5ClubIds, clubsByLeague };
 }

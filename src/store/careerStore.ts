@@ -234,7 +234,14 @@ export const useCareerStore = create<CareerStore>((set, get) => ({
     // Deep clone parsed database so new career starts pristine
     const clonedClubs = JSON.parse(JSON.stringify(db.clubs));
     const clonedPlayers = JSON.parse(JSON.stringify(db.players));
-    const fresh = createInitialCareerState(clonedClubs, clonedPlayers, db.laLigaClubIds, clubId, settings);
+    const userClub = clonedClubs[clubId];
+    const leagueClubIds =
+      (userClub?.leagueId && db.clubsByLeague?.[userClub.leagueId]) ||
+      Object.values(clonedClubs)
+        .filter((c: any) => c.leagueId === userClub?.leagueId)
+        .map((c: any) => c.id);
+    const activeLeagueIds = leagueClubIds && leagueClubIds.length >= 10 ? leagueClubIds : db.laLigaClubIds;
+    const fresh = createInitialCareerState(clonedClubs, clonedPlayers, activeLeagueIds, clubId, settings);
     persistActiveCareer(fresh);
     set({
       career: fresh,

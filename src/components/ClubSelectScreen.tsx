@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Play, Shield, Trophy } from 'lucide-react';
 import { computeSectorRatings } from '../engine/matchSim';
 import { formatMoney } from '../engine/ratings';
+import { TOP_5_LEAGUES } from '../engine/csvParser';
 import { CurrencyCode, EnergyRecoveryPolicy } from '../engine/types';
 import { useCareerStore } from '../store/careerStore';
 import { ClubCrest, PlayerAvatar } from './PlayerAvatar';
@@ -13,16 +14,22 @@ export const ClubSelectScreen: React.FC = () => {
   const savedSlots = useCareerStore((s) => s.savedSlots);
   const loadFromSlot = useCareerStore((s) => s.loadFromSlot);
 
-  const [selectedClubId, setSelectedClubId] = useState<number>(243);
+  const [selectedClubId, setSelectedClubId] = useState<number>(1);
+  const [leagueFilter, setLeagueFilter] = useState<number | 'ALL'>('ALL');
   const [energyRecovery, setEnergyRecovery] = useState<EnergyRecoveryPolicy>('Balanced');
   const [currency, setCurrency] = useState<CurrencyCode>('EUR');
 
-  const laLigaClubs = useMemo(() => {
+  const selectableClubs = useMemo(() => {
     if (!database) return [];
-    return database.laLigaClubIds.map((id) => database.clubs[id]).filter(Boolean);
-  }, [database]);
+    const clubIds = database.top5ClubIds && database.top5ClubIds.length > 0
+      ? database.top5ClubIds
+      : database.laLigaClubIds;
+    const all = clubIds.map((id) => database.clubs[id]).filter(Boolean);
+    if (leagueFilter === 'ALL') return all;
+    return all.filter((c) => c.leagueId === leagueFilter);
+  }, [database, leagueFilter]);
 
-  const selectedClub = database?.clubs[selectedClubId] ?? laLigaClubs[0];
+  const selectedClub = database?.clubs[selectedClubId] ?? selectableClubs[0];
 
   const hasAutoSave = useMemo(() => {
     try {
@@ -82,7 +89,7 @@ export const ClubSelectScreen: React.FC = () => {
                 EA SPORTS FC 27 <span className="text-[#38f2c8]">MANAGER CAREER</span>
               </h1>
               <p className="text-xs text-[#9cb4c2] mt-0.5">
-                LALIGA EA SPORTS · 20 Real Clubs · 550 Licensed Players · Dynamic OVR &amp; TransferRoom xTV
+                Top 5 European Leagues · {database ? (database.top5ClubIds?.length ?? 96) : 96} Real Clubs · {database ? Object.keys(database.players).length : '2,600+'} Licensed Players · Dynamic OVR &amp; TransferRoom xTV
               </p>
             </div>
           </div>
@@ -113,20 +120,49 @@ export const ClubSelectScreen: React.FC = () => {
 
       {/* Main Selection Grid */}
       <div className="mx-auto w-full max-w-[1440px] flex-1 px-6 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left: 20 Real LaLiga Clubs List */}
+        {/* Left: Real Clubs List with League Filter */}
         <div className="lg:col-span-7 fc-panel rounded-lg overflow-hidden">
           <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Trophy className="w-4 h-4 text-[#38f2c8]" />
               <span className="font-display text-lg font-bold uppercase tracking-wide">
-                Select Club — LALIGA EA SPORTS (20 Clubs)
+                Select Club — {leagueFilter === 'ALL' ? 'Top 5 European Leagues' : TOP_5_LEAGUES[leagueFilter]?.name ?? 'European League'} ({selectableClubs.length} Clubs)
               </span>
             </div>
-            <span className="text-xs text-[#8ba5b3] font-mono-num">550 Players Loaded</span>
+            <span className="text-xs text-[#8ba5b3] font-mono-num">{Object.keys(database.players).length} Players</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 p-3 max-h-[68vh] overflow-y-auto">
-            {laLigaClubs.map((club) => {
+          {/* League Filter Tabs */}
+          <div className="flex items-center gap-1.5 p-2.5 border-b border-white/10 overflow-x-auto no-scrollbar bg-black/20">
+            <button
+              type="button"
+              onClick={() => setLeagueFilter('ALL')}
+              className={`px-3 py-1 rounded text-xs font-bold whitespace-nowrap transition-colors ${
+                leagueFilter === 'ALL' ? 'fc-panel-active text-white' : 'text-[#8ba6b5] hover:text-white'
+              }`}
+            >
+              All Leagues ({(database.top5ClubIds ?? database.laLigaClubIds).length})
+            </button>
+            {Object.entries(TOP_5_LEAGUES).map(([lidStr, meta]) => {
+              const lid = Number(lidStr);
+              const count = database.clubsByLeague?.[lid]?.length ?? 0;
+              return (
+                <button
+                  key={lid}
+                  type="button"
+                  onClick={() => setLeagueFilter(lid)}
+                  className={`px-3 py-1 rounded text-xs font-bold whitespace-nowrap transition-colors ${
+                    leagueFilter === lid ? 'fc-panel-active text-white' : 'text-[#8ba6b5] hover:text-white'
+                  }`}
+                >
+                  {meta.flag} {meta.name} ({count})
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 p-3 max-h-[64vh] overflow-y-auto">
+            {selectableClubs.map((club) => {
               const isSelected = club.id === selectedClub.id;
               return (
                 <button
@@ -172,7 +208,7 @@ export const ClubSelectScreen: React.FC = () => {
                 <ClubCrest club={selectedClub} size={56} />
                 <div>
                   <div className="text-[11px] uppercase tracking-widest text-[#38f2c8] font-bold">
-                    LALIGA EA SPORTS
+                    {TOP_5_LEAGUES[selectedClub.leagueId]?.flag} {TOP_5_LEAGUES[selectedClub.leagueId]?.name ?? 'LALIGA EA SPORTS'}
                   </div>
                   <h2 className="font-display text-3xl font-extrabold uppercase tracking-wide leading-tight">
                     {selectedClub.name}
