@@ -1,0 +1,2402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EA FC 27 Prototype — Visual Assets Contact Sheet</title>
+  <style>
+    :root {
+      --bg: #061117;
+      --card-bg: #0c1c26;
+      --accent: #38f2c8;
+      --border: rgba(255, 255, 255, 0.12);
+      --text: #ffffff;
+      --subtext: #8ea5b3;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 30px;
+      line-height: 1.5;
+    }
+    header {
+      max-width: 1440px;
+      margin: 0 auto 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    p.subtitle {
+      color: var(--subtext);
+      font-size: 14px;
+      margin-top: 6px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-ui { background: rgba(56, 242, 200, 0.15); color: #38f2c8; border: 1px solid #38f2c8; }
+    .badge-art { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid #f59e0b; }
+    .badge-cutout { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid #a855f7; }
+    .badge-logo { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid #3b82f6; }
+    
+    .filters {
+      max-width: 1440px;
+      margin: 0 auto 24px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      background: #102430;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-btn:hover, .filter-btn.active {
+      background: var(--accent);
+      color: #061117;
+      border-color: var(--accent);
+    }
+    .grid {
+      max-width: 1440px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-col;
+      flex-direction: column;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(56,242,200,0.2);
+    }
+    .thumb-wrap {
+      width: 100%;
+      height: 180px;
+      background: #050b10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+    .thumb-wrap img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    .card-body {
+      padding: 14px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      word-break: break-all;
+      margin-bottom: 6px;
+    }
+    .card-desc {
+      font-size: 11px;
+      color: var(--subtext);
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+    .card-meta {
+      font-size: 10px;
+      color: rgba(255,255,255,0.6);
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding-top: 8px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>⚽ EA FC 27 Prototype — Visual Assets Contact Sheet</h1>
+    <p class="subtitle">Complete catalog of 111 loose pictures, actual UI screenshots, cutouts, and loading-screen artwork. Originals are preserved intact.</p>
+  </header>
+
+  <div class="filters">
+    <button class="filter-btn active" onclick="filterCat('all')">All Assets (111)</button>
+    <button class="filter-btn" onclick="filterCat('Game UI Reference')">Game UI References (43)</button>
+    <button class="filter-btn" onclick="filterCat('Artwork / Background')">Loading Artwork / Art (27)</button>
+    <button class="filter-btn" onclick="filterCat('Player Cutout')">Player Cutouts (11)</button>
+    <button class="filter-btn" onclick="filterCat('Logo & Branding')">Logos & Badges (14)</button>
+  </div>
+
+  <div class="grid">
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshots__3ef1e889-e957-4e6d-a7f0-a7af92684207.png" alt="3ef1e889-e957-4e6d-a7f0-a7af92684207.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshots</span>
+          </div>
+          <div class="card-title">3ef1e889-e957-4e6d-a7f0-a7af92684207.png</div>
+          <div class="card-desc">In-game UI layout screenshot (1024x576)</div>
+        </div>
+        <div class="card-meta">
+          <span>1024 × 576</span>
+          <span>496.7 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshots__411fdc61-90ba-4d6c-ab3d-16c4647d9a2f.png" alt="411fdc61-90ba-4d6c-ab3d-16c4647d9a2f.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshots</span>
+          </div>
+          <div class="card-title">411fdc61-90ba-4d6c-ab3d-16c4647d9a2f.png</div>
+          <div class="card-desc">In-game UI layout screenshot (1280x720)</div>
+        </div>
+        <div class="card-meta">
+          <span>1280 × 720</span>
+          <span>761.2 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshots__5237f18b-148f-4a90-bfbe-f5af7de77f84.png" alt="5237f18b-148f-4a90-bfbe-f5af7de77f84.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshots</span>
+          </div>
+          <div class="card-title">5237f18b-148f-4a90-bfbe-f5af7de77f84.png</div>
+          <div class="card-desc">In-game UI layout screenshot (1024x576)</div>
+        </div>
+        <div class="card-meta">
+          <span>1024 × 576</span>
+          <span>525.9 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshots__63652f72-95f2-4c31-881f-4c881f0230d9.png" alt="63652f72-95f2-4c31-881f-4c881f0230d9.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshots</span>
+          </div>
+          <div class="card-title">63652f72-95f2-4c31-881f-4c881f0230d9.png</div>
+          <div class="card-desc">In-game UI layout screenshot (1024x576)</div>
+        </div>
+        <div class="card-meta">
+          <span>1024 × 576</span>
+          <span>473.4 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshots__76895aef-346c-49ab-ad7f-141fe29d8a97.png" alt="76895aef-346c-49ab-ad7f-141fe29d8a97.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshots</span>
+          </div>
+          <div class="card-title">76895aef-346c-49ab-ad7f-141fe29d8a97.png</div>
+          <div class="card-desc">In-game UI layout screenshot (1024x576)</div>
+        </div>
+        <div class="card-meta">
+          <span>1024 × 576</span>
+          <span>279.7 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshots__b0db78d4-25d3-41ab-ad0f-51bb01bd4015.png" alt="b0db78d4-25d3-41ab-ad0f-51bb01bd4015.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshots</span>
+          </div>
+          <div class="card-title">b0db78d4-25d3-41ab-ad0f-51bb01bd4015.png</div>
+          <div class="card-desc">In-game UI layout screenshot (1280x720)</div>
+        </div>
+        <div class="card-meta">
+          <span>1280 × 720</span>
+          <span>516.6 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshots__image (1).png" alt="image (1).png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshots</span>
+          </div>
+          <div class="card-title">image (1).png</div>
+          <div class="card-desc">In-game UI layout screenshot (1024x576)</div>
+        </div>
+        <div class="card-meta">
+          <span>1024 × 576</span>
+          <span>193.5 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshots__image (10).png" alt="image (10).png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshots</span>
+          </div>
+          <div class="card-title">image (10).png</div>
+          <div class="card-desc">In-game UI layout screenshot (1799x950)</div>
+        </div>
+        <div class="card-meta">
+          <span>1799 × 950</span>
+          <span>743.7 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshots__image (11).png" alt="image (11).png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshots</span>
+          </div>
+          <div class="card-title">image (11).png</div>
+          <div class="card-desc">In-game UI layout screenshot (1804x956)</div>
+        </div>
+        <div class="card-meta">
+          <span>1804 × 956</span>
+          <span>1005.6 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshots__image (12).png" alt="image (12).png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshots</span>
+          </div>
+          <div class="card-title">image (12).png</div>
+          <div class="card-desc">In-game UI layout screenshot (1800x967)</div>
+        </div>
+        <div class="card-meta">
+          <span>1800 × 967</span>
+          <span>1082.9 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshots__image (13).png" alt="image (13).png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshots</span>
+          </div>
+          <div class="card-title">image (13).png</div>
+          <div class="card-desc">In-game UI layout screenshot (1805x1016)</div>
+        </div>
+        <div class="card-meta">
+          <span>1805 × 1016</span>
+          <span>404.2 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshots__image (2).png" alt="image (2).png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshots</span>
+          </div>
+          <div class="card-title">image (2).png</div>
+          <div class="card-desc">In-game UI layout screenshot (800x450)</div>
+        </div>
+        <div class="card-meta">
+          <span>800 × 450</span>
+          <span>363.1 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshots__image (3).png" alt="image (3).png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshots</span>
+          </div>
+          <div class="card-title">image (3).png</div>
+          <div class="card-desc">In-game UI layout screenshot (1217x670)</div>
+        </div>
+        <div class="card-meta">
+          <span>1217 × 670</span>
+          <span>511.0 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshots__image (4).png" alt="image (4).png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshots</span>
+          </div>
+          <div class="card-title">image (4).png</div>
+          <div class="card-desc">In-game UI layout screenshot (1785x944)</div>
+        </div>
+        <div class="card-meta">
+          <span>1785 × 944</span>
+          <span>873.4 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshots__image (5).png" alt="image (5).png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshots</span>
+          </div>
+          <div class="card-title">image (5).png</div>
+          <div class="card-desc">In-game UI layout screenshot (1799x958)</div>
+        </div>
+        <div class="card-meta">
+          <span>1799 × 958</span>
+          <span>820.7 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshots__image (6).png" alt="image (6).png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshots</span>
+          </div>
+          <div class="card-title">image (6).png</div>
+          <div class="card-desc">In-game UI layout screenshot (1804x952)</div>
+        </div>
+        <div class="card-meta">
+          <span>1804 × 952</span>
+          <span>1045.9 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshots__image (7).png" alt="image (7).png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshots</span>
+          </div>
+          <div class="card-title">image (7).png</div>
+          <div class="card-desc">In-game UI layout screenshot (1801x941)</div>
+        </div>
+        <div class="card-meta">
+          <span>1801 × 941</span>
+          <span>1089.2 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshots__image (8).png" alt="image (8).png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshots</span>
+          </div>
+          <div class="card-title">image (8).png</div>
+          <div class="card-desc">In-game UI layout screenshot (1804x940)</div>
+        </div>
+        <div class="card-meta">
+          <span>1804 × 940</span>
+          <span>1103.3 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshots__image (9).png" alt="image (9).png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshots</span>
+          </div>
+          <div class="card-title">image (9).png</div>
+          <div class="card-desc">In-game UI layout screenshot (1793x954)</div>
+        </div>
+        <div class="card-meta">
+          <span>1793 × 954</span>
+          <span>711.1 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshots__image.png" alt="image.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshots</span>
+          </div>
+          <div class="card-title">image.png</div>
+          <div class="card-desc">In-game UI layout screenshot (1024x576)</div>
+        </div>
+        <div class="card-meta">
+          <span>1024 × 576</span>
+          <span>643.8 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshotspart2__image (1).png" alt="image (1).png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshotspart2</span>
+          </div>
+          <div class="card-title">image (1).png</div>
+          <div class="card-desc">In-game UI layout screenshot (1802x999)</div>
+        </div>
+        <div class="card-meta">
+          <span>1802 × 999</span>
+          <span>1286.5 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshotspart2__image (10).png" alt="image (10).png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshotspart2</span>
+          </div>
+          <div class="card-title">image (10).png</div>
+          <div class="card-desc">In-game UI layout screenshot (1806x1013)</div>
+        </div>
+        <div class="card-meta">
+          <span>1806 × 1013</span>
+          <span>777.4 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshotspart2__image (11).png" alt="image (11).png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshotspart2</span>
+          </div>
+          <div class="card-title">image (11).png</div>
+          <div class="card-desc">In-game UI layout screenshot (1803x1010)</div>
+        </div>
+        <div class="card-meta">
+          <span>1803 × 1010</span>
+          <span>954.4 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshotspart2__image (12).png" alt="image (12).png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshotspart2</span>
+          </div>
+          <div class="card-title">image (12).png</div>
+          <div class="card-desc">In-game UI layout screenshot (1791x1031)</div>
+        </div>
+        <div class="card-meta">
+          <span>1791 × 1031</span>
+          <span>634.4 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshotspart2__image (2).png" alt="image (2).png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshotspart2</span>
+          </div>
+          <div class="card-title">image (2).png</div>
+          <div class="card-desc">In-game UI layout screenshot (1793x1003)</div>
+        </div>
+        <div class="card-meta">
+          <span>1793 × 1003</span>
+          <span>1586.9 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshotspart2__image (3).png" alt="image (3).png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshotspart2</span>
+          </div>
+          <div class="card-title">image (3).png</div>
+          <div class="card-desc">In-game UI layout screenshot (1809x1015)</div>
+        </div>
+        <div class="card-meta">
+          <span>1809 × 1015</span>
+          <span>550.7 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshotspart2__image (4).png" alt="image (4).png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshotspart2</span>
+          </div>
+          <div class="card-title">image (4).png</div>
+          <div class="card-desc">In-game UI layout screenshot (1795x1002)</div>
+        </div>
+        <div class="card-meta">
+          <span>1795 × 1002</span>
+          <span>1256.1 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshotspart2__image (5).png" alt="image (5).png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshotspart2</span>
+          </div>
+          <div class="card-title">image (5).png</div>
+          <div class="card-desc">In-game UI layout screenshot (1804x1013)</div>
+        </div>
+        <div class="card-meta">
+          <span>1804 × 1013</span>
+          <span>994.1 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshotspart2__image (6).png" alt="image (6).png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshotspart2</span>
+          </div>
+          <div class="card-title">image (6).png</div>
+          <div class="card-desc">In-game UI layout screenshot (1816x1010)</div>
+        </div>
+        <div class="card-meta">
+          <span>1816 × 1010</span>
+          <span>1247.2 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshotspart2__image (7).png" alt="image (7).png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshotspart2</span>
+          </div>
+          <div class="card-title">image (7).png</div>
+          <div class="card-desc">In-game UI layout screenshot (1799x1009)</div>
+        </div>
+        <div class="card-meta">
+          <span>1799 × 1009</span>
+          <span>1259.7 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshotspart2__image (8).png" alt="image (8).png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshotspart2</span>
+          </div>
+          <div class="card-title">image (8).png</div>
+          <div class="card-desc">In-game UI layout screenshot (1796x1008)</div>
+        </div>
+        <div class="card-meta">
+          <span>1796 × 1008</span>
+          <span>705.2 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshotspart2__image (9).png" alt="image (9).png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshotspart2</span>
+          </div>
+          <div class="card-title">image (9).png</div>
+          <div class="card-desc">★ 1:1 Reference: Official EA FC 27 Club Selection Screen (Hero Card, 2x2 quadrants, DNA cards, bumpers)</div>
+        </div>
+        <div class="card-meta">
+          <span>1804 × 1014</span>
+          <span>1131.3 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_screenshotspart2__image.png" alt="image.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/screenshotspart2</span>
+          </div>
+          <div class="card-title">image.png</div>
+          <div class="card-desc">★ 1:1 Reference: Top Navigation Bar with MC Emblem, Home [L2], and Career hub tabs</div>
+        </div>
+        <div class="card-meta">
+          <span>1796 × 1000</span>
+          <span>1255.5 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Artwork / Background">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__Cyan tunnel to the pitch.png" alt="Cyan tunnel to the pitch.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-art">Artwork / Background</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">Cyan tunnel to the pitch.png</div>
+          <div class="card-desc">Atmospheric loading screen / broadcast stadium & cinematic environment art</div>
+        </div>
+        <div class="card-meta">
+          <span>1672 × 941</span>
+          <span>2525.2 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Artwork / Background">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__Empty Chair at Champions League Press Conference.png" alt="Empty Chair at Champions League Press Conference.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-art">Artwork / Background</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">Empty Chair at Champions League Press Conference.png</div>
+          <div class="card-desc">Atmospheric loading screen / broadcast stadium & cinematic environment art</div>
+        </div>
+        <div class="card-meta">
+          <span>1672 × 941</span>
+          <span>1985.0 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Artwork / Background">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__Holographic tactics in a luxury boardroom.png" alt="Holographic tactics in a luxury boardroom.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-art">Artwork / Background</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">Holographic tactics in a luxury boardroom.png</div>
+          <div class="card-desc">Atmospheric loading screen / broadcast stadium & cinematic environment art</div>
+        </div>
+        <div class="card-meta">
+          <span>1672 × 941</span>
+          <span>2250.6 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Artwork / Background">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__Neon Twilight Academy Training Match.png" alt="Neon Twilight Academy Training Match.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-art">Artwork / Background</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">Neon Twilight Academy Training Match.png</div>
+          <div class="card-desc">Atmospheric loading screen / broadcast stadium & cinematic environment art</div>
+        </div>
+        <div class="card-meta">
+          <span>1672 × 941</span>
+          <span>2887.5 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Artwork / Background">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__Rain-soaked knee-slide goal celebration.png" alt="Rain-soaked knee-slide goal celebration.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-art">Artwork / Background</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">Rain-soaked knee-slide goal celebration.png</div>
+          <div class="card-desc">Atmospheric loading screen / broadcast stadium & cinematic environment art</div>
+        </div>
+        <div class="card-meta">
+          <span>1672 × 941</span>
+          <span>2718.8 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Player Cutout">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__cutout_34 (1).png" alt="cutout_34 (1).png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-cutout">Player Cutout</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">cutout_34 (1).png</div>
+          <div class="card-desc">Transparent isolated player render cutout for tactical boards or hub cards</div>
+        </div>
+        <div class="card-meta">
+          <span>2000 × 2638</span>
+          <span>258.9 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Player Cutout">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__desiredousmiling.png" alt="desiredousmiling.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-cutout">Player Cutout</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">desiredousmiling.png</div>
+          <div class="card-desc">Transparent isolated player render cutout for tactical boards or hub cards</div>
+        </div>
+        <div class="card-meta">
+          <span>492 × 1277</span>
+          <span>103.9 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Player Cutout">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__dusannonchalant.png" alt="dusannonchalant.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-cutout">Player Cutout</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">dusannonchalant.png</div>
+          <div class="card-desc">Transparent isolated player render cutout for tactical boards or hub cards</div>
+        </div>
+        <div class="card-meta">
+          <span>573 × 1299</span>
+          <span>60.4 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Player Cutout">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__eze.png" alt="eze.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-cutout">Player Cutout</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">eze.png</div>
+          <div class="card-desc">Transparent isolated player render cutout for tactical boards or hub cards</div>
+        </div>
+        <div class="card-meta">
+          <span>2893 × 5944</span>
+          <span>2503.2 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_110_images.jpg" alt="imgi_110_images.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_110_images.jpg</div>
+          <div class="card-desc">Visual asset / UI icon (282x179)</div>
+        </div>
+        <div class="card-meta">
+          <span>282 × 179</span>
+          <span>14.2 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_113_images.jpg" alt="imgi_113_images.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_113_images.jpg</div>
+          <div class="card-desc">Visual asset / UI icon (547x365)</div>
+        </div>
+        <div class="card-meta">
+          <span>547 × 365</span>
+          <span>30.0 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_123_images.jpg" alt="imgi_123_images.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_123_images.jpg</div>
+          <div class="card-desc">Visual asset / UI icon (597x335)</div>
+        </div>
+        <div class="card-meta">
+          <span>597 × 335</span>
+          <span>62.7 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_128_images.jpg" alt="imgi_128_images.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_128_images.jpg</div>
+          <div class="card-desc">Visual asset / UI icon (597x335)</div>
+        </div>
+        <div class="card-meta">
+          <span>597 × 335</span>
+          <span>30.8 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_132_images.jpg" alt="imgi_132_images.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_132_images.jpg</div>
+          <div class="card-desc">Visual asset / UI icon (697x439)</div>
+        </div>
+        <div class="card-meta">
+          <span>697 × 439</span>
+          <span>119.8 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_139_images.jpg" alt="imgi_139_images.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_139_images.jpg</div>
+          <div class="card-desc">Visual asset / UI icon (738x414)</div>
+        </div>
+        <div class="card-meta">
+          <span>738 × 414</span>
+          <span>50.3 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_141_images.jpg" alt="imgi_141_images.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_141_images.jpg</div>
+          <div class="card-desc">Visual asset / UI icon (400x400)</div>
+        </div>
+        <div class="card-meta">
+          <span>400 × 400</span>
+          <span>26.4 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Artwork / Background">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_192_27cb410b-copy-of-ea_fc27_std_keyart_rgb_16x9_1920x1080-1920x1080.webp" alt="imgi_192_27cb410b-copy-of-ea_fc27_std_keyart_rgb_16x9_1920x1080-1920x1080.webp" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-art">Artwork / Background</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_192_27cb410b-copy-of-ea_fc27_std_keyart_rgb_16x9_1920x1080-1920x1080.webp</div>
+          <div class="card-desc">Atmospheric loading screen / broadcast stadium & cinematic environment art</div>
+        </div>
+        <div class="card-meta">
+          <span>1920 × 1080</span>
+          <span>352.2 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Artwork / Background">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_193_ea-fc-27.png" alt="imgi_193_ea-fc-27.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-art">Artwork / Background</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_193_ea-fc-27.png</div>
+          <div class="card-desc">Cinematic broadcast graphic / wallpaper (1280x720)</div>
+        </div>
+        <div class="card-meta">
+          <span>1280 × 720</span>
+          <span>992.2 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Artwork / Background">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_198_2120d-17911644236369-1920.jpg" alt="imgi_198_2120d-17911644236369-1920.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-art">Artwork / Background</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_198_2120d-17911644236369-1920.jpg</div>
+          <div class="card-desc">Cinematic broadcast graphic / wallpaper (1920x1080)</div>
+        </div>
+        <div class="card-meta">
+          <span>1920 × 1080</span>
+          <span>158.7 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Artwork / Background">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_200_ea-fc-27.png" alt="imgi_200_ea-fc-27.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-art">Artwork / Background</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_200_ea-fc-27.png</div>
+          <div class="card-desc">Cinematic broadcast graphic / wallpaper (1280x720)</div>
+        </div>
+        <div class="card-meta">
+          <span>1280 × 720</span>
+          <span>1917.1 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_201_13d28e8bc1bc87dced77c08fa6c3a70a1fb54cd5.png" alt="imgi_201_13d28e8bc1bc87dced77c08fa6c3a70a1fb54cd5.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_201_13d28e8bc1bc87dced77c08fa6c3a70a1fb54cd5.png</div>
+          <div class="card-desc">Visual asset / UI icon (626x402)</div>
+        </div>
+        <div class="card-meta">
+          <span>626 × 402</span>
+          <span>365.6 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_211_fc27-v1-2-PITCH-NOTES-screenshot-1-1024x576.jpg" alt="imgi_211_fc27-v1-2-PITCH-NOTES-screenshot-1-1024x576.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_211_fc27-v1-2-PITCH-NOTES-screenshot-1-1024x576.jpg</div>
+          <div class="card-desc">Visual asset / UI icon (1024x576)</div>
+        </div>
+        <div class="card-meta">
+          <span>1024 × 576</span>
+          <span>58.7 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Artwork / Background">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_212_og-default.jpg" alt="imgi_212_og-default.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-art">Artwork / Background</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_212_og-default.jpg</div>
+          <div class="card-desc">Cinematic broadcast graphic / wallpaper (1200x630)</div>
+        </div>
+        <div class="card-meta">
+          <span>1200 × 630</span>
+          <span>149.9 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_212_product_6ab257459e2174.91257425.jpg" alt="imgi_212_product_6ab257459e2174.91257425.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_212_product_6ab257459e2174.91257425.jpg</div>
+          <div class="card-desc">Visual asset / UI icon (839x472)</div>
+        </div>
+        <div class="card-meta">
+          <span>839 × 472</span>
+          <span>57.7 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Logo & Branding">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_214_202526_UEFA_Champions_League_â___Who_Qualified.jpg" alt="imgi_214_202526_UEFA_Champions_League_â___Who_Qualified.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">Logo & Branding</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_214_202526_UEFA_Champions_League_â___Who_Qualified.jpg</div>
+          <div class="card-desc">Official identity graphic, competition crest, or UI roundel emblem</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>165.8 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Logo & Branding">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_217_uefa_corporate_logo_all_crops.png" alt="imgi_217_uefa_corporate_logo_all_crops.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">Logo & Branding</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_217_uefa_corporate_logo_all_crops.png</div>
+          <div class="card-desc">Official identity graphic, competition crest, or UI roundel emblem</div>
+        </div>
+        <div class="card-meta">
+          <span>2048 × 1152</span>
+          <span>290.5 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Artwork / Background">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_228_Screenshot_2021-11-02_at_11.45.05_1600x.png" alt="imgi_228_Screenshot_2021-11-02_at_11.45.05_1600x.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-art">Artwork / Background</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_228_Screenshot_2021-11-02_at_11.45.05_1600x.png</div>
+          <div class="card-desc">Cinematic broadcast graphic / wallpaper (1600x1355)</div>
+        </div>
+        <div class="card-meta">
+          <span>1600 × 1355</span>
+          <span>1031.6 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_229_1834_1789568920_1300x433.jpg" alt="imgi_229_1834_1789568920_1300x433.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_229_1834_1789568920_1300x433.jpg</div>
+          <div class="card-desc">Visual asset / UI icon (1300x433)</div>
+        </div>
+        <div class="card-meta">
+          <span>1300 × 433</span>
+          <span>118.8 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Artwork / Background">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_231_255adf013a01bf00f29338c70a80aa55536bde33.png" alt="imgi_231_255adf013a01bf00f29338c70a80aa55536bde33.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-art">Artwork / Background</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_231_255adf013a01bf00f29338c70a80aa55536bde33.png</div>
+          <div class="card-desc">Cinematic broadcast graphic / wallpaper (1920x622)</div>
+        </div>
+        <div class="card-meta">
+          <span>1920 × 622</span>
+          <span>1091.3 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Logo & Branding">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_235_portugal_v_spain_-_uefa_nations_league_2025_final.jpg" alt="imgi_235_portugal_v_spain_-_uefa_nations_league_2025_final.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">Logo & Branding</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_235_portugal_v_spain_-_uefa_nations_league_2025_final.jpg</div>
+          <div class="card-desc">Official identity graphic, competition crest, or UI roundel emblem</div>
+        </div>
+        <div class="card-meta">
+          <span>2048 × 1152</span>
+          <span>805.3 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Artwork / Background">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_238_16x9_ucl_calendar_2026-new-02.jpg" alt="imgi_238_16x9_ucl_calendar_2026-new-02.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-art">Artwork / Background</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_238_16x9_ucl_calendar_2026-new-02.jpg</div>
+          <div class="card-desc">Cinematic broadcast graphic / wallpaper (1920x1080)</div>
+        </div>
+        <div class="card-meta">
+          <span>1920 × 1080</span>
+          <span>207.7 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Logo & Branding">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_255_UEFA-logo.png" alt="imgi_255_UEFA-logo.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">Logo & Branding</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_255_UEFA-logo.png</div>
+          <div class="card-desc">Official identity graphic, competition crest, or UI roundel emblem</div>
+        </div>
+        <div class="card-meta">
+          <span>3840 × 2160</span>
+          <span>319.4 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Logo & Branding">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_256_paris_saint-germain_v_sk_slovan_bratislava_-_uefa_champions_league_2026_27_league_phase_md1.jpg" alt="imgi_256_paris_saint-germain_v_sk_slovan_bratislava_-_uefa_champions_league_2026_27_league_phase_md1.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">Logo & Branding</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_256_paris_saint-germain_v_sk_slovan_bratislava_-_uefa_champions_league_2026_27_league_phase_md1.jpg</div>
+          <div class="card-desc">Official identity graphic, competition crest, or UI roundel emblem</div>
+        </div>
+        <div class="card-meta">
+          <span>2048 × 1152</span>
+          <span>296.7 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Artwork / Background">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_257_GettyImages-2293951226-1640x920.jpg" alt="imgi_257_GettyImages-2293951226-1640x920.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-art">Artwork / Background</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_257_GettyImages-2293951226-1640x920.jpg</div>
+          <div class="card-desc">Cinematic broadcast graphic / wallpaper (1640x920)</div>
+        </div>
+        <div class="card-meta">
+          <span>1640 × 920</span>
+          <span>175.6 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Artwork / Background">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_259_FIFA-2022-World-Cup-Argentina.jpg" alt="imgi_259_FIFA-2022-World-Cup-Argentina.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-art">Artwork / Background</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_259_FIFA-2022-World-Cup-Argentina.jpg</div>
+          <div class="card-desc">Cinematic broadcast graphic / wallpaper (1600x1067)</div>
+        </div>
+        <div class="card-meta">
+          <span>1600 × 1067</span>
+          <span>471.7 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Artwork / Background">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_260_Portraits-Sessions-202627-European-Club-Football-Season-Kick-off-1.jpg" alt="imgi_260_Portraits-Sessions-202627-European-Club-Football-Season-Kick-off-1.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-art">Artwork / Background</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_260_Portraits-Sessions-202627-European-Club-Football-Season-Kick-off-1.jpg</div>
+          <div class="card-desc">Cinematic broadcast graphic / wallpaper (7769x5182)</div>
+        </div>
+        <div class="card-meta">
+          <span>7769 × 5182</span>
+          <span>8354.1 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Artwork / Background">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_263_fifa2026.jpg" alt="imgi_263_fifa2026.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-art">Artwork / Background</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_263_fifa2026.jpg</div>
+          <div class="card-desc">Cinematic broadcast graphic / wallpaper (1200x675)</div>
+        </div>
+        <div class="card-meta">
+          <span>1200 × 675</span>
+          <span>170.2 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Artwork / Background">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_264_8P0xPO6eNmRLnRkoZUli2Uod.png" alt="imgi_264_8P0xPO6eNmRLnRkoZUli2Uod.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-art">Artwork / Background</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_264_8P0xPO6eNmRLnRkoZUli2Uod.png</div>
+          <div class="card-desc">Cinematic broadcast graphic / wallpaper (3840x2160)</div>
+        </div>
+        <div class="card-meta">
+          <span>3840 × 2160</span>
+          <span>10474.4 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_26_images.png" alt="imgi_26_images.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_26_images.png</div>
+          <div class="card-desc">Visual asset / UI icon (221x210)</div>
+        </div>
+        <div class="card-meta">
+          <span>221 × 210</span>
+          <span>16.2 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Logo & Branding">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_280_SC_Freiburg_v_Aston_Villa_FC_-_UEFA_Europa_League_Final_2026__1_.jpg" alt="imgi_280_SC_Freiburg_v_Aston_Villa_FC_-_UEFA_Europa_League_Final_2026__1_.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">Logo & Branding</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_280_SC_Freiburg_v_Aston_Villa_FC_-_UEFA_Europa_League_Final_2026__1_.jpg</div>
+          <div class="card-desc">Official identity graphic, competition crest, or UI roundel emblem</div>
+        </div>
+        <div class="card-meta">
+          <span>1600 × 1045</span>
+          <span>548.7 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Artwork / Background">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_283_108337022-1784474839943-gettyimages-2286285066-jk3_5058_xaprrvr3.jpg" alt="imgi_283_108337022-1784474839943-gettyimages-2286285066-jk3_5058_xaprrvr3.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-art">Artwork / Background</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_283_108337022-1784474839943-gettyimages-2286285066-jk3_5058_xaprrvr3.jpg</div>
+          <div class="card-desc">Cinematic broadcast graphic / wallpaper (5056x3370)</div>
+        </div>
+        <div class="card-meta">
+          <span>5056 × 3370</span>
+          <span>1220.0 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Logo & Branding">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_288_Vinicius-Junior-Real-Madrid-football-soccer-player-UEFA-league-champion-trophy-wembly-stadium-london-2024.jpg" alt="imgi_288_Vinicius-Junior-Real-Madrid-football-soccer-player-UEFA-league-champion-trophy-wembly-stadium-london-2024.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">Logo & Branding</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_288_Vinicius-Junior-Real-Madrid-football-soccer-player-UEFA-league-champion-trophy-wembly-stadium-london-2024.jpg</div>
+          <div class="card-desc">Official identity graphic, competition crest, or UI roundel emblem</div>
+        </div>
+        <div class="card-meta">
+          <span>1308 × 1600</span>
+          <span>346.0 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Artwork / Background">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_291_ea-sports-fifa-23-is-coming-to-the-epic-games-store-hypermotion-1920x1080-dfe2ccefd790.jpg" alt="imgi_291_ea-sports-fifa-23-is-coming-to-the-epic-games-store-hypermotion-1920x1080-dfe2ccefd790.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-art">Artwork / Background</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_291_ea-sports-fifa-23-is-coming-to-the-epic-games-store-hypermotion-1920x1080-dfe2ccefd790.jpg</div>
+          <div class="card-desc">Cinematic broadcast graphic / wallpaper (1920x1080)</div>
+        </div>
+        <div class="card-meta">
+          <span>1920 × 1080</span>
+          <span>368.0 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Artwork / Background">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_295_merlin_196217397_01e4ddb2-4c38-4296-91f8-ebfde83ce2bb-superJumbo.jpg" alt="imgi_295_merlin_196217397_01e4ddb2-4c38-4296-91f8-ebfde83ce2bb-superJumbo.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-art">Artwork / Background</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_295_merlin_196217397_01e4ddb2-4c38-4296-91f8-ebfde83ce2bb-superJumbo.jpg</div>
+          <div class="card-desc">Cinematic broadcast graphic / wallpaper (2048x1152)</div>
+        </div>
+        <div class="card-meta">
+          <span>2048 × 1152</span>
+          <span>375.5 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_31_default.jpg" alt="imgi_31_default.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_31_default.jpg</div>
+          <div class="card-desc">Visual asset / UI icon (300x168)</div>
+        </div>
+        <div class="card-meta">
+          <span>300 × 168</span>
+          <span>17.7 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__imgi_65_images.jpg" alt="imgi_65_images.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">imgi_65_images.jpg</div>
+          <div class="card-desc">Visual asset / UI icon (320x480)</div>
+        </div>
+        <div class="card-meta">
+          <span>320 × 480</span>
+          <span>41.9 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Player Cutout">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__kdb.png" alt="kdb.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-cutout">Player Cutout</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">kdb.png</div>
+          <div class="card-desc">Transparent isolated player render cutout for tactical boards or hub cards</div>
+        </div>
+        <div class="card-meta">
+          <span>2893 × 5944</span>
+          <span>2503.2 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Player Cutout">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/inputs_loose__raphina.png" alt="raphina.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-cutout">Player Cutout</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">inputs/loose</span>
+          </div>
+          <div class="card-title">raphina.png</div>
+          <div class="card-desc">Transparent isolated player render cutout for tactical boards or hub cards</div>
+        </div>
+        <div class="card-meta">
+          <span>1758 × 3528</span>
+          <span>523.0 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/public_assets_art__academy-pitch.png" alt="academy-pitch.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">public/assets/art</span>
+          </div>
+          <div class="card-title">academy-pitch.png</div>
+          <div class="card-desc">Visual asset / UI icon (0x0)</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>2887.5 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Artwork / Background">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/public_assets_art__boardroom.png" alt="boardroom.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-art">Artwork / Background</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">public/assets/art</span>
+          </div>
+          <div class="card-title">boardroom.png</div>
+          <div class="card-desc">Atmospheric loading screen / broadcast stadium & cinematic environment art</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>2250.6 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Artwork / Background">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/public_assets_art__champions-league-match.jpg" alt="champions-league-match.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-art">Artwork / Background</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">public/assets/art</span>
+          </div>
+          <div class="card-title">champions-league-match.jpg</div>
+          <div class="card-desc">Atmospheric loading screen / broadcast stadium & cinematic environment art</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>296.7 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Artwork / Background">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/public_assets_art__goal-celebration.png" alt="goal-celebration.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-art">Artwork / Background</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">public/assets/art</span>
+          </div>
+          <div class="card-title">goal-celebration.png</div>
+          <div class="card-desc">Atmospheric loading screen / broadcast stadium & cinematic environment art</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>2718.8 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Artwork / Background">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/public_assets_art__press-room.png" alt="press-room.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-art">Artwork / Background</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">public/assets/art</span>
+          </div>
+          <div class="card-title">press-room.png</div>
+          <div class="card-desc">Atmospheric loading screen / broadcast stadium & cinematic environment art</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>1985.0 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Artwork / Background">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/public_assets_art__tunnel.png" alt="tunnel.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-art">Artwork / Background</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">public/assets/art</span>
+          </div>
+          <div class="card-title">tunnel.png</div>
+          <div class="card-desc">Atmospheric loading screen / broadcast stadium & cinematic environment art</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>2525.2 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Artwork / Background">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/public_assets_art__vinicius-trophy.jpg" alt="vinicius-trophy.jpg" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-art">Artwork / Background</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">public/assets/art</span>
+          </div>
+          <div class="card-title">vinicius-trophy.jpg</div>
+          <div class="card-desc">Atmospheric loading screen / broadcast stadium & cinematic environment art</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>346.0 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Logo & Branding">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/public_assets_branding__ea-fc-27-logo.png" alt="ea-fc-27-logo.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">Logo & Branding</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">public/assets/branding</span>
+          </div>
+          <div class="card-title">ea-fc-27-logo.png</div>
+          <div class="card-desc">Official identity graphic, competition crest, or UI roundel emblem</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>992.2 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Logo & Branding">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/public_assets_branding__fc27-hero.png" alt="fc27-hero.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">Logo & Branding</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">public/assets/branding</span>
+          </div>
+          <div class="card-title">fc27-hero.png</div>
+          <div class="card-desc">Official identity graphic, competition crest, or UI roundel emblem</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>1917.1 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Logo & Branding">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/public_assets_branding__fc27_keyart.webp" alt="fc27_keyart.webp" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">Logo & Branding</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">public/assets/branding</span>
+          </div>
+          <div class="card-title">fc27_keyart.webp</div>
+          <div class="card-desc">Official identity graphic, competition crest, or UI roundel emblem</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>352.2 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Logo & Branding">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/public_assets_branding__mc-logo-transparent.png" alt="mc-logo-transparent.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">Logo & Branding</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">public/assets/branding</span>
+          </div>
+          <div class="card-title">mc-logo-transparent.png</div>
+          <div class="card-desc">Official identity graphic, competition crest, or UI roundel emblem</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>10.1 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Logo & Branding">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/public_assets_branding__mc-logo.png" alt="mc-logo.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">Logo & Branding</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">public/assets/branding</span>
+          </div>
+          <div class="card-title">mc-logo.png</div>
+          <div class="card-desc">Official identity graphic, competition crest, or UI roundel emblem</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>9.7 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Logo & Branding">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/public_assets_branding__uefa-corporate.png" alt="uefa-corporate.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">Logo & Branding</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">public/assets/branding</span>
+          </div>
+          <div class="card-title">uefa-corporate.png</div>
+          <div class="card-desc">Official identity graphic, competition crest, or UI roundel emblem</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>290.5 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Logo & Branding">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/public_assets_branding__uefa-logo.png" alt="uefa-logo.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">Logo & Branding</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">public/assets/branding</span>
+          </div>
+          <div class="card-title">uefa-logo.png</div>
+          <div class="card-desc">Official identity graphic, competition crest, or UI roundel emblem</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>319.4 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Player Cutout">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/public_assets_cutouts__cutout_34.png" alt="cutout_34.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-cutout">Player Cutout</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">public/assets/cutouts</span>
+          </div>
+          <div class="card-title">cutout_34.png</div>
+          <div class="card-desc">Transparent isolated player render cutout for tactical boards or hub cards</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>258.9 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Player Cutout">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/public_assets_cutouts__doue.png" alt="doue.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-cutout">Player Cutout</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">public/assets/cutouts</span>
+          </div>
+          <div class="card-title">doue.png</div>
+          <div class="card-desc">Transparent isolated player render cutout for tactical boards or hub cards</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>103.9 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Player Cutout">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/public_assets_cutouts__eze.png" alt="eze.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-cutout">Player Cutout</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">public/assets/cutouts</span>
+          </div>
+          <div class="card-title">eze.png</div>
+          <div class="card-desc">Transparent isolated player render cutout for tactical boards or hub cards</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>2503.2 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Player Cutout">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/public_assets_cutouts__kdb.png" alt="kdb.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-cutout">Player Cutout</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">public/assets/cutouts</span>
+          </div>
+          <div class="card-title">kdb.png</div>
+          <div class="card-desc">Transparent isolated player render cutout for tactical boards or hub cards</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>2503.2 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Player Cutout">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/public_assets_cutouts__raphinha.png" alt="raphinha.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-cutout">Player Cutout</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">public/assets/cutouts</span>
+          </div>
+          <div class="card-title">raphinha.png</div>
+          <div class="card-desc">Transparent isolated player render cutout for tactical boards or hub cards</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>523.0 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/public_assets_cutouts__vlahovic.png" alt="vlahovic.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-logo">UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">public/assets/cutouts</span>
+          </div>
+          <div class="card-title">vlahovic.png</div>
+          <div class="card-desc">Visual asset / UI icon (0x0)</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>60.4 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/aistudio_tempmedia__r1-2d-negotiation.png" alt="r1-2d-negotiation.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">aistudio/tempmedia</span>
+          </div>
+          <div class="card-title">r1-2d-negotiation.png</div>
+          <div class="card-desc">1:1 Reference: Interactive 2D Transfer Negotiation Screen</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>96.0 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/aistudio_tempmedia__r1-central-hub.png" alt="r1-central-hub.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">aistudio/tempmedia</span>
+          </div>
+          <div class="card-title">r1-central-hub.png</div>
+          <div class="card-desc">★ 1:1 Reference: Central Career Hub (Matchday hero face-off, date banner, tasks)</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>170.4 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/aistudio_tempmedia__r1-club-select.png" alt="r1-club-select.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">aistudio/tempmedia</span>
+          </div>
+          <div class="card-title">r1-club-select.png</div>
+          <div class="card-desc">In-game UI layout screenshot (0x0)</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>169.8 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/aistudio_tempmedia__r1-team-management.png" alt="r1-team-management.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">aistudio/tempmedia</span>
+          </div>
+          <div class="card-title">r1-team-management.png</div>
+          <div class="card-desc">1:1 Reference: Team Management & Tactical Vision Board</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>172.9 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/aistudio_tempmedia__r1-transfer-reveal.png" alt="r1-transfer-reveal.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">aistudio/tempmedia</span>
+          </div>
+          <div class="card-title">r1-transfer-reveal.png</div>
+          <div class="card-desc">In-game UI layout screenshot (0x0)</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>74.4 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/aistudio_tempmedia__r2-academy.png" alt="r2-academy.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">aistudio/tempmedia</span>
+          </div>
+          <div class="card-title">r2-academy.png</div>
+          <div class="card-desc">1:1 Reference: Youth Academy & Scout Assignments</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>108.0 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/aistudio_tempmedia__r2-central.png" alt="r2-central.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">aistudio/tempmedia</span>
+          </div>
+          <div class="card-title">r2-central.png</div>
+          <div class="card-desc">★ 1:1 Reference: Central Career Hub (Matchday hero face-off, date banner, tasks)</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>167.4 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/aistudio_tempmedia__r2-live-match.png" alt="r2-live-match.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">aistudio/tempmedia</span>
+          </div>
+          <div class="card-title">r2-live-match.png</div>
+          <div class="card-desc">1:1 Reference: Live Match Simulation Engine</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>97.3 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/aistudio_tempmedia__r2-office-finances.png" alt="r2-office-finances.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">aistudio/tempmedia</span>
+          </div>
+          <div class="card-title">r2-office-finances.png</div>
+          <div class="card-desc">1:1 Reference: Office Finances & League Standings</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>114.3 KB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-category="Game UI Reference">
+      <div class="thumb-wrap">
+        <img src="/assets/reference_thumbs/aistudio_tempmedia__r2-office-standings.png" alt="r2-office-standings.png" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div>
+          <div style="margin-bottom: 6px;">
+            <span class="badge badge-ui">Game UI Reference</span>
+            <span style="font-size: 10px; color: var(--subtext); margin-left: 6px;">aistudio/tempmedia</span>
+          </div>
+          <div class="card-title">r2-office-standings.png</div>
+          <div class="card-desc">1:1 Reference: Office Finances & League Standings</div>
+        </div>
+        <div class="card-meta">
+          <span>0 × 0</span>
+          <span>152.4 KB</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function filterCat(cat) {
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      document.querySelectorAll('.card').forEach(card => {
+        if (cat === 'all' || card.getAttribute('data-category') === cat) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+  </script>
+</body>
+</html>

@@ -51,8 +51,15 @@ export const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
           className="w-full h-full object-cover object-top"
         />
       ) : (
-        <div className="flex flex-col items-center justify-center leading-none text-white/90">
-          <span>{initials || 'FC'}</span>
+        <div className="relative w-full h-full flex flex-col items-center justify-center text-white/90">
+          {/* Authentic EA FC Generic Player Bust Silhouette Fallback */}
+          <svg viewBox="0 0 40 40" className="w-full h-full text-white/40" fill="currentColor">
+            <circle cx="20" cy="14" r="7" />
+            <path d="M7 36 C7 27 13 24 20 24 C27 24 33 27 33 36 Z" />
+          </svg>
+          <span className="absolute bottom-1 font-display font-black text-[9px] tracking-wider text-white drop-shadow">
+            {initials || 'FC'}
+          </span>
         </div>
       )}
     </div>
