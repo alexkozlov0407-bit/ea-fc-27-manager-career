@@ -28,6 +28,7 @@ import {
   Player,
   ScoutInstruction,
   ScoutReportProgress,
+  TransferNegotiation,
   YouthProspect,
 } from './types.ts';
 

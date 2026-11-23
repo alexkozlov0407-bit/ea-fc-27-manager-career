@@ -173,7 +173,7 @@ const LALIGA_CLUB_META: Record<number, ClubMeta> = {
     primary: '#ffffff',
     secondary: '#ed1c24',
     manager: 'Marco Rose',
-    formation: '4-2-2-2' as FormationId,
+    formation: '4-2-3-1 Wide',
     vision: 'Gegenpressing',
     budgetEur: 75_000_000,
     worthEur: 1_300_000_000,

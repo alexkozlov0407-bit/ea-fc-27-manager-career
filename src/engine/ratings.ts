@@ -680,7 +680,7 @@ export function buildLineupForFormation(
   formation: FormationId,
   clubPlayers: Player[]
 ): { lineup: TacticalSlot[]; benchIds: number[] } {
-  const template = FORMATIONS[formation];
+  const template = FORMATIONS[formation] ?? FORMATIONS['4-3-3 Holding'];
   const available = [...clubPlayers].sort((a, b) => b.dynamicOvr.dynamicOvr - a.dynamicOvr.dynamicOvr);
   const used = new Set<number>();
 

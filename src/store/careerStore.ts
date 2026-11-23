@@ -354,8 +354,9 @@ export const useCareerStore = create<CareerStore>((set, get) => ({
     let career = get().career;
     if (!career || career.seasonCompleted) return;
 
+    const userClubId = career.userClubId;
     const nextUserMatch = career.fixtures
-      .filter((f) => !f.played && (f.homeClubId === career.userClubId || f.awayClubId === career.userClubId))
+      .filter((f) => !f.played && (f.homeClubId === userClubId || f.awayClubId === userClubId))
       .sort((a, b) => a.date.localeCompare(b.date))[0];
 
     const goalDate = targetDate ?? nextUserMatch?.date;
@@ -701,10 +702,9 @@ export const useCareerStore = create<CareerStore>((set, get) => ({
       ...career,
       clubs: { ...career.clubs, [club.id]: { ...club, formation, lineup, benchIds } },
       players: nextPlayers,
-      toast: `Formation switched to ${formation}.`,
     };
     persistActiveCareer(nextState);
-    set({ career: nextState });
+    set({ career: nextState, toast: `Formation switched to ${formation}.` });
   },
 
   updateClubTactics: (vision, mentality, lineHeight) => {

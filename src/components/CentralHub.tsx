@@ -71,12 +71,9 @@ export const CentralHub: React.FC = () => {
       )
       .slice(0, 5);
 
-    const injuredPlayers = userSquad.filter((p) => p.injury?.recovering || (p.injury?.weeksRemaining ?? 0) > 0);
-    const expiringContracts = userSquad.filter((p) => {
-      if (!p.contract?.expiryDateIso) return false;
-      const days = diffDays(career.currentDate, p.contract.expiryDateIso);
-      return days > 0 && days <= 365;
-    });
+    const currentYear = parseInt(career.currentDate.slice(0, 4), 10);
+    const injuredPlayers = userSquad.filter((p) => p.injury?.recovering || (p.injury?.daysRemaining ?? 0) > 0);
+    const expiringContracts = userSquad.filter((p) => p.contractEndYear <= currentYear + 1);
 
     const unreadInbox = career.inbox.filter((m) => !m.read);
     const daysToClose = Math.max(0, diffDays(career.currentDate, career.transferWindowClosesDate));
@@ -129,12 +126,15 @@ export const CentralHub: React.FC = () => {
     }[] = [];
 
     // Transfer offers
-    const activeOffers = career.activeNegotiations.filter((n) => n.sellerClubId === career.userClubId);
+    const activeOffers = career.negotiations.filter(
+      (n) => n.fromClubId === career.userClubId && n.stage !== 'COMPLETED'
+    );
     if (activeOffers.length > 0) {
+      const targetP = career.players[activeOffers[0].playerId];
       tasks.push({
         id: 'transfer-offer',
-        title: `Offer Received for ${activeOffers[0].playerName}`,
-        subtitle: `${activeOffers[0].buyerClubName} submitted an official bid (${formatMoney(activeOffers[0].currentOfferFeeEur, career.settings.currency)})`,
+        title: `Offer Received for ${targetP?.knownAs ?? 'Squad Player'}`,
+        subtitle: `${activeOffers[0].counterpartClubName} submitted an official bid (${formatMoney(activeOffers[0].currentOffer.transferFeeEur, career.settings.currency)})`,
         icon: 'transfer',
         badge: 'TRANSFER ACTION',
         badgeColor: 'border-emerald-400 text-emerald-300 bg-emerald-500/10',
@@ -148,7 +148,7 @@ export const CentralHub: React.FC = () => {
       tasks.push({
         id: 'injury-alert',
         title: `${p.knownAs} Injured (${p.injury?.type ?? 'Recovering'})`,
-        subtitle: `${p.injury?.weeksRemaining ?? 1}w remaining · ${p.injury?.aggravationRiskPct ?? 35}% aggravation risk`,
+        subtitle: `${p.injury?.daysRemaining ?? 7}d remaining · ${p.injury?.aggravationRiskPct ?? 35}% aggravation risk`,
         icon: 'injury',
         badge: 'FITNESS ALERT',
         badgeColor: 'border-amber-400 text-amber-300 bg-amber-500/10',
@@ -162,7 +162,7 @@ export const CentralHub: React.FC = () => {
       tasks.push({
         id: 'contract-expiry',
         title: `${p.knownAs} Contract Expiring`,
-        subtitle: `Less than 12 months left on contract (${p.contract?.weeklyWageEur ? formatMoney(p.contract.weeklyWageEur, career.settings.currency) + '/wk' : 'Under contract'})`,
+        subtitle: `Contract ends in ${p.contractEndYear} (${formatMoney(p.weeklyWageEur, career.settings.currency)}/wk)`,
         icon: 'contract',
         badge: 'OFFICE',
         badgeColor: 'border-sky-400 text-sky-300 bg-sky-500/10',

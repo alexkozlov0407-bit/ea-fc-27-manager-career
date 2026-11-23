@@ -1142,13 +1142,13 @@ export const SquadView: React.FC = () => {
                   <div className="text-xs font-black uppercase text-[#38f2c8]">Free Kick Specialist</div>
                   <select
                     value={club.freeKickTakerId ?? ''}
-                    onChange={(e) => setSetPieceTaker('freeKick', Number(e.target.value))}
+                    onChange={(e) => setSetPieceTaker('freekick', Number(e.target.value))}
                     className="w-full rounded-lg border border-white/15 bg-[#08131b] px-3 py-2 text-xs font-bold text-white focus:border-[#38f2c8] focus:outline-none"
                   >
                     {club.lineup.map((s) =>
                       s.playerId && career.players[s.playerId] ? (
                         <option key={s.playerId} value={s.playerId}>
-                          {career.players[s.playerId].knownAs} ({career.players[s.playerId].attributes.fk_accuracy} FK)
+                          {career.players[s.playerId].knownAs} ({career.players[s.playerId].attributes.freekickaccuracy} FK)
                         </option>
                       ) : null
                     )}

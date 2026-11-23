@@ -181,24 +181,3 @@ export const TopNavBar: React.FC = () => {
     </header>
   );
 };
-                {userClub.name}
-              </div>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <div className="w-20 h-1.5 rounded-full bg-white/15 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-[#10c482] to-[#38f2c8]"
-                    style={{ width: `${userClub.boardConfidence}%` }}
-                  />
-                </div>
-                <span className="inline-flex items-center gap-0.5 font-mono-num text-[10px] font-bold text-amber-300">
-                  <Star className="w-2.5 h-2.5 fill-amber-300 text-amber-300" />
-                  {userClub.boardConfidence}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </header>
-  );
-};
