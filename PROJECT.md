@@ -22,6 +22,7 @@ npm test
 
 - **Dev Server URL**: `http://localhost:3000/`
 - **Visual Assets Contact Sheet**: `http://localhost:3000/contact_sheet.html`
+- **Official Specification Blueprint**: [`BLUEPRINT.md`](file:///Users/alex-k/Downloads/ea-fc-27-manager-career/BLUEPRINT.md) (PS5 Title Update v1.2.0 Architecture & Backlog)
 - **Git Baseline Tag**: `baseline-pre-ai-studio` (Commit: `a8ee9dc`)
 
 ---
