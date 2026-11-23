@@ -1,5 +1,5 @@
-import React from 'react';
-import { Star } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { Star, User } from 'lucide-react';
 import { formatMoney } from '../engine/ratings';
 import { NavTab, useCareerStore } from '../store/careerStore';
 import { ClubCrest } from './PlayerAvatar';
@@ -20,6 +20,28 @@ export const TopNavBar: React.FC = () => {
   const activeTab = useCareerStore((s) => s.activeTab);
   const setActiveTab = useCareerStore((s) => s.setActiveTab);
 
+  // Keyboard navigation for L1/R1 tab switching
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+
+      const currentIdx = NAV_TABS.indexOf(activeTab);
+      if (e.key === 'q' || e.key === 'Q' || e.key === '[') {
+        e.preventDefault();
+        const prevIdx = (currentIdx - 1 + NAV_TABS.length) % NAV_TABS.length;
+        setActiveTab(NAV_TABS[prevIdx]);
+      } else if (e.key === 'e' || e.key === 'E' || e.key === ']') {
+        e.preventDefault();
+        const nextIdx = (currentIdx + 1) % NAV_TABS.length;
+        setActiveTab(NAV_TABS[nextIdx]);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeTab, setActiveTab]);
+
   if (!career) return null;
   const userClub = career.clubs[career.userClubId];
   const unreadCount = career.inbox.filter((m) => !m.read).length;
@@ -27,16 +49,21 @@ export const TopNavBar: React.FC = () => {
     (n) => n.stage === 'CLUB_TALKS' || n.stage === 'PLAYER_TALKS' || n.stage === 'DELEGATED' || n.stage === 'HIJACKED'
   ).length;
 
+  const currentIdx = NAV_TABS.indexOf(activeTab);
+
+  // FC 27 4-segment manager rating bar calculation
+  const filledSegments = Math.min(4, Math.max(1, Math.ceil((userClub.boardConfidence / 100) * 4)));
+
   return (
-    <header className="sticky top-0 z-30 border-b border-white/10 bg-[#07131a]/92 backdrop-blur-md">
+    <header className="sticky top-0 z-30 border-b border-white/10 bg-[#07131a]/95 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-[1520px] items-center justify-between gap-4 px-4 lg:px-6">
-        {/* Left: MC Logo + Top Nav Tabs */}
+        {/* Left: MC Logo + Bumper Tabs */}
         <div className="flex items-center gap-3 min-w-0">
           <button
             type="button"
             onClick={() => setActiveTab('Central')}
             className="flex items-center gap-2 shrink-0 group focus:outline-none"
-            title="Manager Career Home"
+            title="Manager Career Central Hub"
           >
             <span className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white/80 bg-[#0c1d28] font-display text-base font-extrabold italic tracking-tight text-white group-hover:border-[#38f2c8] transition-colors">
               MC
@@ -44,6 +71,16 @@ export const TopNavBar: React.FC = () => {
           </button>
 
           <div className="h-5 w-px bg-white/15 shrink-0 hidden sm:block" />
+
+          {/* L1 Bumper Indicator */}
+          <button
+            type="button"
+            onClick={() => setActiveTab(NAV_TABS[(currentIdx - 1 + NAV_TABS.length) % NAV_TABS.length])}
+            className="hidden sm:inline-flex items-center justify-center rounded bg-white/10 hover:bg-white/20 px-1.5 py-0.5 text-[10px] font-mono-num font-bold text-white/70 hover:text-white transition-colors"
+            title="Previous Tab (Q / [)"
+          >
+            L1
+          </button>
 
           <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar" aria-label="Primary Career Navigation">
             {NAV_TABS.map((tab) => {
@@ -79,9 +116,19 @@ export const TopNavBar: React.FC = () => {
               );
             })}
           </nav>
+
+          {/* R1 Bumper Indicator */}
+          <button
+            type="button"
+            onClick={() => setActiveTab(NAV_TABS[(currentIdx + 1) % NAV_TABS.length])}
+            className="hidden sm:inline-flex items-center justify-center rounded bg-white/10 hover:bg-white/20 px-1.5 py-0.5 text-[10px] font-mono-num font-bold text-white/70 hover:text-white transition-colors"
+            title="Next Tab (E / ])"
+          >
+            R1
+          </button>
         </div>
 
-        {/* Right: Budget + Club Crest + Board Confidence */}
+        {/* Right: Budget + Club Crest + Segmented Rating Bar + FC Hub Profile */}
         <div className="hidden md:flex items-center gap-4 shrink-0">
           <div className="text-right leading-tight">
             <div className="text-[10px] uppercase tracking-wider text-[#7e98a7] font-semibold">
@@ -94,10 +141,46 @@ export const TopNavBar: React.FC = () => {
 
           <div className="h-6 w-px bg-white/12" />
 
+          {/* Authentic FC 27 Club Profile & 4-Segment Rating Bar */}
           <div className="flex items-center gap-2.5">
             <ClubCrest club={userClub} size={30} />
             <div className="leading-tight">
-              <div className="text-xs font-bold text-white uppercase tracking-wide">
+              <div className="text-xs font-bold text-white uppercase tracking-wide truncate max-w-[130px]">
+                {userClub.name}
+              </div>
+              <div className="flex items-center gap-1.5 mt-1">
+                {/* 4 Segment Rating Meter */}
+                <div className="flex items-center gap-0.5">
+                  {[1, 2, 3, 4].map((seg) => (
+                    <div
+                      key={seg}
+                      className={`h-1.5 w-4 rounded-sm transition-colors ${
+                        seg <= filledSegments ? 'bg-[#10c482]' : 'bg-white/15'
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="inline-flex items-center gap-0.5 font-mono-num text-[10px] font-bold text-amber-300">
+                  <Star className="w-2.5 h-2.5 fill-amber-300 text-amber-300" />
+                  {userClub.boardConfidence}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="h-6 w-px bg-white/12" />
+
+          {/* FC Hub Profile Pill */}
+          <div className="flex items-center gap-1.5 rounded-full bg-white/10 hover:bg-white/15 px-2.5 py-1 text-xs text-white/90 cursor-pointer transition-colors" title="FC Hub (R2)">
+            <User className="w-3.5 h-3.5 text-[#38f2c8]" />
+            <span className="text-[11px] font-bold">FC HUB</span>
+            <span className="rounded bg-black/40 px-1 font-mono-num text-[9px] font-extrabold text-white/70">R2</span>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+};
                 {userClub.name}
               </div>
               <div className="flex items-center gap-1.5 mt-0.5">
