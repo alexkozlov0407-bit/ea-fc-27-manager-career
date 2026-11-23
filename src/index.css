@@ -1,5 +1,86 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'Cruyff Sans';
+  src: url('/fonts/cruyff-sans/CruyffSans-Light.woff2') format('woff2'),
+       url('/fonts/cruyff-sans/CruyffSans-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Cruyff Sans';
+  src: url('/fonts/cruyff-sans/CruyffSans-Regular.woff2') format('woff2'),
+       url('/fonts/cruyff-sans/CruyffSans-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Cruyff Sans';
+  src: url('/fonts/cruyff-sans/CruyffSans-Medium.woff2') format('woff2'),
+       url('/fonts/cruyff-sans/CruyffSans-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Cruyff Sans';
+  src: url('/fonts/cruyff-sans/CruyffSans-Bold.woff2') format('woff2'),
+       url('/fonts/cruyff-sans/CruyffSans-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Cruyff Sans Condensed';
+  src: url('/fonts/cruyff-sans/CruyffSansCondensed-Regular.woff2') format('woff2'),
+       url('/fonts/cruyff-sans/CruyffSansCondensed-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Cruyff Sans Condensed';
+  src: url('/fonts/cruyff-sans/CruyffSansCondensed-Medium.woff2') format('woff2'),
+       url('/fonts/cruyff-sans/CruyffSansCondensed-Medium.ttf') format('truetype');
+  font-weight: 500 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Cruyff Sans Expanded';
+  src: url('/fonts/cruyff-sans/CruyffSansExpanded-Heavy.woff2') format('woff2'),
+       url('/fonts/cruyff-sans/CruyffSansExpanded-Heavy.ttf') format('truetype');
+  font-weight: 700 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Cruyff Sans Mono';
+  src: url('/fonts/cruyff-sans/CruyffSansMono-Regular.woff2') format('woff2'),
+       url('/fonts/cruyff-sans/CruyffSansMono-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Cruyff Sans Mono';
+  src: url('/fonts/cruyff-sans/CruyffSansMono-Bold.woff2') format('woff2'),
+       url('/fonts/cruyff-sans/CruyffSansMono-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
   :root {
     --fc-bg-deep: #071117;
@@ -19,7 +100,7 @@
   }
 
   body {
-    font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+    font-family: "Cruyff Sans", "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
     background-color: #071117;
     color: #f1f6f8;
     overflow-x: hidden;
@@ -27,12 +108,21 @@
 }
 
 .font-display {
-  font-family: "Barlow Condensed", "Plus Jakarta Sans", sans-serif;
+  font-family: "Cruyff Sans Condensed", "Cruyff Sans", "Barlow Condensed", sans-serif;
   letter-spacing: 0.02em;
 }
 
+.font-expanded {
+  font-family: "Cruyff Sans Expanded", "Cruyff Sans Condensed", sans-serif;
+  letter-spacing: -0.01em;
+}
+
+.font-condensed {
+  font-family: "Cruyff Sans Condensed", sans-serif;
+}
+
 .font-mono-num {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: "Cruyff Sans Mono", "JetBrains Mono", ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
 }
 

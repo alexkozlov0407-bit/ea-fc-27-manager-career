@@ -37,7 +37,7 @@ import {
   TacticalVision,
 } from '../engine/types';
 import { useCareerStore } from '../store/careerStore';
-import { OvrDiamond, PlayerAvatar, positionColorClass } from './PlayerAvatar';
+import { MarqueePlayerCutout, OvrDiamond, PlayerAvatar, positionColorClass } from './PlayerAvatar';
 
 type SquadSubTab = 'Hub' | 'TeamManagement' | 'SquadHub' | 'Coaches';
 type MgmtSection = 'Squad' | 'Tactics' | 'Assignments';
@@ -783,28 +783,35 @@ export const SquadView: React.FC = () => {
               {/* FC IQ Player Inspector with Role Checklist (Right 4 cols) */}
               {activePlayer && (
                 <div className="xl:col-span-4 fc-panel rounded-2xl p-5 border border-white/10 space-y-4">
-                  {/* Player Banner */}
-                  <div className="flex items-start justify-between gap-3 pb-3 border-b border-white/10">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <PlayerAvatar player={activePlayer} clubColor={club.primaryColor} size="lg" />
-                      <div className="min-w-0">
-                        <div className="text-[11px] font-black uppercase tracking-wider text-[#38f2c8]">
-                          {[activePlayer.primaryPosition, ...activePlayer.otherPositions].join(' · ')}
-                        </div>
-                        <h3 className="font-display text-2xl font-black uppercase tracking-wide text-white truncate">
-                          {activePlayer.knownAs}
-                        </h3>
-                        <div className="text-xs text-[#8ba5b3] font-mono-num">
-                          Baseline OVR <strong className="text-white">{activePlayer.baseOvr}</strong> · Potential{' '}
-                          <strong className="text-[#38f2c8]">{activePlayer.potential}</strong>
-                        </div>
+                  {/* Player Banner with Real Cutout Showcase */}
+                  <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#091a24] via-[#0d2834] to-[#07131a] p-4 border border-white/10 flex items-center justify-between">
+                    <div className="relative z-10 min-w-0 pr-2">
+                      <div className="text-[11px] font-black uppercase tracking-wider text-[#38f2c8]">
+                        {[activePlayer.primaryPosition, ...activePlayer.otherPositions].join(' · ')}
+                      </div>
+                      <h3 className="font-display text-2xl font-black uppercase tracking-wide text-white truncate">
+                        {activePlayer.knownAs}
+                      </h3>
+                      <div className="text-xs text-[#8ba5b3] font-mono-num mt-0.5">
+                        Base <strong className="text-white">{activePlayer.baseOvr}</strong> · POT{' '}
+                        <strong className="text-[#38f2c8]">{activePlayer.potential}</strong>
+                      </div>
+                      <div className="mt-2.5">
+                        <OvrDiamond
+                          ovr={activePlayer.dynamicOvr.dynamicOvr}
+                          delta={activePlayer.dynamicOvr.totalDelta}
+                          size="md"
+                        />
                       </div>
                     </div>
-                    <OvrDiamond
-                      ovr={activePlayer.dynamicOvr.dynamicOvr}
-                      delta={activePlayer.dynamicOvr.totalDelta}
-                      size="lg"
-                    />
+                    {/* High-res Cutout */}
+                    <div className="relative shrink-0 h-32 w-28 flex items-end justify-end pointer-events-none -mb-4 -mr-2">
+                      <MarqueePlayerCutout
+                        name={activePlayer.knownAs}
+                        className="h-32 w-auto object-contain object-bottom filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.85)]"
+                        useFallback={true}
+                      />
+                    </div>
                   </div>
 
                   {/* FC IQ Role & Focus Checklist matching image_8a05a206.png */}

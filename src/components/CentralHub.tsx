@@ -25,7 +25,7 @@ import { computeSectorRatings } from '../engine/matchSim';
 import { formatMoney } from '../engine/ratings';
 import { addDays, diffDays } from '../engine/season';
 import { useCareerStore } from '../store/careerStore';
-import { ClubCrest, OvrDiamond, PlayerAvatar } from './PlayerAvatar';
+import { ClubCrest, MarqueePlayerCutout, OvrDiamond, PlayerAvatar } from './PlayerAvatar';
 
 interface Story {
   id: string;
@@ -40,6 +40,7 @@ interface Story {
   commentsCount: string;
   comments: { user: string; handle: string; text: string; time: string }[];
   bgGradient: string;
+  image?: string;
 }
 
 export const CentralHub: React.FC = () => {
@@ -221,6 +222,7 @@ export const CentralHub: React.FC = () => {
         authorHandle: '@TheAthleticFC',
         likes: '1.24 M',
         commentsCount: '1.45 K',
+        image: '/assets/art/goal-celebration.png',
         comments: [
           { user: 'Liam Davies', handle: '@davies_tactics', text: `Tactical masterclass expected. If we exploit the half-spaces, three points are guaranteed!`, time: '2h ago' },
           { user: 'Elena Rossi', handle: '@elena_calcio', text: `Star player looking sharp in training. Can't wait for this one.`, time: '4h ago' },
@@ -239,6 +241,7 @@ export const CentralHub: React.FC = () => {
         authorHandle: '@FabrizioRomano',
         likes: '2.10 M',
         commentsCount: '3.82 K',
+        image: '/assets/art/vinicius-trophy.jpg',
         comments: [
           { user: 'Alex K.', handle: '@alex_fc_fan', text: `Here we go! Let's bring in a dynamic winger before the window closes!`, time: '1h ago' },
           { user: 'Javier Gomez', handle: '@jgomez_madrid', text: `Youth academy pipeline is where the real gems are found this season.`, time: '3h ago' },
@@ -257,6 +260,7 @@ export const CentralHub: React.FC = () => {
         authorHandle: '@OptaAnalyst',
         likes: '890 K',
         commentsCount: '920',
+        image: '/assets/art/champions-league-match.jpg',
         comments: [
           { user: 'Coach Dan', handle: '@dancoach_pro', text: `Notice how the inverted wingback steps into midfield during build-up? Pure modern football.`, time: '30m ago' },
           { user: 'Chloe Smith', handle: '@chloe_arsenal', text: `FC IQ gives so much depth to our squad rotations now.`, time: '2h ago' },
@@ -319,6 +323,7 @@ export const CentralHub: React.FC = () => {
     dateFormatted,
     stories,
     currentStory,
+    starPlayer,
   } = computed;
 
   const isMatchDay = nextMatch?.date === career.currentDate;
@@ -422,8 +427,15 @@ export const CentralHub: React.FC = () => {
           {/* Authentic Matchday Hero Tile */}
           {nextMatch && homeClub && awayClub && homeSectors && awaySectors && (
             <div className="fc-panel rounded-2xl p-6 relative overflow-hidden border border-white/10 shadow-2xl backdrop-blur-md">
+              {/* Cyan Tunnel Cinematic Stadium Backdrop */}
+              <div
+                className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-luminosity pointer-events-none"
+                style={{ backgroundImage: `url('/assets/art/tunnel.png')` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#07131a] via-[#07131a]/80 to-[#07131a]/40 pointer-events-none" />
+
               {/* Competition Ribbon */}
-              <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider pb-4 border-b border-white/10 text-[#8ba5b3]">
+              <div className="relative z-10 flex items-center justify-between text-xs font-bold uppercase tracking-wider pb-4 border-b border-white/10 text-[#8ba5b3]">
                 <div className="flex items-center gap-2">
                   <span className="inline-block w-2 h-2 rounded-full bg-[#38f2c8]" />
                   <span className="text-white font-extrabold tracking-widest">{leagueName}</span>
@@ -436,7 +448,7 @@ export const CentralHub: React.FC = () => {
               </div>
 
               {/* Match Face-Off: Club A vs Club B */}
-              <div className="grid grid-cols-11 items-center gap-2 my-6">
+              <div className="relative z-10 grid grid-cols-11 items-center gap-2 my-6">
                 {/* Home Club */}
                 <div className="col-span-5 flex flex-col items-center text-center group cursor-pointer" onClick={() => setActiveTab('Office')}>
                   <div className="relative">
@@ -488,8 +500,39 @@ export const CentralHub: React.FC = () => {
                 </div>
               </div>
 
+              {/* Key Matchday Spotlight Player */}
+              {starPlayer && (
+                <div className="relative z-10 mb-4 px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 flex items-center justify-between overflow-hidden">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <OvrDiamond
+                      ovr={starPlayer.dynamicOvr.dynamicOvr}
+                      delta={starPlayer.dynamicOvr.totalDelta}
+                      size="sm"
+                    />
+                    <div className="min-w-0">
+                      <div className="text-[10px] uppercase font-bold text-[#38f2c8] tracking-widest">
+                        KEY PLAYER TO WATCH
+                      </div>
+                      <div className="font-display text-base font-black uppercase text-white truncate">
+                        {starPlayer.knownAs}
+                      </div>
+                      <div className="text-[11px] text-[#8ba5b3] font-mono-num">
+                        {starPlayer.primaryPosition} · Role: {starPlayer.roleTitle} · Form: {starPlayer.dynamicOvr.formLabel}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="shrink-0 -my-4 -mr-2 h-20 w-24 flex items-end justify-end pointer-events-none">
+                    <MarqueePlayerCutout
+                      name={starPlayer.knownAs}
+                      className="h-20 w-auto object-contain object-bottom"
+                      useFallback={true}
+                    />
+                  </div>
+                </div>
+              )}
+
               {/* Action Buttons Strip */}
-              <div className="pt-4 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="relative z-10 pt-4 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <button
                   type="button"
                   onClick={startLiveMatch}
@@ -690,15 +733,22 @@ export const CentralHub: React.FC = () => {
 
             {/* Main Visual / Story Graphic */}
             <div className="p-5">
-              <div className="relative rounded-xl overflow-hidden border border-white/10 bg-[#07131a]/80 p-5 min-h-[170px] flex flex-col justify-end">
-                <div className="absolute top-3 right-3 opacity-15">
+              <div className="relative rounded-xl overflow-hidden border border-white/10 bg-[#07131a]/80 p-5 min-h-[200px] flex flex-col justify-end group">
+                {currentStory.image && (
+                  <div
+                    className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
+                    style={{ backgroundImage: `url('${currentStory.image}')` }}
+                  />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#061016] via-[#061016]/75 to-transparent pointer-events-none" />
+                <div className="absolute top-3 right-3 opacity-20">
                   <ClubCrest club={userClub} size={110} />
                 </div>
                 <div className="relative z-10">
                   <div className="text-[11px] font-bold text-[#38f2c8] uppercase tracking-wider">
                     {currentStory.author} · {currentStory.authorHandle}
                   </div>
-                  <h2 className="font-display text-xl lg:text-2xl font-black uppercase tracking-tight text-white mt-1 leading-snug">
+                  <h2 className="font-display text-xl lg:text-2xl font-black uppercase tracking-tight text-white mt-1 leading-snug drop-shadow-md">
                     {currentStory.headline}
                   </h2>
                 </div>

@@ -479,6 +479,13 @@ const NegotiationModal2D: React.FC<{ negotiation: TransferNegotiation; onClose: 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-y-auto">
       <div className="relative w-full max-w-[1060px] rounded-xl border border-white/15 fc-backdrop shadow-2xl overflow-hidden">
+        {/* Holographic Boardroom Backdrop */}
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-luminosity pointer-events-none"
+          style={{ backgroundImage: `url('/assets/art/boardroom.png')` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#07131a]/95 via-[#07131a]/90 to-[#07131a]/85 pointer-events-none" />
+
         <button
           type="button"
           onClick={onClose}
@@ -488,7 +495,7 @@ const NegotiationModal2D: React.FC<{ negotiation: TransferNegotiation; onClose: 
           <X className="w-4 h-4" />
         </button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12">
+        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12">
           {/* LEFT COLUMN: Structured Offer Form matching FC 27 screenshot */}
           <div className="lg:col-span-7 p-6 lg:p-8 flex flex-col justify-between space-y-5">
             <div>

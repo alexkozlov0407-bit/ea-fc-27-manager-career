@@ -177,3 +177,43 @@ export function positionColorClass(pos: Position): string {
   if (pos === 'ST' || pos === 'LW' || pos === 'RW') return 'text-rose-300';
   return 'text-emerald-300';
 }
+
+export function getPlayerCutoutUrl(name?: string, useFallback = false): string | null {
+  if (!name) return useFallback ? '/assets/cutouts/cutout_34.png' : null;
+  const n = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  if (n.includes('bruyne') || n.includes('kdb')) return '/assets/cutouts/kdb.png';
+  if (n.includes('eze')) return '/assets/cutouts/eze.png';
+  if (n.includes('raphinha')) return '/assets/cutouts/raphinha.png';
+  if (n.includes('doue')) return '/assets/cutouts/doue.png';
+  if (n.includes('vlahovic') || n.includes('dusan')) return '/assets/cutouts/vlahovic.png';
+  return useFallback ? '/assets/cutouts/cutout_34.png' : null;
+}
+
+interface MarqueePlayerCutoutProps {
+  name: string;
+  className?: string;
+  useFallback?: boolean;
+  alt?: string;
+}
+
+export const MarqueePlayerCutout: React.FC<MarqueePlayerCutoutProps> = ({
+  name,
+  className = 'h-52 w-auto object-contain',
+  useFallback = true,
+  alt = 'Marquee Player Cutout',
+}) => {
+  const [error, setError] = useState(false);
+  const cutoutUrl = getPlayerCutoutUrl(name, useFallback);
+
+  if (!cutoutUrl || error) return null;
+
+  return (
+    <img
+      src={cutoutUrl}
+      alt={alt}
+      loading="lazy"
+      onError={() => setError(true)}
+      className={`select-none filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.65)] pointer-events-none transition-all duration-300 ${className}`}
+    />
+  );
+};

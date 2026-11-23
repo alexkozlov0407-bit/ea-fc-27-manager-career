@@ -57,16 +57,21 @@ export const TopNavBar: React.FC = () => {
   return (
     <header className="sticky top-0 z-30 border-b border-white/10 bg-[#07131a]/95 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-[1520px] items-center justify-between gap-4 px-4 lg:px-6">
-        {/* Left: MC Logo + Bumper Tabs */}
+        {/* Left: FC 27 Official Branding + Bumper Tabs */}
         <div className="flex items-center gap-3 min-w-0">
           <button
             type="button"
             onClick={() => setActiveTab('Central')}
             className="flex items-center gap-2 shrink-0 group focus:outline-none"
-            title="Manager Career Central Hub"
+            title="EA SPORTS FC 27 Manager Career"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white/80 bg-[#0c1d28] font-display text-base font-extrabold italic tracking-tight text-white group-hover:border-[#38f2c8] transition-colors">
-              MC
+            <img
+              src="/assets/branding/ea-fc-27-logo.png"
+              alt="EA SPORTS FC 27"
+              className="h-7 w-auto object-contain shrink-0 filter drop-shadow group-hover:brightness-110 transition-all"
+            />
+            <span className="hidden xl:inline-block font-display text-[11px] font-black uppercase tracking-widest text-[#38f2c8] border-l border-white/20 pl-2">
+              Career Mode
             </span>
           </button>
 

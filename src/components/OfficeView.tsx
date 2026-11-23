@@ -250,13 +250,20 @@ export const OfficeView: React.FC = () => {
             onClick={() => setSubTab('Objectives')}
             className="fc-panel rounded-2xl p-6 border border-white/10 hover:border-[#38f2c8]/60 cursor-pointer group transition-all duration-300 relative overflow-hidden flex flex-col justify-between min-h-[340px]"
           >
-            <div>
+            {/* Press Conference Backdrop */}
+            <div
+              className="absolute inset-0 bg-cover bg-center opacity-25 mix-blend-luminosity pointer-events-none group-hover:scale-105 transition-transform duration-500"
+              style={{ backgroundImage: `url('/assets/art/press-room.png')` }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#07131a] via-[#07131a]/85 to-[#07131a]/60 pointer-events-none" />
+
+            <div className="relative z-10">
               <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#8ba5b3]">
                 <span className="text-[#38f2c8]">BOARD CONFIDENCE</span>
-                <span className="font-mono-num text-white">RATING 84/100</span>
+                <span className="font-mono-num text-white">RATING {userClub.boardConfidence}/100</span>
               </div>
               <h3 className="font-display text-2xl lg:text-3xl font-black uppercase tracking-wide text-white mt-2">
-                Objectives
+                Objectives &amp; Press Room
               </h3>
               <p className="text-xs text-[#8ba5b3] mt-1">
                 Five board categories tracked throughout Season {career.seasonNumber}
@@ -281,7 +288,7 @@ export const OfficeView: React.FC = () => {
               </div>
             </div>
 
-            <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
+            <div className="relative z-10 mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
               <span className="text-xs font-bold text-[#38f2c8] flex items-center gap-1.5 group-hover:translate-x-1 transition-transform">
                 <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white font-mono text-[10px]">✕</kbd>
                 <span>Enter Objectives</span>
@@ -849,8 +856,37 @@ export const OfficeView: React.FC = () => {
       {/* VIEW 5: BOARD OBJECTIVES                                            */}
       {/* =================================================================== */}
       {subTab === 'Objectives' && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {career.objectives.map((obj) => (
+        <div className="space-y-6">
+          {/* Press Room & Boardroom Hero Showcase */}
+          <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl p-6 min-h-[160px] flex flex-col justify-end">
+            <div
+              className="absolute inset-0 bg-cover bg-center opacity-30 pointer-events-none"
+              style={{ backgroundImage: `url('/assets/art/press-room.png')` }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#071117] via-[#071117]/80 to-transparent pointer-events-none" />
+            <div className="relative z-10 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <div className="text-[11px] font-black uppercase tracking-widest text-[#38f2c8] flex items-center gap-2">
+                  <Star className="w-3.5 h-3.5 text-[#38f2c8]" />
+                  <span>CHAMPIONS LEAGUE PRESS ROOM · BOARDROOM SCRUTINY</span>
+                </div>
+                <h2 className="font-display text-2xl lg:text-3xl font-black uppercase tracking-tight text-white mt-1 leading-none">
+                  Manager Rating &amp; Season Expectations
+                </h2>
+                <p className="text-xs text-[#a4c0ce] mt-1.5 max-w-xl">
+                  The board monitors your tactical alignment, youth development milestones, domestic league position, and transfer margins. High confidence protects you from sacking risks.
+                </p>
+              </div>
+              <div className="flex items-center gap-3 bg-[#081a24]/90 px-4 py-2.5 rounded-xl border border-white/15">
+                <span className="text-xs font-bold text-[#8ba5b3] uppercase">Confidence</span>
+                <span className="font-mono-num text-2xl font-black text-[#38f2c8]">{userClub.boardConfidence}</span>
+                <span className="text-xs text-white/50">/ 100</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {career.objectives.map((obj) => (
             <div key={obj.id} className="fc-panel rounded-2xl p-6 space-y-4 border border-white/10 shadow-lg">
               <div className="flex items-center justify-between text-[11px] uppercase tracking-wider font-black">
                 <span className="text-[#38f2c8]">
@@ -883,6 +919,7 @@ export const OfficeView: React.FC = () => {
               </div>
             </div>
           ))}
+          </div>
         </div>
       )}
     </div>

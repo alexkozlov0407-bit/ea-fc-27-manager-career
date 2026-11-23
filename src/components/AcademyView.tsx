@@ -107,23 +107,34 @@ export const AcademyView: React.FC = () => {
 
       {/* Youth Rush Result Banner */}
       {rushResult && (
-        <div className="fc-panel-active rounded-xl p-4 flex items-center justify-between gap-3 text-xs border border-[#38f2c8]/60 shadow-[0_0_20px_rgba(56,242,200,0.2)]">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-[#38f2c8]/20 flex items-center justify-center text-[#38f2c8]">
-              <Award className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="font-display text-base font-black uppercase text-white">
-                Youth Rush 5v5 Tournament: {rushResult.won ? 'Champions!' : 'Finalist'} ({rushResult.score})
+        <div className="relative rounded-2xl overflow-hidden border border-[#38f2c8]/60 shadow-[0_0_30px_rgba(56,242,200,0.25)] p-5">
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-screen pointer-events-none"
+            style={{ backgroundImage: `url('/assets/art/academy-pitch.png')` }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#07191d] via-[#092227]/90 to-[#07131a]/85 pointer-events-none" />
+          <div className="relative z-10 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-xl bg-[#38f2c8]/20 border border-[#38f2c8]/40 flex items-center justify-center text-[#38f2c8] shrink-0">
+                <Award className="w-6 h-6" />
               </div>
-              <div className="text-[#d6f5ee] mt-0.5">
-                Tournament MVP: <strong>{rushResult.mvpName}</strong> · All Academy prospects earned bonus XP and tightened their potential bounds!
+              <div>
+                <div className="font-display text-xl font-black uppercase tracking-wide text-white">
+                  Youth Rush 5v5: {rushResult.won ? 'Tournament Champions!' : 'Finalist'} ({rushResult.score})
+                </div>
+                <div className="text-xs text-[#b8fff0] mt-0.5">
+                  Tournament MVP: <strong className="text-white">{rushResult.mvpName}</strong> · All Academy prospects earned bonus XP and tightened their potential bounds!
+                </div>
               </div>
             </div>
+            <button
+              type="button"
+              onClick={() => setRushResult(null)}
+              className="p-1.5 rounded-lg bg-black/40 hover:bg-black/60 text-white/80 hover:text-white transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
-          <button type="button" onClick={() => setRushResult(null)} className="text-white/80 hover:text-white">
-            <X className="w-4 h-4" />
-          </button>
         </div>
       )}
 
@@ -132,6 +143,39 @@ export const AcademyView: React.FC = () => {
       {/* =================================================================== */}
       {subTab === 'Hub' && (
         <div className="space-y-6">
+          {/* Academy Atmosphere Showcase Banner */}
+          <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl p-6 min-h-[140px] flex flex-col justify-end">
+            <div
+              className="absolute inset-0 bg-cover bg-center opacity-35 pointer-events-none"
+              style={{ backgroundImage: `url('/assets/art/academy-pitch.png')` }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#071117] via-[#071117]/80 to-transparent pointer-events-none" />
+            <div className="relative z-10 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <div className="text-[11px] font-black uppercase tracking-widest text-[#38f2c8] flex items-center gap-2">
+                  <Sparkles className="w-3.5 h-3.5 text-[#38f2c8]" />
+                  <span>FC ACADEMY COMPLEX · FLOODLIT TWILIGHT PITCH</span>
+                </div>
+                <h2 className="font-display text-2xl lg:text-3xl font-black uppercase tracking-tight text-white mt-1 leading-none">
+                  Next-Gen Talent Development Center
+                </h2>
+                <p className="text-xs text-[#a4c0ce] mt-1.5 max-w-xl">
+                  Scout wonderkids across 9 global football hubs, assign tailored growth profiles, and compete in bi-monthly Youth Rush 5v5 tournaments to unlock breakthrough development.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setRushResult(playYouthRushTournament())}
+                  disabled={academySquad.length === 0}
+                  className="fc-btn-primary rounded-xl px-5 py-2.5 text-xs font-black uppercase tracking-wider inline-flex items-center gap-2 shadow-lg hover:scale-105 transition-transform"
+                >
+                  <Trophy className="w-4 h-4 text-[#07131a]" />
+                  <span>Launch Youth Rush 5v5</span>
+                </button>
+              </div>
+            </div>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Tile 1: YOUTH SQUAD (Highest Potential) */}
             <div
