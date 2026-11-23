@@ -57,25 +57,41 @@ export const TopNavBar: React.FC = () => {
   return (
     <header className="sticky top-0 z-30 border-b border-white/10 bg-[#07131a]/95 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-[1520px] items-center justify-between gap-4 px-4 lg:px-6">
-        {/* Left: FC 27 Official Branding + Bumper Tabs */}
-        <div className="flex items-center gap-3 min-w-0">
+        {/* Left: Authentic EA FC 27 MC Emblem + Home + Bumper Tabs */}
+        <div className="flex items-center gap-2.5 min-w-0">
+          {/* Official MC Roundel Logo */}
           <button
             type="button"
             onClick={() => setActiveTab('Central')}
             className="flex items-center gap-2 shrink-0 group focus:outline-none"
-            title="EA SPORTS FC 27 Manager Career"
+            title="Manager Career Central Hub"
           >
-            <img
-              src="/assets/branding/ea-fc-27-logo.png"
-              alt="EA SPORTS FC 27"
-              className="h-7 w-auto object-contain shrink-0 filter drop-shadow group-hover:brightness-110 transition-all"
-            />
-            <span className="hidden xl:inline-block font-display text-[11px] font-black uppercase tracking-widest text-[#38f2c8] border-l border-white/20 pl-2">
-              Career Mode
-            </span>
+            <div className="relative">
+              <img
+                src="/assets/branding/mc-logo.png"
+                alt="Manager Career"
+                className="w-8 h-8 rounded-full object-contain filter drop-shadow hover:scale-105 transition-transform"
+              />
+            </div>
           </button>
 
-          <div className="h-5 w-px bg-white/15 shrink-0 hidden sm:block" />
+          {/* Home Tab with L2 trigger badge */}
+          <div className="relative flex flex-col items-center">
+            <span className="hidden sm:inline-block rounded bg-white/10 px-1 py-0.2 text-[8px] font-mono-num font-bold text-white/60 mb-0.5 leading-none">
+              L2
+            </span>
+            <button
+              type="button"
+              onClick={() => setActiveTab('Central')}
+              className={`text-sm font-black uppercase tracking-wide transition-colors ${
+                activeTab === 'Central' ? 'text-white' : 'text-[#8ea5b3] hover:text-white'
+              }`}
+            >
+              Home
+            </button>
+          </div>
+
+          <div className="h-5 w-px bg-white/20 shrink-0 mx-1" />
 
           {/* L1 Bumper Indicator */}
           <button
@@ -104,7 +120,7 @@ export const TopNavBar: React.FC = () => {
                   onClick={() => setActiveTab(tab)}
                   className={`relative whitespace-nowrap px-3 py-1.5 text-sm font-semibold tracking-wide transition-colors rounded ${
                     isActive
-                      ? 'text-white bg-white/10'
+                      ? 'text-white bg-white/10 font-black'
                       : 'text-[#8ea5b3] hover:text-white hover:bg-white/5'
                   }`}
                 >
