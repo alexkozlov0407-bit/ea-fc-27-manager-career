@@ -185,6 +185,7 @@ export interface Player {
   injury: InjuryState | null;
   transferListed: boolean;
   loanListed: boolean;
+  offersBlocked?: boolean; // Squad Hub Action List: reject incoming AI bids
   expectedTransferValue: number; // EUR TransferRoom xTV
   weeklyWageEur: number;
   releaseClauseEur: number;
