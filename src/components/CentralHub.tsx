@@ -1,47 +1,58 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import {
-  Activity,
-  AlertTriangle,
-  ArrowRight,
-  Briefcase,
-  Calendar,
-  CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  ExternalLink,
-  FastForward,
-  Heart,
-  Mail,
-  MessageSquare,
-  Play,
-  Share2,
-  TrendingDown,
-  TrendingUp,
-  UserCheck,
-  Zap,
-} from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Ambulance, FileSignature, Heart, Mail, MessageCircle, Settings2, UserPlus } from 'lucide-react';
 import { computeSectorRatings } from '../engine/matchSim';
 import { formatMoney } from '../engine/ratings';
-import { addDays, diffDays } from '../engine/season';
+import { diffDays } from '../engine/season';
+import { Player } from '../engine/types';
 import { useCareerStore } from '../store/careerStore';
-import { ClubCrest, MarqueePlayerCutout, OvrDiamond, PlayerAvatar } from './PlayerAvatar';
+import { ArenaBackdrop, PadGlyph, PagerDots, PlayerBust } from './fc/HubCarousel';
+import { ClubCrest, MarqueePlayerCutout } from './PlayerAvatar';
+
+/**
+ * Central Hub — 1:1 with inputs/screenshotspart2/image (2).png.
+ * Left: date banner, next-fixture line, competition + kickoff, crests with ranked names, two action buttons
+ * (the focused one is the glowing ✕ pill), a 3-row task window with dividers and "N Tasks".
+ * Right: social news card (tag + date, New badge, image + player cutout, two big stats, copy, likes /
+ * comments / ▢ Show Comments) with the (R) pager underneath.
+ *
+ * Keys: W/S/A/D move focus (buttons ↔ tasks ↔ news card) · ✕ Space/Enter activates · R next story ·
+ *       ▢ F show comments · ≡ M Customise.
+ */
 
 interface Story {
   id: string;
-  category: 'HIGHLIGHT' | 'TRANSFER' | 'MILESTONE' | 'TACTICAL';
-  categoryLabel: string;
-  tagColor: string;
-  headline: string;
+  tag: string;
+  tagIcon: 'goal' | 'transfer' | 'tactics';
+  dateLabel: string;
   summary: string;
-  author: string;
-  authorHandle: string;
+  stats: [{ value: string; label: string }, { value: string; label: string }];
   likes: string;
+  comments: { user: string; text: string; time: string }[];
   commentsCount: string;
-  comments: { user: string; handle: string; text: string; time: string }[];
-  bgGradient: string;
-  image?: string;
+  image: string;
+  cutoutName?: string;
 }
+
+type Focus = { zone: 'buttons'; index: number } | { zone: 'tasks'; index: number } | { zone: 'news' };
+const VISIBLE_TASKS = 3;
+
+const LEAGUE_NAMES: Record<number, string> = {
+  13: 'Premier League',
+  53: 'LALIGA EA SPORTS',
+  19: 'Bundesliga',
+  31: 'Serie A Enilive',
+  16: "Ligue 1 McDonald's",
+};
+const ordinal = (n: number) => {
+  const s = n % 100 >= 11 && n % 100 <= 13 ? 'TH' : ['TH', 'ST', 'ND', 'RD'][n % 10] ?? 'TH';
+  return `${n}${s}`;
+};
+const longDate = (iso: string, opts: Intl.DateTimeFormatOptions) =>
+  new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-US', { timeZone: 'UTC', ...opts });
+
+/** Fixtures carry no kickoff time: night games are 8:00 PM, others rotate through the usual weekend slots. */
+const kickoffTime = (round: number, weather: string) =>
+  weather === 'Night' ? '8:00 PM' : ['12:30 PM', '3:00 PM', '4:00 PM', '5:30 PM'][round % 4];
 
 export const CentralHub: React.FC = () => {
   const career = useCareerStore((s) => s.career);
@@ -53,973 +64,479 @@ export const CentralHub: React.FC = () => {
   const startLiveMatch = useCareerStore((s) => s.startLiveMatch);
   const proceedToNextSeason = useCareerStore((s) => s.proceedToNextSeason);
 
-  const [activeStoryIdx, setActiveStoryIdx] = useState(0);
+  const [storyIdx, setStoryIdx] = useState(0);
   const [showComments, setShowComments] = useState(false);
-  const [hasLiked, setHasLiked] = useState(false);
+  const [liked, setLiked] = useState<Record<string, boolean>>({});
+  const [focus, setFocus] = useState<Focus>({ zone: 'buttons', index: 0 });
 
   const computed = useMemo(() => {
     if (!career) return null;
     const userClub = career.clubs[career.userClubId];
+    const userSquad = Object.values(career.players).filter((p) => p.clubId === career.userClubId);
     const nextMatch = career.fixtures
       .filter((f) => !f.played && (f.homeClubId === career.userClubId || f.awayClubId === career.userClubId))
       .sort((a, b) => a.date.localeCompare(b.date))[0];
-
-    const userSquad = Object.values(career.players).filter((p) => p.clubId === career.userClubId);
-    const movers = [...userSquad]
-      .sort(
-        (a, b) =>
-          Math.abs(b.dynamicOvr.totalDelta) - Math.abs(a.dynamicOvr.totalDelta) || b.baseOvr - a.baseOvr
-      )
-      .slice(0, 5);
-
-    const currentYear = parseInt(career.currentDate.slice(0, 4), 10);
-    const injuredPlayers = userSquad.filter((p) => p.injury?.recovering || (p.injury?.daysRemaining ?? 0) > 0);
-    const expiringContracts = userSquad.filter((p) => p.contractEndYear <= currentYear + 1);
-
-    const unreadInbox = career.inbox.filter((m) => !m.read);
-    const daysToClose = Math.max(0, diffDays(career.currentDate, career.transferWindowClosesDate));
-    const daysToNextMatch = nextMatch ? Math.max(0, diffDays(career.currentDate, nextMatch.date)) : 0;
-
-    const calendarStrip = Array.from({ length: 7 }, (_, i) => {
-      const date = addDays(career.currentDate, i);
-      const userFix = career.fixtures.find(
-        (f) => f.date === date && (f.homeClubId === career.userClubId || f.awayClubId === career.userClubId)
-      );
-      return { date, userFix, isToday: i === 0 };
-    });
-
-    const userStandingIdx = career.standings.findIndex((s) => s.clubId === career.userClubId);
-    const userRank = userStandingIdx >= 0 ? userStandingIdx + 1 : 1;
-
     const homeClub = nextMatch ? career.clubs[nextMatch.homeClubId] : null;
     const awayClub = nextMatch ? career.clubs[nextMatch.awayClubId] : null;
-    const homeSectors = homeClub ? computeSectorRatings(homeClub, career.players) : null;
-    const awaySectors = awayClub ? computeSectorRatings(awayClub, career.players) : null;
+    const rankOf = (id?: number) => {
+      const i = id === undefined ? -1 : career.standings.findIndex((s) => s.clubId === id);
+      return i >= 0 ? i + 1 : null;
+    };
+    const daysToNextMatch = nextMatch ? Math.max(0, diffDays(career.currentDate, nextMatch.date)) : null;
+    const leagueName = LEAGUE_NAMES[userClub.leagueId] ?? 'League';
+    const cur = career.settings.currency;
 
-    const homeStandingIdx = homeClub ? career.standings.findIndex((s) => s.clubId === homeClub.id) : -1;
-    const awayStandingIdx = awayClub ? career.standings.findIndex((s) => s.clubId === awayClub.id) : -1;
-    const homeRank = homeStandingIdx >= 0 ? homeStandingIdx + 1 : 1;
-    const awayRank = awayStandingIdx >= 0 ? awayStandingIdx + 1 : 1;
-
-    // Determine competition name based on userClub leagueId
-    const leagueName =
-      userClub.leagueId === 13
-        ? 'PREMIER LEAGUE'
-        : userClub.leagueId === 53
-        ? 'LALIGA EA SPORTS'
-        : userClub.leagueId === 19
-        ? 'BUNDESLIGA'
-        : userClub.leagueId === 31
-        ? 'SERIE A ENILIVE'
-        : userClub.leagueId === 16
-        ? "LIGUE 1 McDONALD'S"
-        : 'DOMESTIC LEAGUE';
-
-    // Build actionable tasks queue
-    const tasks: {
-      id: string;
-      title: string;
-      subtitle: string;
-      icon: 'transfer' | 'injury' | 'contract' | 'inbox' | 'coach';
-      badge: string;
-      badgeColor: string;
-      action: () => void;
-    }[] = [];
-
-    // Transfer offers
-    const activeOffers = career.negotiations.filter(
-      (n) => n.fromClubId === career.userClubId && n.stage !== 'COMPLETED'
-    );
-    if (activeOffers.length > 0) {
-      const targetP = career.players[activeOffers[0].playerId];
-      tasks.push({
-        id: 'transfer-offer',
-        title: `Offer Received for ${targetP?.knownAs ?? 'Squad Player'}`,
-        subtitle: `${activeOffers[0].counterpartClubName} submitted an official bid (${formatMoney(activeOffers[0].currentOffer.transferFeeEur, career.settings.currency)})`,
-        icon: 'transfer',
-        badge: 'TRANSFER ACTION',
-        badgeColor: 'border-emerald-400 text-emerald-300 bg-emerald-500/10',
-        action: () => setActiveTab('Transfers'),
-      });
+    // ---- Tasks (icon + one line, as in the capture) ----
+    const tasks: { id: string; title: string; icon: 'coach' | 'offer' | 'injury' | 'contract' | 'inbox'; player?: Player; clubId?: number; action: () => void }[] = [];
+    if (userClub.coaches.filter((c) => c.hired).length < 8) {
+      tasks.push({ id: 'coach', title: 'Hire a Coach', icon: 'coach', action: () => setActiveTab('Squad') });
     }
-
-    // Injured players
-    if (injuredPlayers.length > 0) {
-      const p = injuredPlayers[0];
+    career.negotiations
+      .filter((n) => (n.type === 'SELL' || n.type === 'LOAN_OUT') && n.stage === 'CLUB_TALKS')
+      .slice(0, 2)
+      .forEach((n) => {
+        const p = career.players[n.playerId];
+        if (!p) return;
+        tasks.push({
+          id: `offer-${n.id}`,
+          title: `Offer Received For ${p.firstName ? `${p.firstName[0]}. ` : ''}${p.lastName || p.knownAs}`,
+          icon: 'offer',
+          player: p,
+          clubId: n.toClubId,
+          action: () => setActiveTab('Transfers'),
+        });
+      });
+    const injured = userSquad.filter((p) => p.injury && (p.injury.recovering || p.injury.daysRemaining > 0));
+    if (injured.length) {
       tasks.push({
-        id: 'injury-alert',
-        title: `${p.knownAs} Injured (${p.injury?.type ?? 'Recovering'})`,
-        subtitle: `${p.injury?.daysRemaining ?? 7}d remaining · ${p.injury?.aggravationRiskPct ?? 35}% aggravation risk`,
+        id: 'injured',
+        title: injured.length === 1 ? `${injured[0].knownAs} Is Injured` : `${injured.length} Players Are Injured`,
         icon: 'injury',
-        badge: 'FITNESS ALERT',
-        badgeColor: 'border-amber-400 text-amber-300 bg-amber-500/10',
         action: () => setActiveTab('Squad'),
       });
     }
-
-    // Expiring contracts
-    if (expiringContracts.length > 0) {
-      const p = expiringContracts[0];
+    const year = parseInt(career.currentDate.slice(0, 4), 10);
+    const expiring = userSquad.filter((p) => p.contractEndYear <= year + 1);
+    if (expiring.length) {
       tasks.push({
-        id: 'contract-expiry',
-        title: `${p.knownAs} Contract Expiring`,
-        subtitle: `Contract ends in ${p.contractEndYear} (${formatMoney(p.weeklyWageEur, career.settings.currency)}/wk)`,
+        id: 'contracts',
+        title: expiring.length === 1 ? `${expiring[0].knownAs}'s Contract Is Expiring` : `${expiring.length} Contracts Are Expiring`,
         icon: 'contract',
-        badge: 'OFFICE',
-        badgeColor: 'border-sky-400 text-sky-300 bg-sky-500/10',
-        action: () => setActiveTab('Office'),
+        action: () => setActiveTab('Squad'),
       });
     }
+    const unread = career.inbox.filter((m) => !m.read);
+    unread.slice(0, 2).forEach((m) =>
+      tasks.push({ id: `mail-${m.id}`, title: m.subject, icon: 'inbox', action: () => setActiveTab('Notifications') })
+    );
 
-    // Unread messages
-    if (unreadInbox.length > 0) {
-      tasks.push({
-        id: 'unread-mail',
-        title: unreadInbox[0].subject,
-        subtitle: unreadInbox[0].body.slice(0, 75) + '...',
-        icon: 'inbox',
-        badge: 'INBOX',
-        badgeColor: 'border-violet-400 text-violet-300 bg-violet-500/10',
-        action: () => setActiveTab('Notifications'),
-      });
-    }
-
-    // Staff / Tactical review default task
-    tasks.push({
-      id: 'tactical-review',
-      title: 'FC IQ Tactical Calibration',
-      subtitle: `${userClub.formation} · ${userClub.tacticalVision} Strategy set for next matchday`,
-      icon: 'coach',
-      badge: 'FC IQ',
-      badgeColor: 'border-[#38f2c8] text-[#38f2c8] bg-[#38f2c8]/10',
-      action: () => setActiveTab('Squad'),
-    });
-
-    // Formatted current date header: "SUNDAY, JUL 12"
-    const dateObj = new Date(`${career.currentDate}T00:00:00Z`);
-    const dateFormatted = dateObj
-      .toLocaleDateString('en-US', {
-        weekday: 'long',
-        month: 'short',
-        day: 'numeric',
-        timeZone: 'UTC',
-      })
-      .toUpperCase();
-
-    // Top player for news story
-    const starPlayer = [...userSquad].sort((a, b) => b.dynamicOvr.dynamicOvr - a.dynamicOvr.dynamicOvr)[0] || userSquad[0];
-
-    // Generate dynamic news highlights
+    // ---- Stories ----
+    const star = [...userSquad].sort((a, b) => b.seasonStats.goals - a.seasonStats.goals || b.dynamicOvr.dynamicOvr - a.dynamicOvr.dynamicOvr)[0];
+    const dateLabel = longDate(career.currentDate, { month: 'long', day: 'numeric' });
+    const sectors = computeSectorRatings(userClub, career.players);
+    const playedStats = star && star.seasonStats.appearances > 0;
+    const daysToClose = Math.max(0, diffDays(career.currentDate, career.transferWindowClosesDate));
     const stories: Story[] = [
       {
-        id: 's1',
-        category: 'HIGHLIGHT',
-        categoryLabel: 'MATCHDAY FOCUS',
-        tagColor: 'text-[#38f2c8] border-[#38f2c8]/40 bg-[#38f2c8]/10',
-        headline: `${starPlayer?.knownAs?.toUpperCase() || userClub.name.toUpperCase()} READY FOR HIGH-STAKES ${leagueName} CLASH`,
-        summary: `With ${daysToNextMatch === 0 ? 'kickoff today' : `matchday in ${daysToNextMatch} days`}, ${userClub.name} are sharpening their ${userClub.tacticalVision} system. The gaffer expects peak fitness and attacking flair from the squad.`,
-        author: 'The Athletic Football',
-        authorHandle: '@TheAthleticFC',
-        likes: '1.24 M',
-        commentsCount: '1.45 K',
-        image: '/assets/art/goal-celebration.png',
+        id: 'goal',
+        tag: playedStats ? 'GOAL' : 'ONE TO WATCH',
+        tagIcon: 'goal',
+        dateLabel,
+        summary: star
+          ? `One to watch: ${star.knownAs} leads the line for ${userClub.name} as the ${leagueName} campaign ${playedStats ? 'heats up' : 'gets under way'}, ...`
+          : `${userClub.name} prepare for the new ${leagueName} season.`,
+        stats: playedStats
+          ? [
+              { value: String(star.seasonStats.appearances), label: 'MATCHES' },
+              { value: String(star.seasonStats.goals), label: 'GOALS' },
+            ]
+          : [
+              { value: String(star?.dynamicOvr.dynamicOvr ?? 0), label: 'OVERALL' },
+              { value: String(star?.potential ?? 0), label: 'POTENTIAL' },
+            ],
+        likes: '1.10 M',
+        commentsCount: '1.37 K',
         comments: [
-          { user: 'Liam Davies', handle: '@davies_tactics', text: `Tactical masterclass expected. If we exploit the half-spaces, three points are guaranteed!`, time: '2h ago' },
-          { user: 'Elena Rossi', handle: '@elena_calcio', text: `Star player looking sharp in training. Can't wait for this one.`, time: '4h ago' },
-          { user: 'Marco Silva', handle: '@marcosilva99', text: `We need to be solid at the back on set pieces!`, time: '5h ago' },
+          { user: '@davies_tactics', text: `${star?.knownAs ?? 'Our No.9'} is going to be unplayable this season.`, time: '2h' },
+          { user: '@elena_calcio', text: 'Looked razor sharp in training this week.', time: '4h' },
         ],
-        bgGradient: 'from-[#0b292e] via-[#091b24] to-[#061016]',
+        image: '/assets/art/goal-celebration.png',
+        cutoutName: star?.knownAs,
       },
       {
-        id: 's2',
-        category: 'TRANSFER',
-        categoryLabel: 'TRANSFERROOM EXCLUSIVE',
-        tagColor: 'text-amber-300 border-amber-400/40 bg-amber-500/10',
-        headline: `SCOUTS TARGET HIGH-POTENTIAL WONDERKIDS FOR ${userClub.shortName.toUpperCase()}`,
-        summary: `TransferRoom reports that European clubs are circling top prospects. Director of Football confirms scouting assignments are active across youth networks with focus on Tactical Fit.`,
-        author: 'Fabrizio Romano',
-        authorHandle: '@FabrizioRomano',
+        id: 'transfer',
+        tag: 'TRANSFER',
+        tagIcon: 'transfer',
+        dateLabel,
+        summary: `Window watch: ${userClub.name} have ${formatMoney(userClub.transferBudgetEur, cur)} to spend, with ${career.shortlistIds.length} targets on the shortlist, ...`,
+        stats: [
+          { value: String(career.transferWindowOpen ? daysToClose : 0), label: 'DAYS LEFT' },
+          { value: String(career.shortlistIds.length), label: 'TARGETS' },
+        ],
         likes: '2.10 M',
         commentsCount: '3.82 K',
-        image: '/assets/art/vinicius-trophy.jpg',
         comments: [
-          { user: 'Alex K.', handle: '@alex_fc_fan', text: `Here we go! Let's bring in a dynamic winger before the window closes!`, time: '1h ago' },
-          { user: 'Javier Gomez', handle: '@jgomez_madrid', text: `Youth academy pipeline is where the real gems are found this season.`, time: '3h ago' },
-          { user: 'Samir Benali', handle: '@s_benali', text: `Transfer budget looks healthy. Make the right moves gaffer!`, time: '6h ago' },
+          { user: '@alex_fc_fan', text: 'Bring in a winger before the window shuts!', time: '1h' },
+          { user: '@s_benali', text: 'Budget looks healthy. Make the right moves.', time: '6h' },
         ],
-        bgGradient: 'from-[#231d10] via-[#14181f] to-[#07131a]',
+        image: '/assets/art/vinicius-trophy.jpg',
       },
       {
-        id: 's3',
-        category: 'TACTICAL',
-        categoryLabel: 'FC IQ BREAKDOWN',
-        tagColor: 'text-sky-300 border-sky-400/40 bg-sky-500/10',
-        headline: `HOW ${userClub.name.toUpperCase()} UTILIZE ${userClub.formation} UNDER CURRENT VISION`,
-        summary: `Deep tactical analytics reveal how role familiarity and off-ball movement are reshaping the club's build-up play and defensive transitions this campaign.`,
-        author: 'Opta Analyst',
-        authorHandle: '@OptaAnalyst',
+        id: 'tactics',
+        tag: 'TACTICS',
+        tagIcon: 'tactics',
+        dateLabel,
+        summary: `Analysis: how ${userClub.name}'s ${userClub.formation} and ${userClub.tacticalVision} vision are shaping the build-up and the press, ...`,
+        stats: [
+          { value: String(Math.round(sectors.atk)), label: 'ATTACK' },
+          { value: String(Math.round(sectors.def)), label: 'DEFENCE' },
+        ],
         likes: '890 K',
         commentsCount: '920',
+        comments: [{ user: '@dancoach_pro', text: 'The inverted full-back stepping into midfield is pure modern football.', time: '30m' }],
         image: '/assets/art/champions-league-match.jpg',
-        comments: [
-          { user: 'Coach Dan', handle: '@dancoach_pro', text: `Notice how the inverted wingback steps into midfield during build-up? Pure modern football.`, time: '30m ago' },
-          { user: 'Chloe Smith', handle: '@chloe_arsenal', text: `FC IQ gives so much depth to our squad rotations now.`, time: '2h ago' },
-        ],
-        bgGradient: 'from-[#101f2f] via-[#0b1722] to-[#061016]',
       },
     ];
 
-    const currentStory = stories[activeStoryIdx] || stories[0];
+    return { userClub, nextMatch, homeClub, awayClub, rankOf, daysToNextMatch, leagueName, tasks, stories };
+  }, [career, setActiveTab]);
 
-    const compactTable = career.standings.slice(
-      Math.max(0, Math.min(userStandingIdx - 2, career.standings.length - 5)),
-      Math.max(5, Math.min(userStandingIdx + 3, career.standings.length))
-    );
+  // ---- action buttons for the current situation ----
+  const isMatchDay = Boolean(career && computed?.nextMatch && computed.nextMatch.date === career.currentDate);
+  const buttons: { label: string; run: () => void }[] = !career
+    ? []
+    : career.seasonCompleted
+    ? [{ label: `Advance to Season ${career.seasonNumber + 1}`, run: proceedToNextSeason }]
+    : career.deadlineDayHoursRemaining !== null
+    ? [
+        { label: 'Skip +1 Hour', run: () => skipDeadlineHours(1) },
+        { label: 'Skip +2 Hours', run: () => skipDeadlineHours(2) },
+      ]
+    : isMatchDay
+    ? [
+        { label: 'Play Match', run: startLiveMatch },
+        { label: 'Quick Sim', run: quickSimNextMatch },
+      ]
+    : [
+        { label: 'Advance', run: advanceDay },
+        { label: 'Sim to Matchday', run: () => simToNextMatchOrDate() },
+      ];
+  const tasks = computed?.tasks ?? [];
+  const stories = computed?.stories ?? [];
+  const story = stories[storyIdx % Math.max(1, stories.length)];
 
-    return {
-      userClub,
-      nextMatch,
-      homeClub,
-      awayClub,
-      homeSectors,
-      awaySectors,
-      homeRank,
-      awayRank,
-      movers,
-      injuredPlayers,
-      unreadInbox,
-      daysToClose,
-      daysToNextMatch,
-      calendarStrip,
-      compactTable,
-      userRank,
-      leagueName,
-      tasks,
-      dateFormatted,
-      stories,
-      currentStory,
-      starPlayer,
-    };
-  }, [career, activeStoryIdx]);
+  const nextStory = () => {
+    setStoryIdx((i) => (i + 1) % Math.max(1, stories.length));
+    setShowComments(false);
+  };
+
+  // Keyboard (bubble phase; layers / modals capture their own keys first).
+  const keyRef = useRef<(e: KeyboardEvent) => void>(() => {});
+  keyRef.current = (e) => {
+    const tag = (e.target as HTMLElement | null)?.tagName;
+    if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    const handled = () => e.preventDefault();
+    const btnIdx = focus.zone === 'buttons' ? Math.min(focus.index, buttons.length - 1) : 0;
+    if (k === 'r') {
+      handled();
+      nextStory();
+    } else if (k === 'f') {
+      handled();
+      setShowComments((v) => !v);
+    } else if (k === 'm') {
+      handled();
+      setActiveTab('Customise');
+    } else if (k === 'w' || k === 'ArrowUp') {
+      handled();
+      if (focus.zone === 'tasks') setFocus(focus.index === 0 ? { zone: 'buttons', index: 0 } : { zone: 'tasks', index: focus.index - 1 });
+    } else if (k === 's' || k === 'ArrowDown') {
+      handled();
+      if (focus.zone === 'buttons' && tasks.length) setFocus({ zone: 'tasks', index: 0 });
+      else if (focus.zone === 'tasks') setFocus({ zone: 'tasks', index: Math.min(tasks.length - 1, focus.index + 1) });
+    } else if (k === 'a' || k === 'ArrowLeft') {
+      handled();
+      if (focus.zone === 'buttons') setFocus({ zone: 'buttons', index: Math.max(0, btnIdx - 1) });
+      else if (focus.zone === 'news') setFocus({ zone: 'buttons', index: buttons.length - 1 });
+    } else if (k === 'd' || k === 'ArrowRight') {
+      handled();
+      if (focus.zone === 'buttons' && btnIdx < buttons.length - 1) setFocus({ zone: 'buttons', index: btnIdx + 1 });
+      else setFocus({ zone: 'news' });
+    } else if ((k === ' ' || k === 'Enter') && !e.repeat) {
+      handled();
+      if (focus.zone === 'buttons') buttons[btnIdx]?.run();
+      else if (focus.zone === 'tasks') tasks[focus.index]?.action();
+      else if (story) setLiked((l) => ({ ...l, [story.id]: !l[story.id] }));
+    }
+  };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => keyRef.current(e);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   if (!career || !computed) return null;
-  const {
-    userClub,
-    nextMatch,
-    homeClub,
-    awayClub,
-    homeSectors,
-    awaySectors,
-    homeRank,
-    awayRank,
-    movers,
-    daysToClose,
-    daysToNextMatch,
-    calendarStrip,
-    compactTable,
-    userRank,
-    leagueName,
-    tasks,
-    dateFormatted,
-    stories,
-    currentStory,
-    starPlayer,
-  } = computed;
+  const { nextMatch, homeClub, awayClub, rankOf, daysToNextMatch, leagueName } = computed;
+  const dateTitle = longDate(career.currentDate, { weekday: 'long', month: 'short', day: 'numeric' }).toUpperCase();
+  const focusedTask = focus.zone === 'tasks' ? Math.min(focus.index, tasks.length - 1) : -1;
+  const windowStart = Math.max(0, Math.min(focusedTask - (VISIBLE_TASKS - 1), tasks.length - VISIBLE_TASKS));
+  const visibleTasks = tasks.slice(windowStart, windowStart + VISIBLE_TASKS);
 
-  const isMatchDay = nextMatch?.date === career.currentDate;
-
-  // 60% Keyboard Controls for Central Hub:
-  // [Space / Enter]: Advance Day or Play Live Match
-  // [S]: Sim to Next Matchday
-  // [X]: Quick Sim on Matchday
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const activeEl = document.activeElement as HTMLElement | null;
-      if (
-        activeEl?.tagName === 'INPUT' ||
-        activeEl?.tagName === 'SELECT' ||
-        activeEl?.tagName === 'TEXTAREA'
-      ) {
-        return;
-      }
-
-      const key = e.key.toLowerCase();
-      if (key === ' ' || key === 'enter') {
-        e.preventDefault();
-        if (career.seasonCompleted) {
-          proceedToNextSeason();
-        } else if (isMatchDay) {
-          startLiveMatch();
-        } else {
-          advanceDay();
-        }
-      } else if (key === 's') {
-        if (!career.seasonCompleted && !isMatchDay) {
-          e.preventDefault();
-          simToNextMatchOrDate();
-        }
-      } else if (key === 'x') {
-        if (isMatchDay) {
-          e.preventDefault();
-          quickSimNextMatch();
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [career.seasonCompleted, isMatchDay, proceedToNextSeason, startLiveMatch, advanceDay, simToNextMatchOrDate, quickSimNextMatch]);
+  const subtitle = career.seasonCompleted
+    ? `${leagueName} Season ${career.seasonNumber} complete`
+    : career.deadlineDayHoursRemaining !== null
+    ? `Transfer Deadline Day · ${career.deadlineDayHoursRemaining} hours remaining`
+    : daysToNextMatch === null
+    ? 'No upcoming fixtures'
+    : daysToNextMatch === 0
+    ? 'Matchday today'
+    : `Next Fixture in ${daysToNextMatch} ${daysToNextMatch === 1 ? 'day' : 'days'}`;
 
   return (
-    <div className="mx-auto max-w-[1560px] px-4 lg:px-8 py-5 space-y-6">
-      {/* Transfer Deadline Day 20-Hour Special Banner */}
-      {career.deadlineDayHoursRemaining !== null && (
-        <div className="fc-panel-active rounded-xl p-4 flex flex-wrap items-center justify-between gap-4 border border-[#38f2c8]/60 shadow-[0_0_30px_rgba(56,242,200,0.18)]">
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-lg bg-[#38f2c8]/20 flex items-center justify-center text-[#38f2c8]">
-              <Clock className="w-6 h-6 animate-pulse" />
-            </div>
-            <div>
-              <div className="font-display text-2xl font-black uppercase tracking-wider text-white leading-none">
-                TRANSFER DEADLINE DAY — {career.deadlineDayHoursRemaining} HOURS REMAINING
-              </div>
-              <div className="text-xs text-[#d6f5ee] mt-1">
-                AI clubs are making last-minute bids and hijack offers. Close active deals before the window slams shut.
-              </div>
-            </div>
+    <div className="relative w-full overflow-hidden select-none h-[calc(100vh-57px)] min-h-[620px] text-white">
+      <ArenaBackdrop />
+
+      {/* Content is laid out against the capture's 125px top bar; ours is 57px, so shift by the difference
+          (6.8vh at 1003px) to land every element on the reference's absolute screen position. */}
+      <div className="absolute inset-x-0 top-[6.8vh] bottom-0">
+      {/* ------------------------------------------------ Date banner + fixture */}
+      <h1 className="absolute left-[10.75vw] top-[5.2vh] font-expanded font-black tracking-[0.005em] leading-none text-[clamp(28px,2.62vw,52px)]">{dateTitle}</h1>
+      <div className={`absolute left-[10.75vw] top-[13.2vh] text-[clamp(12px,1.05vw,20px)] ${career.deadlineDayHoursRemaining !== null ? 'text-amber-300' : 'text-[#c3cbd6]'}`}>
+        {subtitle}
+      </div>
+      <div className="absolute left-[10.7vw] w-[37vw] top-[17vh] h-px bg-white/30" />
+
+      {nextMatch && homeClub && awayClub && (
+        <>
+          <div className="absolute left-[11.4vw] top-[19.1vh] flex items-center gap-[1.25vw]">
+            <CompetitionBadge />
+            <span className="font-bold text-[clamp(13px,1.15vw,22px)]">{leagueName}</span>
+            <span className="-ml-[0.4vw] text-[#b9c2ce] text-[clamp(11px,0.98vw,18px)]">
+              {longDate(nextMatch.date, { month: 'long', day: 'numeric' })} {kickoffTime(nextMatch.round, nextMatch.weather)}
+            </span>
           </div>
-          <div className="flex items-center gap-2.5">
-            <button
-              type="button"
-              onClick={() => skipDeadlineHours(1)}
-              className="fc-btn-secondary rounded-lg px-4 py-2.5 text-xs font-bold uppercase tracking-wider"
-            >
-              Skip +1 Hour
-            </button>
-            <button
-              type="button"
-              onClick={() => skipDeadlineHours(2)}
-              className="fc-btn-primary rounded-lg px-5 py-2.5 text-xs uppercase tracking-wider font-extrabold"
-            >
-              Skip +2 Hours
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Season Completed Banner -> Season 2 Progression */}
-      {career.seasonCompleted && (
-        <div className="fc-panel-active rounded-xl p-5 flex flex-wrap items-center justify-between gap-4 border border-[#38f2c8]/50">
-          <div>
-            <div className="text-xs font-bold uppercase tracking-widest text-[#38f2c8]">
-              {leagueName} SEASON {career.seasonNumber} COMPLETE
-            </div>
-            <h2 className="font-display text-3xl font-black uppercase tracking-wide text-white mt-1">
-              Finished #{userRank} in {leagueName}
-            </h2>
-            <p className="text-xs text-[#d2e8e4] mt-1 max-w-2xl">
-              Proceed to Season {career.seasonNumber + 1} to collect prize money, settle deferred transfer instalments, trigger Dynamic Potential, retire veterans, and generate FC 27 Randomized Regens.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={proceedToNextSeason}
-            className="fc-btn-primary rounded-lg px-6 py-3.5 text-sm uppercase tracking-wider font-black shadow-lg"
-          >
-            Advance to Season {career.seasonNumber + 1}
-          </button>
-        </div>
-      )}
-
-      {/* Main 2-Column FC 27 Central Menu Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* ========================================================= */}
-        {/* LEFT COLUMN: HERO MATCHDAY CARD + ADVANCE + TASK STACK */}
-        {/* ========================================================= */}
-        <div className="lg:col-span-7 space-y-5">
-          {/* Top Big Date Header & Days to Match Counter */}
-          <div className="flex flex-wrap items-baseline justify-between gap-3 px-1">
-            <div>
-              <h1 className="font-display text-4xl lg:text-5xl font-black uppercase tracking-tight text-white leading-none">
-                {dateFormatted}
-              </h1>
-              <div className="text-xs font-semibold text-[#8ba5b3] uppercase tracking-widest mt-1.5 flex items-center gap-2">
-                <span>{userClub.name}</span>
-                <span>•</span>
-                <span>Season {career.seasonNumber}</span>
-                <span>•</span>
-                <span className="text-[#38f2c8]">
-                  {career.transferWindowOpen
-                    ? `Transfer Window (${daysToClose}d left)`
-                    : 'Transfer Window Closed'}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-white/5 border border-white/10 text-white/90">
-                <Calendar className="w-3.5 h-3.5 text-[#38f2c8]" />
-                {daysToNextMatch === 0
-                  ? 'MATCHDAY TODAY'
-                  : `Next Fixture in ${daysToNextMatch} Day${daysToNextMatch > 1 ? 's' : ''}`}
-              </span>
-            </div>
-          </div>
-
-          {/* Authentic Matchday Hero Tile */}
-          {nextMatch && homeClub && awayClub && homeSectors && awaySectors && (
-            <div className="fc-panel rounded-2xl p-6 relative overflow-hidden border border-white/10 shadow-2xl backdrop-blur-md">
-              {/* Cyan Tunnel Cinematic Stadium Backdrop */}
-              <div
-                className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-luminosity pointer-events-none"
-                style={{ backgroundImage: `url('/assets/art/tunnel.png')` }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#07131a] via-[#07131a]/80 to-[#07131a]/40 pointer-events-none" />
-
-              {/* Competition Ribbon */}
-              <div className="relative z-10 flex items-center justify-between text-xs font-bold uppercase tracking-wider pb-4 border-b border-white/10 text-[#8ba5b3]">
-                <div className="flex items-center gap-2">
-                  <span className="inline-block w-2 h-2 rounded-full bg-[#38f2c8]" />
-                  <span className="text-white font-extrabold tracking-widest">{leagueName}</span>
-                  <span className="text-white/40">·</span>
-                  <span className="text-[#38f2c8]">Matchday {nextMatch.round}</span>
-                </div>
-                <div className="font-mono-num text-xs text-white/70">
-                  {nextMatch.date} · {nextMatch.weather}
-                </div>
-              </div>
-
-              {/* Match Face-Off: Club A vs Club B */}
-              <div className="relative z-10 grid grid-cols-11 items-center gap-2 my-6">
-                {/* Home Club */}
-                <div className="col-span-5 flex flex-col items-center text-center group cursor-pointer" onClick={() => setActiveTab('Office')}>
-                  <div className="relative">
-                    <ClubCrest club={homeClub} size={76} />
-                    <span className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-[#0b1b24] border border-white/20 text-[#38f2c8]">
-                      {homeRank}{homeRank === 1 ? 'ST' : homeRank === 2 ? 'ND' : homeRank === 3 ? 'RD' : 'TH'}
-                    </span>
-                  </div>
-                  <div className="font-display text-2xl lg:text-3xl font-black uppercase tracking-wide text-white mt-3 leading-tight line-clamp-1">
-                    {homeClub.name}
-                  </div>
-                  <div className="text-xs text-[#8ba5b3] font-mono-num mt-1 flex items-center gap-1.5 font-bold">
-                    <span>ATK {Math.round(homeSectors.atk)}</span>
-                    <span className="text-white/30">·</span>
-                    <span>MID {Math.round(homeSectors.mid)}</span>
-                    <span className="text-white/30">·</span>
-                    <span>DEF {Math.round(homeSectors.def)}</span>
-                  </div>
-                </div>
-
-                {/* VS Center Badge */}
-                <div className="col-span-1 flex flex-col items-center justify-center">
-                  <div className="w-12 h-12 rounded-full bg-[#0a1b24]/90 border border-white/15 flex items-center justify-center font-display text-xl font-black text-[#38f2c8] shadow-inner">
-                    VS
-                  </div>
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-white/50 mt-1.5">
-                    {nextMatch.homeClubId === career.userClubId ? 'HOME' : 'AWAY'}
-                  </span>
-                </div>
-
-                {/* Away Club */}
-                <div className="col-span-5 flex flex-col items-center text-center group cursor-pointer" onClick={() => setActiveTab('Office')}>
-                  <div className="relative">
-                    <ClubCrest club={awayClub} size={76} />
-                    <span className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-[#0b1b24] border border-white/20 text-[#38f2c8]">
-                      {awayRank}{awayRank === 1 ? 'ST' : awayRank === 2 ? 'ND' : awayRank === 3 ? 'RD' : 'TH'}
-                    </span>
-                  </div>
-                  <div className="font-display text-2xl lg:text-3xl font-black uppercase tracking-wide text-white mt-3 leading-tight line-clamp-1">
-                    {awayClub.name}
-                  </div>
-                  <div className="text-xs text-[#8ba5b3] font-mono-num mt-1 flex items-center gap-1.5 font-bold">
-                    <span>ATK {Math.round(awaySectors.atk)}</span>
-                    <span className="text-white/30">·</span>
-                    <span>MID {Math.round(awaySectors.mid)}</span>
-                    <span className="text-white/30">·</span>
-                    <span>DEF {Math.round(awaySectors.def)}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Key Matchday Spotlight Player */}
-              {starPlayer && (
-                <div className="relative z-10 mb-4 px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 flex items-center justify-between overflow-hidden">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <OvrDiamond
-                      ovr={starPlayer.dynamicOvr.dynamicOvr}
-                      delta={starPlayer.dynamicOvr.totalDelta}
-                      size="sm"
-                    />
-                    <div className="min-w-0">
-                      <div className="text-[10px] uppercase font-bold text-[#38f2c8] tracking-widest">
-                        KEY PLAYER TO WATCH
-                      </div>
-                      <div className="font-display text-base font-black uppercase text-white truncate">
-                        {starPlayer.knownAs}
-                      </div>
-                      <div className="text-[11px] text-[#8ba5b3] font-mono-num">
-                        {starPlayer.primaryPosition} · Role: {starPlayer.roleTitle} · Form: {starPlayer.dynamicOvr.formLabel}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="shrink-0 -my-4 -mr-2 h-20 w-24 flex items-end justify-end pointer-events-none">
-                    <MarqueePlayerCutout
-                      name={starPlayer.knownAs}
-                      className="h-20 w-auto object-contain object-bottom"
-                      useFallback={true}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Action Buttons Strip */}
-              <div className="relative z-10 pt-4 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <button
-                  type="button"
-                  onClick={startLiveMatch}
-                  className="fc-btn-primary rounded-xl py-3 px-4 text-xs uppercase tracking-wider font-black flex items-center justify-center gap-2 shadow-lg"
-                >
-                  <Activity className="w-4 h-4" />
-                  <span>✕ Play Live Sim</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={quickSimNextMatch}
-                  className="fc-btn-secondary rounded-xl py-3 px-4 text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 border border-white/15 hover:border-[#38f2c8]/50"
-                >
-                  <Zap className="w-4 h-4 text-[#38f2c8]" />
-                  <span>Quick Sim</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('Squad')}
-                  className="fc-btn-secondary rounded-xl py-3 px-4 text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 border border-white/15 hover:border-[#38f2c8]/50"
-                >
-                  <span>Team Strategy</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-[#38f2c8]" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Advance Calendar Strip & One-Click Simming */}
-          <div className="fc-panel rounded-2xl p-5 border border-white/10">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-3.5">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-[#38f2c8]" />
-                <span className="font-display text-lg font-black uppercase tracking-wider text-white">
-                  Schedule Advance
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={advanceDay}
-                  disabled={career.seasonCompleted || isMatchDay}
-                  className="fc-btn-primary rounded-lg px-4 py-2 text-xs uppercase tracking-wider font-extrabold inline-flex items-center gap-1.5 shadow"
-                >
-                  <Play className="w-3.5 h-3.5 fill-current" />
-                  <span>Advance Day</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => simToNextMatchOrDate()}
-                  disabled={career.seasonCompleted || isMatchDay}
-                  className="fc-btn-secondary rounded-lg px-3.5 py-2 text-xs font-extrabold uppercase tracking-wider inline-flex items-center gap-1.5 border border-white/15 hover:border-[#38f2c8]/50"
-                >
-                  <FastForward className="w-3.5 h-3.5 text-[#38f2c8]" />
-                  <span>Sim to Matchday</span>
-                </button>
-              </div>
-            </div>
-
-            {/* 7-Day Day Selector */}
-            <div className="grid grid-cols-7 gap-2">
-              {calendarStrip.map(({ date, userFix, isToday }) => {
-                const oppId = userFix
-                  ? userFix.homeClubId === career.userClubId
-                    ? userFix.awayClubId
-                    : userFix.homeClubId
-                  : null;
-                const opp = oppId ? career.clubs[oppId] : null;
-                const dayLabel = new Date(`${date}T00:00:00Z`).toLocaleDateString('en-US', {
-                  weekday: 'short',
-                  timeZone: 'UTC',
-                });
-                const dayNum = date.slice(8);
-
+          <div className="absolute left-[11.5vw] top-[25.3vh] flex items-center">
+            <ClubCrest club={homeClub} size={Math.round(Math.min(98, Math.max(60, window.innerHeight * 0.098)))} />
+            <span className="mx-[1.6vw] h-[8vh] w-px bg-white/20" />
+            <ClubCrest club={awayClub} size={Math.round(Math.min(98, Math.max(60, window.innerHeight * 0.098)))} />
+            <div className="ml-[1.4vw] font-expanded font-black uppercase leading-[1.22] text-[clamp(17px,1.65vw,32px)]">
+              {[homeClub, awayClub].map((c) => {
+                const r = rankOf(c.id);
                 return (
-                  <button
-                    key={date}
-                    type="button"
-                    onClick={() => {
-                      if (!isToday) simToNextMatchOrDate(date);
-                    }}
-                    className={`rounded-xl p-2.5 text-center border transition-all duration-200 ${
-                      isToday
-                        ? 'fc-panel-active border-[#38f2c8] shadow-[0_0_15px_rgba(56,242,200,0.25)]'
-                        : userFix
-                        ? 'border-[#38f2c8]/40 bg-[#0e272a]/70 hover:bg-[#12363a]'
-                        : 'border-white/8 bg-[#0a1822]/60 hover:bg-white/[0.08]'
-                    }`}
-                  >
-                    <div className="text-[10px] uppercase text-[#8ba5b3] font-bold">{dayLabel}</div>
-                    <div className="font-mono-num text-base font-black text-white my-0.5">{dayNum}</div>
-                    <div className="h-5 flex items-center justify-center">
-                      {opp ? (
-                        <span className="text-[10px] font-extrabold text-[#38f2c8] uppercase truncate">
-                          {userFix?.homeClubId === career.userClubId ? 'vs ' : '@ '}
-                          {opp.shortName}
-                        </span>
-                      ) : (
-                        <span className="text-[10px] text-white/20">—</span>
-                      )}
-                    </div>
-                  </button>
+                  <div key={c.id} className="whitespace-nowrap">
+                    {c.name}
+                    {r && <span className="ml-[0.5vw] font-display font-light tracking-[0.02em] text-white/45">{ordinal(r)}</span>}
+                  </div>
                 );
               })}
             </div>
           </div>
+        </>
+      )}
 
-          {/* Actionable Task List */}
-          <div className="fc-panel rounded-2xl p-5 border border-white/10">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#38f2c8] animate-pulse" />
-                <h3 className="font-display text-lg font-black uppercase tracking-wider text-white">
-                  Actionable Tasks
-                </h3>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-[#38f2c8]/20 text-[#38f2c8] border border-[#38f2c8]/40">
-                  {tasks.length} TASKS
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setActiveTab('Notifications')}
-                className="text-xs font-bold text-[#38f2c8] hover:underline inline-flex items-center gap-1"
-              >
-                <span>View Inbox</span>
-                <ArrowRight className="w-3 h-3" />
-              </button>
-            </div>
+      {/* ------------------------------------------------ Action buttons */}
+      <div className="absolute left-[12.3vw] top-[39.5vh] flex items-center gap-[0.95vw]">
+        {buttons.map((b, i) => {
+          const focused = focus.zone === 'buttons' && Math.min(focus.index, buttons.length - 1) === i;
+          return (
+            <button
+              key={b.label}
+              type="button"
+              onMouseEnter={() => setFocus({ zone: 'buttons', index: i })}
+              onClick={b.run}
+              className={`h-[5.8vh] min-h-[40px] rounded-[4px] flex items-center gap-[0.8vw] whitespace-nowrap text-[clamp(13px,1.12vw,21px)] transition-shadow ${
+                focused ? 'px-[1.5vw] font-bold text-[#141824]' : 'px-[1.4vw] bg-[#050607] text-white border border-white/10'
+              }`}
+              style={
+                focused
+                  ? {
+                      background: 'linear-gradient(90deg, #d4fff4 0%, #ece2ff 58%, #e6d9ff 100%)',
+                      boxShadow: '0 0 26px rgba(214,200,255,0.55), inset 0 0 0 1px rgba(255,255,255,0.9)',
+                    }
+                  : undefined
+              }
+            >
+              {focused && <PadGlyph shape="cross" dark />}
+              {b.label}
+            </button>
+          );
+        })}
+      </div>
 
-            <div className="space-y-2.5">
-              {tasks.map((task) => (
-                <div
-                  key={task.id}
-                  onClick={task.action}
-                  className="rounded-xl border border-white/10 bg-[#091823]/80 hover:bg-[#0f2434] hover:border-[#38f2c8]/50 transition-all p-3.5 flex items-center justify-between gap-3 cursor-pointer group"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                      {task.icon === 'transfer' && <Briefcase className="w-5 h-5 text-emerald-300" />}
-                      {task.icon === 'injury' && <AlertTriangle className="w-5 h-5 text-amber-300" />}
-                      {task.icon === 'contract' && <UserCheck className="w-5 h-5 text-sky-300" />}
-                      {task.icon === 'inbox' && <Mail className="w-5 h-5 text-violet-300" />}
-                      {task.icon === 'coach' && <Activity className="w-5 h-5 text-[#38f2c8]" />}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border ${task.badgeColor}`}>
-                          {task.badge}
-                        </span>
-                      </div>
-                      <div className="font-display text-sm font-bold text-white truncate mt-1 group-hover:text-[#38f2c8] transition-colors">
-                        {task.title}
-                      </div>
-                      <div className="text-xs text-[#8ba5b3] truncate mt-0.5">
-                        {task.subtitle}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="shrink-0 flex items-center text-white/40 group-hover:text-[#38f2c8] transition-colors">
-                    <ChevronRight className="w-5 h-5" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* ========================================================= */}
-        {/* RIGHT COLUMN: VERTICAL MEDIA & SOCIAL HIGHLIGHTS CARD */}
-        {/* ========================================================= */}
-        <div className="lg:col-span-5 space-y-5">
-          {/* Authentic Vertical News & Social Card */}
-          <div
-            className={`fc-panel rounded-2xl border border-white/15 overflow-hidden shadow-2xl bg-gradient-to-b ${currentStory.bgGradient} relative`}
-          >
-            {/* Header: Tag + Story Dots */}
-            <div className="p-5 pb-3 flex items-center justify-between border-b border-white/10">
-              <span className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider border ${currentStory.tagColor}`}>
-                {currentStory.categoryLabel}
+      {/* ------------------------------------------------ Task window */}
+      <div className="absolute left-[10.7vw] w-[37vw] top-[49.6vh]">
+        {visibleTasks.map((t, i) => {
+          const idx = windowStart + i;
+          const focused = idx === focusedTask;
+          return (
+            <div
+              key={t.id}
+              role="button"
+              tabIndex={-1}
+              onMouseEnter={() => setFocus({ zone: 'tasks', index: idx })}
+              onClick={t.action}
+              className={`relative h-[7.55vh] flex items-center cursor-pointer border-b border-white/30 ${focused ? 'text-white' : 'text-[#c3cbd6]'}`}
+              style={focused ? { background: 'linear-gradient(90deg, rgba(150,164,196,0.35), rgba(110,104,150,0.18))' } : undefined}
+            >
+              <span className="w-[6.2vw] h-full flex items-center justify-center">
+                <TaskIcon icon={t.icon} player={t.player} />
               </span>
-              <div className="flex items-center gap-1.5">
-                {stories.map((st, idx) => (
-                  <button
-                    key={st.id}
-                    type="button"
-                    onClick={() => {
-                      setActiveStoryIdx(idx);
-                      setShowComments(false);
-                    }}
-                    className={`w-2.5 h-2.5 rounded-full transition-all ${
-                      idx === activeStoryIdx ? 'bg-[#38f2c8] w-6' : 'bg-white/20 hover:bg-white/40'
-                    }`}
-                    aria-label={`Story ${idx + 1}`}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Main Visual / Story Graphic */}
-            <div className="p-5">
-              <div className="relative rounded-xl overflow-hidden border border-white/10 bg-[#07131a]/80 p-5 min-h-[200px] flex flex-col justify-end group">
-                {currentStory.image && (
-                  <div
-                    className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-                    style={{ backgroundImage: `url('${currentStory.image}')` }}
-                  />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#061016] via-[#061016]/75 to-transparent pointer-events-none" />
-                <div className="absolute top-3 right-3 opacity-20">
-                  <ClubCrest club={userClub} size={110} />
-                </div>
-                <div className="relative z-10">
-                  <div className="text-[11px] font-bold text-[#38f2c8] uppercase tracking-wider">
-                    {currentStory.author} · {currentStory.authorHandle}
-                  </div>
-                  <h2 className="font-display text-xl lg:text-2xl font-black uppercase tracking-tight text-white mt-1 leading-snug drop-shadow-md">
-                    {currentStory.headline}
-                  </h2>
-                </div>
-              </div>
-
-              {/* Story Summary */}
-              <p className="text-xs text-[#cad9e2] leading-relaxed mt-4">
-                {currentStory.summary}
-              </p>
-
-              {/* Social Engagement Stats */}
-              <div className="mt-5 pt-3.5 border-t border-white/10 flex items-center justify-between text-xs text-[#8ba5b3]">
-                <div className="flex items-center gap-4">
-                  <button
-                    type="button"
-                    onClick={() => setHasLiked(!hasLiked)}
-                    className={`flex items-center gap-1.5 font-bold transition-colors ${
-                      hasLiked ? 'text-rose-400' : 'hover:text-white'
-                    }`}
-                  >
-                    <Heart className={`w-4 h-4 ${hasLiked ? 'fill-current' : ''}`} />
-                    <span>{currentStory.likes}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setShowComments(!showComments)}
-                    className="flex items-center gap-1.5 font-bold hover:text-white transition-colors"
-                  >
-                    <MessageSquare className="w-4 h-4" />
-                    <span>{currentStory.commentsCount}</span>
-                  </button>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setShowComments(!showComments)}
-                  className="fc-btn-secondary rounded-lg px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider border border-white/15 hover:border-[#38f2c8]/50"
-                >
-                  {showComments ? 'Hide Comments' : 'Show Comments'}
-                </button>
-              </div>
-
-              {/* Interactive Comments Drawer */}
-              {showComments && (
-                <div className="mt-4 pt-4 border-t border-white/10 space-y-2.5 animate-fadeIn">
-                  <div className="text-xs font-bold text-white uppercase tracking-wider mb-2">
-                    Fan Reactions &amp; Comments
-                  </div>
-                  {currentStory.comments.map((cm, i) => (
-                    <div key={i} className="rounded-lg bg-black/40 border border-white/8 p-3 text-xs">
-                      <div className="flex items-center justify-between text-[11px] text-[#8ba5b3]">
-                        <span className="font-bold text-white">{cm.user}</span>
-                        <span>{cm.time}</span>
-                      </div>
-                      <div className="text-[10px] text-[#38f2c8] font-mono">{cm.handle}</div>
-                      <div className="text-white/90 mt-1 leading-normal">{cm.text}</div>
-                    </div>
-                  ))}
-                </div>
+              {t.clubId !== undefined && (
+                <span className="mr-[0.8vw]"><ClubCrest club={career.clubs[t.clubId]} size={24} /></span>
               )}
+              <span className={`truncate text-[clamp(13px,1.12vw,21px)] ${focused ? 'font-bold' : ''}`}>{t.title}</span>
+              {focused && <span className="ml-auto mr-[1vw] flex items-center gap-[0.4vw] text-[clamp(10px,0.85vw,16px)] text-white/80"><PadGlyph shape="cross" /> Open</span>}
             </div>
-
-            {/* Story Navigation Footer */}
-            <div className="p-4 bg-black/30 border-t border-white/10 flex items-center justify-between text-xs">
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveStoryIdx((prev) => (prev > 0 ? prev - 1 : stories.length - 1));
-                  setShowComments(false);
-                }}
-                className="hover:text-[#38f2c8] font-bold inline-flex items-center gap-1 text-[#8ba5b3]"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                <span>Prev News</span>
-              </button>
-              <span className="text-[11px] font-mono-num text-white/50">
-                {activeStoryIdx + 1} of {stories.length}
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveStoryIdx((prev) => (prev < stories.length - 1 ? prev + 1 : 0));
-                  setShowComments(false);
-                }}
-                className="hover:text-[#38f2c8] font-bold inline-flex items-center gap-1 text-[#8ba5b3]"
-              >
-                <span>Next News</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* Dynamic OVR Movers Watch */}
-          <div className="fc-panel rounded-2xl p-5 border border-white/10">
-            <div className="flex items-center justify-between mb-3.5">
-              <div>
-                <h3 className="font-display text-lg font-black uppercase tracking-wider text-white">
-                  Dynamic OVR Pulse
-                </h3>
-                <p className="text-[11px] text-[#8ba5b3]">
-                  Real-time form and morale shifts across {userClub.shortName}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setActiveTab('Squad')}
-                className="text-xs font-bold text-[#38f2c8] hover:underline"
-              >
-                Full Squad
-              </button>
-            </div>
-
-            <div className="space-y-2">
-              {movers.slice(0, 4).map((p) => (
-                <div
-                  key={p.id}
-                  onClick={() => setActiveTab('Squad')}
-                  className="rounded-xl border border-white/8 bg-[#091823]/70 hover:bg-[#0f2434] p-2.5 flex items-center justify-between gap-3 cursor-pointer transition-colors"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <PlayerAvatar player={p} clubColor={userClub.primaryColor} size="sm" />
-                    <div className="min-w-0">
-                      <div className="font-display text-xs font-bold text-white truncate">{p.knownAs}</div>
-                      <div className="text-[10px] text-[#8ba5b3]">
-                        {p.primaryPosition} · Fit {p.matchFitness}% · {p.dynamicOvr.moraleLabel}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <OvrDiamond ovr={p.dynamicOvr.dynamicOvr} delta={p.dynamicOvr.totalDelta} size="sm" />
-                    <span
-                      className={`font-mono-num text-xs font-extrabold ${
-                        p.dynamicOvr.totalDelta > 0
-                          ? 'text-[#38f2c8]'
-                          : p.dynamicOvr.totalDelta < 0
-                          ? 'text-rose-400'
-                          : 'text-slate-300'
-                      }`}
-                    >
-                      {p.dynamicOvr.totalDelta > 0 ? `+${p.dynamicOvr.totalDelta}` : p.dynamicOvr.totalDelta === 0 ? '±0' : p.dynamicOvr.totalDelta}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Compact Standings Snapshot */}
-          <div className="fc-panel rounded-2xl p-5 border border-white/10">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-display text-lg font-black uppercase tracking-wider text-white">
-                {leagueName} Standings
-              </h3>
-              <button
-                type="button"
-                onClick={() => setActiveTab('Office')}
-                className="text-xs font-bold text-[#38f2c8] hover:underline"
-              >
-                View Table
-              </button>
-            </div>
-
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="border-b border-white/10 text-[10px] uppercase text-[#7f9aa8]">
-                  <th className="py-1.5 text-left w-6">#</th>
-                  <th className="py-1.5 text-left">Club</th>
-                  <th className="py-1.5 text-right w-8">P</th>
-                  <th className="py-1.5 text-right w-9">GD</th>
-                  <th className="py-1.5 text-right w-10">PTS</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/[0.06]">
-                {compactTable.map((row) => {
-                  const rank = career.standings.findIndex((s) => s.clubId === row.clubId) + 1;
-                  const isUser = row.clubId === career.userClubId;
-                  return (
-                    <tr key={row.clubId} className={isUser ? 'bg-[#194640]/55 text-white font-bold' : 'text-[#cad9e2]'}>
-                      <td className="py-1.5 font-mono-num">{rank}</td>
-                      <td className="py-1.5 truncate max-w-[130px] font-semibold">{row.clubName}</td>
-                      <td className="py-1.5 text-right font-mono-num">{row.played}</td>
-                      <td className="py-1.5 text-right font-mono-num">{row.gd > 0 ? `+${row.gd}` : row.gd}</td>
-                      <td className="py-1.5 text-right font-mono-num font-black text-white">{row.points}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          );
+        })}
+        <div className="h-[6vh] flex items-center pl-[1.6vw] text-[#c3cbd6] text-[clamp(12px,1.05vw,20px)]">
+          {tasks.length} {tasks.length === 1 ? 'Task' : 'Tasks'}
         </div>
       </div>
 
-      {/* FC 27 Authentic Controller Footer Bar */}
-      <div className="border-t border-white/10 pt-4 pb-2 flex flex-wrap items-center justify-between gap-3 text-xs text-[#8ba5b3] select-none">
-        <div className="flex flex-wrap items-center gap-4 lg:gap-6 font-semibold">
-          <span className="flex items-center gap-1.5">
-            <kbd className="px-1.5 py-0.5 rounded bg-white/10 border border-white/20 text-white font-mono text-[11px]">✕</kbd>
-            <span>Select</span>
-          </span>
-          <span className="flex items-center gap-1.5">
-            <kbd className="px-1.5 py-0.5 rounded bg-white/10 border border-white/20 text-white font-mono text-[11px]">◯</kbd>
-            <span>Back</span>
-          </span>
-          <span className="flex items-center gap-1.5">
-            <kbd className="px-1.5 py-0.5 rounded bg-white/10 border border-white/20 text-white font-mono text-[11px]">R</kbd>
-            <span>Scroll Feed</span>
-          </span>
-          <span className="flex items-center gap-1.5">
-            <kbd className="px-1.5 py-0.5 rounded bg-white/10 border border-white/20 text-white font-mono text-[11px]">L3</kbd>
-            <span>Tutorials</span>
-          </span>
-          <span className="flex items-center gap-1.5">
-            <kbd className="px-1.5 py-0.5 rounded bg-white/10 border border-white/20 text-white font-mono text-[11px]">≡</kbd>
-            <span>Advance Customisation</span>
-          </span>
-        </div>
+      {/* ------------------------------------------------ Social news card */}
+      {story && (
+        <div
+          role="button"
+          tabIndex={-1}
+          onMouseEnter={() => setFocus({ zone: 'news' })}
+          className="absolute left-[59.8vw] w-[30.4vw] top-[5.5vh] h-[67.5vh] rounded-[10px] overflow-hidden"
+          style={{
+            background: 'linear-gradient(180deg, #164036 0%, #10302b 55%, #0c2321 100%)',
+            boxShadow: focus.zone === 'news' ? '0 0 0 2px rgba(232,238,255,0.85), 0 0 30px rgba(196,210,255,0.3)' : '0 22px 50px rgba(0,0,0,0.45)',
+          }}
+        >
+          {/* Story art + player cutout (art is a placeholder for the in-game photo) */}
+          <div
+            className="absolute inset-x-0 top-0 h-[78%] bg-cover bg-center"
+            style={{
+              backgroundImage: `url('${story.image}')`,
+              maskImage: 'linear-gradient(180deg, #000 55%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(180deg, #000 55%, transparent 100%)',
+            }}
+          />
+          <div className="absolute inset-x-0 top-0 h-[78%] bg-gradient-to-b from-[#0c2321]/10 via-[#0c2321]/20 to-[#0c2321]/90" />
+          {story.cutoutName && (
+            <div className="absolute inset-x-0 top-[6%] h-[62%] flex items-end justify-center pointer-events-none">
+              <MarqueePlayerCutout name={story.cutoutName} useFallback={false} className="h-full w-auto object-contain object-bottom" />
+            </div>
+          )}
 
-        <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1.5">
-            <kbd className="px-1.5 py-0.5 rounded bg-white/10 border border-white/20 text-white font-mono text-[11px]">L2</kbd>
-            <span>Shortcuts</span>
+          {/* Tag + date */}
+          <div className="absolute left-[3.9%] top-[3%] flex items-center gap-[1vw]">
+            <StoryTagIcon kind={story.tagIcon} />
+            <div className="leading-tight">
+              <div className="font-bold text-[clamp(13px,1.17vw,22px)]">{story.tag}</div>
+              <div className="text-white/85 text-[clamp(11px,0.95vw,18px)]">{story.dateLabel}</div>
+            </div>
+          </div>
+          <span className="absolute right-0 top-0 h-[6.5%] min-h-[30px] px-[1.75vw] rounded-bl-[6px] flex items-center bg-[#dcf55c] text-[#1a1f10] font-medium text-[clamp(12px,1.1vw,21px)]">
+            New
           </span>
-          <span className="flex items-center gap-1.5 text-[#38f2c8]">
-            <kbd className="px-1.5 py-0.5 rounded bg-[#38f2c8]/20 border border-[#38f2c8]/40 text-[#38f2c8] font-mono text-[11px]">R2</kbd>
-            <span>FC HUB</span>
-          </span>
+
+          {showComments ? (
+            <div className="absolute inset-x-[4%] top-[14%] bottom-[24%] overflow-y-auto space-y-[1.2vh]">
+              {story.comments.map((c, i) => (
+                <div key={i} className="rounded-[6px] bg-black/45 px-[1vw] py-[1vh] text-[clamp(11px,0.95vw,18px)]">
+                  <div className="flex justify-between text-white/60"><span>{c.user}</span><span>{c.time}</span></div>
+                  <div className="mt-[0.3vh]">{c.text}</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="absolute inset-x-0 top-[55%] grid grid-cols-2 text-center">
+              {story.stats.map((s) => (
+                <div key={s.label}>
+                  <div className="font-expanded font-black leading-[0.9] text-[clamp(52px,6.1vw,118px)] drop-shadow-[0_6px_18px_rgba(0,0,0,0.45)]">{s.value}</div>
+                  <div className="mt-[1.2vh] font-expanded font-black text-[#45e07c] text-[clamp(12px,1.06vw,20px)]">{s.label}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <p className="absolute left-[4%] right-[5%] top-[82.5%] line-clamp-2 leading-[1.45] text-[clamp(12px,1.12vw,21px)]">{story.summary}</p>
+
+          <div className="absolute left-[4.3%] right-[4.6%] top-[94.6%] -translate-y-1/2 flex items-center text-[clamp(12px,1.17vw,22px)]">
+            <button type="button" onClick={() => setLiked((l) => ({ ...l, [story.id]: !l[story.id] }))} className="flex items-center gap-[0.7vw]">
+              <Heart className={`w-[1.3vw] h-[1.3vw] min-w-[16px] min-h-[16px] ${liked[story.id] ? 'fill-[#ff5a6e] text-[#ff5a6e]' : ''}`} strokeWidth={1.8} />
+              {story.likes}
+            </button>
+            <span className="ml-[2vw] flex items-center gap-[0.7vw]">
+              <MessageCircle className="w-[1.3vw] h-[1.3vw] min-w-[16px] min-h-[16px]" strokeWidth={1.8} />
+              {story.commentsCount}
+            </span>
+            <button type="button" onClick={() => setShowComments((v) => !v)} className="ml-auto flex items-center gap-[0.5vw]">
+              <PadGlyph shape="square" /> {showComments ? 'Hide Comments' : 'Show Comments'}
+            </button>
+          </div>
         </div>
+      )}
+      <div className="absolute left-[74.4vw] top-[76.6vh] -translate-x-1/2">
+        <PagerDots count={stories.length} index={storyIdx % Math.max(1, stories.length)} onCycle={nextStory} />
+      </div>
+
+      </div>
+
+      {/* ------------------------------------------------ Controller bar */}
+      <div className="absolute left-[2.6vw] right-[2.6vw] bottom-[1vh] flex items-center text-white/90 text-[clamp(12px,1.08vw,20px)]">
+        <div className="flex items-center gap-[2.2vw]">
+          <span className="flex items-center gap-[0.5vw]"><PadGlyph shape="cross" /> Select</span>
+          <button type="button" onClick={nextStory} className="flex items-center gap-[0.5vw]">
+            <span className="inline-flex items-center justify-center rounded-full bg-white/25 font-bold w-[clamp(20px,1.6vw,30px)] h-[clamp(20px,1.6vw,30px)] text-[clamp(9px,0.75vw,14px)]">R</span>
+            Scroll Feed
+          </button>
+          <button type="button" onClick={() => setActiveTab('Customise')} className="flex items-center gap-[0.5vw]">
+            <span className="inline-flex items-center justify-center rounded-full bg-white/20 w-[clamp(20px,1.6vw,30px)] h-[clamp(20px,1.6vw,30px)]">
+              <Settings2 className="w-1/2 h-1/2" />
+            </span>
+            Advance Customisation
+          </button>
+        </div>
+        <button type="button" onClick={() => setActiveTab('Squad')} className="ml-auto flex items-center gap-[0.5vw] text-[#8ff0cd]">
+          <span className="rounded bg-[#38f2c8]/20 px-[0.4vw] text-[clamp(9px,0.72vw,14px)] font-bold">R2</span> FC HUB
+        </button>
       </div>
     </div>
   );
 };
+
+// ---------------------------------------------------------------------------
+const CompetitionBadge: React.FC = () => (
+  <svg viewBox="0 0 40 44" className="w-[1.95vw] h-auto min-w-[24px]" aria-hidden>
+    <path d="M20 6 C10 6 5 14 5 22 C5 32 12 39 20 39 C28 39 35 32 35 22" fill="none" stroke="#f0a030" strokeWidth="4.5" strokeLinecap="round" />
+    <path d="M20 13 C14 13 11 18 11 23 C11 29 15 33 20 33 C25 33 29 29 29 23" fill="none" stroke="#3d8ef0" strokeWidth="4.5" strokeLinecap="round" />
+    <circle cx="20" cy="5" r="3.5" fill="#3d8ef0" />
+  </svg>
+);
+
+const TaskIcon: React.FC<{ icon: 'coach' | 'offer' | 'injury' | 'contract' | 'inbox'; player?: Player }> = ({ icon, player }) => {
+  const cls = 'w-[2.4vw] h-[2.4vw] min-w-[26px] min-h-[26px]';
+  switch (icon) {
+    case 'coach':
+      return <UserPlus className={`${cls} text-[#c9d0da]`} strokeWidth={2} />;
+    case 'offer':
+      return (
+        <span className="h-full flex items-end">
+          <PlayerBust src={player?.headshotUrl} alt={player?.knownAs ?? 'Player'} />
+        </span>
+      );
+    case 'injury':
+      return <Ambulance className={`${cls} text-[#f0613a] fill-[#f0613a]/25`} strokeWidth={2} />;
+    case 'contract':
+      return <FileSignature className={`${cls} text-[#c9d0da]`} strokeWidth={2} />;
+    case 'inbox':
+      return <Mail className={`${cls} text-[#c9d0da]`} strokeWidth={2} />;
+  }
+};
+
+/** Orange story tag tile (goal frame / transfer arrows / tactics board glyph). */
+const StoryTagIcon: React.FC<{ kind: Story['tagIcon'] }> = ({ kind }) => (
+  <span className="inline-flex items-center justify-center rounded-[3px] bg-[#f2683a] w-[2.95vw] h-[2.95vw] min-w-[34px] min-h-[34px]">
+    <svg viewBox="0 0 24 24" className="w-[62%] h-[62%]" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+      {kind === 'goal' && <path d="M3 16 V8 H21 V16" />}
+      {kind === 'transfer' && <path d="M4 9 H18 L14 5 M20 15 H6 L10 19" />}
+      {kind === 'tactics' && <path d="M4 5 H20 V19 H4 Z M12 5 V19 M4 12 H8 M16 12 H20" />}
+    </svg>
+  </span>
+);
