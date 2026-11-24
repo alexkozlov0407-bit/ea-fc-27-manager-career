@@ -1,10 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  BatteryCharging,
   Check,
   Handshake,
   Star,
-  Users,
 } from 'lucide-react';
 import { GROWTH_PROFILES } from '../engine/growth';
 import {
@@ -12,7 +10,6 @@ import {
   positionToSector,
 } from '../engine/ratings';
 import {
-  EnergyRecoveryPolicy,
   Mentality,
   Player,
   Position,
@@ -23,6 +20,8 @@ import { useCareerStore } from '../store/careerStore';
 import { OvrDiamond, PlayerAvatar, positionColorClass } from './PlayerAvatar';
 import { CardTitle, HubCarousel } from './fc/HubCarousel';
 import { TeamManagementScreen } from './landings/TeamManagementScreen';
+import { idealStars } from './landings/squadMetrics';
+import { CoachManagementScreen } from './landings/CoachManagementScreen';
 
 type SquadSubTab = 'Hub' | 'TeamManagement' | 'SquadHub' | 'Coaches';
 type MgmtSection = 'Squad' | 'Tactics' | 'Assignments';
@@ -157,11 +156,6 @@ const LANDING_CARDS: { id: LandingCardId; cta: string }[] = [
 ];
 
 
-/** Department "ideal" star count shown on the Ideal Quality card (depth + quality). */
-function idealStars(players: number, ovr: number): number {
-  if (players === 0) return 0;
-  return Math.max(1, Math.round(2 + players * 0.4 + (ovr - 65) * 0.45));
-}
 
 /** Projects flat pitch coords (x 0..100 L→R, y 0..100 attack→goal) onto the perspective trapezoid. */
 function projectPitch(x: number, y: number): [number, number] {
@@ -341,7 +335,6 @@ export const SquadView: React.FC = () => {
   const toggleLoanList = useCareerStore((s) => s.toggleLoanList);
   const toggleCoachHire = useCareerStore((s) => s.toggleCoachHire);
   const startNegotiation = useCareerStore((s) => s.startNegotiation);
-  const updateSettings = useCareerStore((s) => s.updateSettings);
   const toggleBlockOffers = useCareerStore((s) => s.toggleBlockOffers);
   const setJerseyNumber = useCareerStore((s) => s.setJerseyNumber);
 
@@ -580,7 +573,7 @@ export const SquadView: React.FC = () => {
     if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
 
-    if (subTab === 'Hub' || subTab === 'TeamManagement') return; // owned by HubCarousel / TeamManagementScreen
+    if (subTab === 'Hub' || subTab === 'TeamManagement' || subTab === 'Coaches') return; // owned by the layer screens
     if (subTab !== 'SquadHub') {
       if (e.key === 'Escape' || e.key.toLowerCase() === 'b') {
         e.preventDefault();
@@ -645,6 +638,18 @@ export const SquadView: React.FC = () => {
         focus={hubFocus}
         onFocus={setHubFocus}
         onActivate={activateHubCard}
+      />
+    );
+  }
+
+  if (subTab === 'Coaches') {
+    return (
+      <CoachManagementScreen
+        career={career}
+        club={club}
+        squad={squad}
+        onToggleCoach={toggleCoachHire}
+        onBack={() => setSubTab('Hub')}
       />
     );
   }
@@ -1423,120 +1428,6 @@ export const SquadView: React.FC = () => {
               </button>
             </div>
           )}
-        </div>
-      )}
-
-      {/* =================================================================== */}
-      {/* VIEW 4: COACHING STAFF & ENERGY RECOVERY                           */}
-      {/* =================================================================== */}
-      {subTab === 'Coaches' && (
-        <div className="space-y-6">
-          {/* Energy Policy */}
-          <div className="fc-panel rounded-2xl p-6 border border-white/10">
-            <div className="flex items-center gap-2.5 mb-1.5">
-              <BatteryCharging className="w-5 h-5 text-[#38f2c8]" />
-              <h3 className="font-display text-2xl font-black uppercase tracking-wide text-white">
-                Energy Recovery Policy
-              </h3>
-            </div>
-            <p className="text-xs text-[#8ba5b3] mb-4">
-              Balance player energy regeneration against match sharpness to protect Dynamic OVR ratings
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {(
-                [
-                  { id: 'Aggressive', title: 'Aggressive Recovery', desc: '+7 Energy / day · -1 Sharpness / day. Essential during fixture congestion.' },
-                  { id: 'Balanced', title: 'Balanced Recovery', desc: '+5 Energy / day · +1 Sharpness / day. Standard competitive weekly balance.' },
-                  { id: 'Conservative', title: 'High Intensity', desc: '+3 Energy / day · +2 Sharpness / day. Maximizes matchday sharpness.' },
-                ] as const
-              ).map((opt) => {
-                const active = career.settings.energyRecovery === opt.id;
-                return (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => updateSettings({ energyRecovery: opt.id as EnergyRecoveryPolicy })}
-                    className={`rounded-xl p-4 text-left border transition-all ${
-                      active ? 'fc-panel-active border-[#38f2c8]' : 'border-white/10 bg-[#0b1822]/80 hover:bg-white/[0.08]'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-display text-lg font-black uppercase text-white">{opt.title}</span>
-                      {active && <Check className="w-4 h-4 text-[#38f2c8]" />}
-                    </div>
-                    <p className="text-xs text-[#a9c0cc] mt-1.5">{opt.desc}</p>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Department Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {(['ATK', 'MID', 'DEF', 'GK'] as Sector[]).map((dept) => {
-              const deptPlayers = squad.filter((p) => positionToSector(p.primaryPosition) === dept);
-              const avgOvr = deptPlayers.length ? Math.round(deptPlayers.reduce((s, p) => s + p.baseOvr, 0) / deptPlayers.length) : 0;
-              const hiredCoaches = club.coaches.filter((c) => c.hired && c.department === dept);
-              const totalStars = hiredCoaches.reduce((s, c) => s + c.stars, 0);
-              return (
-                <div key={dept} className="fc-panel rounded-2xl p-5 border border-white/10">
-                  <div className="flex items-center justify-between">
-                    <span className="font-display text-lg font-black uppercase text-[#38f2c8]">
-                      {dept} Staff
-                    </span>
-                    <span className="font-mono-num text-xs font-bold text-amber-300 flex items-center gap-1">
-                      <Star className="w-3.5 h-3.5 fill-amber-300" /> {totalStars} / 5★
-                    </span>
-                  </div>
-                  <div className="mt-2 text-xs text-[#8ba5b3]">
-                    {deptPlayers.length} Players · Avg {avgOvr} OVR
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Coach Pool */}
-          <div className="fc-panel rounded-2xl p-6 border border-white/10">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-[#38f2c8]" />
-                <h3 className="font-display text-xl font-black uppercase tracking-wide text-white">
-                  Coaching Staff ({club.coaches.filter((c) => c.hired).length}/8 Hired)
-                </h3>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {club.coaches.map((coach) => (
-                <div
-                  key={coach.id}
-                  className={`rounded-xl border p-4 flex items-center justify-between gap-3 ${
-                    coach.hired ? 'border-[#38f2c8]/40 bg-[#0f282a]' : 'border-white/10 bg-[#0b1822]/80'
-                  }`}
-                >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-black uppercase text-[#38f2c8]">{coach.department}</span>
-                      <span className="text-sm font-bold text-white">{coach.name}</span>
-                    </div>
-                    <div className="text-xs text-amber-300 mt-0.5">{'★'.repeat(coach.stars)}</div>
-                    <div className="text-[11px] text-[#8ba5b3] mt-0.5 font-mono">
-                      {coach.tacticalStyle} · {formatMoney(coach.weeklySalaryEur, career.settings.currency)}/wk
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => toggleCoachHire(coach.id)}
-                    className={`rounded-lg px-3 py-1.5 text-xs font-black uppercase ${
-                      coach.hired ? 'fc-btn-secondary text-rose-300' : 'fc-btn-primary'
-                    }`}
-                  >
-                    {coach.hired ? 'Release' : 'Hire'}
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       )}
 

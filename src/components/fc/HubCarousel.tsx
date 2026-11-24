@@ -441,7 +441,9 @@ export const LayerHeader: React.FC<{
   active: string;
   onTab: (tab: string) => void;
   right?: React.ReactNode;
-}> = ({ parent, title, tabs, active, onTab, right }) => (
+  /** Show the L1/R1 bumper chips above the tabs (hidden when there is only one tab). */
+  bumpers?: boolean;
+}> = ({ parent, title, tabs, active, onTab, right, bumpers = true }) => (
   <header className="relative h-[13vh] min-h-[90px]">
     <img
       src="/assets/branding/mc-logo-transparent.png"
@@ -453,7 +455,7 @@ export const LayerHeader: React.FC<{
       <span className="ml-[2.45vw] text-[clamp(17px,1.5vw,28px)] font-bold">{title}</span>
       <span className="ml-[2.35vw] h-[4vh] w-px bg-white/30" />
       <nav className="relative ml-[2.3vw] flex gap-[2.3vw]" aria-label={`${title} sections`}>
-        <div className="absolute left-[0.7vw] -top-[4.6vh] flex gap-[0.5vw]">
+        <div className={`absolute left-[0.7vw] -top-[4.6vh] flex gap-[0.5vw] ${bumpers ? '' : 'hidden'}`}>
           {['L1', 'R1'].map((b) => (
             <span key={b} className="rounded-md bg-white/15 px-[0.35vw] text-[clamp(8px,0.6vw,11px)] font-bold text-white/70">
               {b}
