@@ -20,6 +20,8 @@ import { ALL_POSITIONS, calculatePlayerInterest, formatMoney } from '../engine/r
 import { Position } from '../engine/types';
 import { useCareerStore } from '../store/careerStore';
 import { ClubCrest, OvrDiamond, PlayerAvatar, positionColorClass } from './PlayerAvatar';
+import { useBackKey } from './fc/HubCarousel';
+import { ScoutingLanding } from './landings/ScoutingLanding';
 
 type ScoutingSubTab = 'Hub' | 'Reports' | 'Scouts' | 'Search';
 
@@ -39,6 +41,8 @@ export const ScoutingView: React.FC = () => {
   const startNegotiation = useCareerStore((s) => s.startNegotiation);
 
   const [subTab, setSubTab] = useState<ScoutingSubTab>('Hub');
+  const [hubFocus, setHubFocus] = useState(0);
+  useBackKey(subTab !== 'Hub', () => setSubTab('Hub'));
   const [query, setQuery] = useState('');
   const [posFilter, setPosFilter] = useState<Position | 'ANY'>('ANY');
   const [leagueFilter, setLeagueFilter] = useState('ALL');
@@ -105,6 +109,20 @@ export const ScoutingView: React.FC = () => {
     .map((id) => career.players[Number(id)])
     .filter(Boolean);
 
+  if (subTab === 'Hub') {
+    return (
+      <ScoutingLanding
+        career={career}
+        focus={hubFocus}
+        onFocus={setHubFocus}
+        onEnter={(target, instructionIdx) => {
+          if (instructionIdx !== undefined && target === 'Reports') setActiveInstructionIdx(instructionIdx);
+          setSubTab(target);
+        }}
+      />
+    );
+  }
+
   return (
     <div className="mx-auto max-w-[1560px] px-4 lg:px-8 py-5 space-y-6">
       {/* Top Breadcrumb Navigation */}
@@ -145,162 +163,6 @@ export const ScoutingView: React.FC = () => {
           <span>Deeper Sim: <strong className="text-white">Top 5 European Leagues</strong></span>
         </div>
       </div>
-
-      {/* =================================================================== */}
-      {/* VIEW 1: AUTHENTIC FC 27 SCOUTING 3-TILE HUB (image_bc8a3b50.png)    */}
-      {/* =================================================================== */}
-      {subTab === 'Hub' && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Tile 1: SCOUT REPORT */}
-            <div
-              onClick={() => setSubTab('Reports')}
-              className="fc-panel rounded-2xl p-6 border border-white/10 hover:border-[#38f2c8]/60 cursor-pointer group transition-all duration-300 relative overflow-hidden flex flex-col justify-between min-h-[400px]"
-            >
-              <div>
-                <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#8ba5b3]">
-                  <span className="text-[#38f2c8]">4-STAGE DOSSIERS</span>
-                  <span className="font-mono-num">{scoutedList.length} REPORTS</span>
-                </div>
-                <h3 className="font-display text-2xl lg:text-3xl font-black uppercase tracking-wide text-white mt-2">
-                  Scout Report
-                </h3>
-                <p className="text-xs text-[#8ba5b3] mt-1">
-                  Tactical Fit, Future Potential, TransferRoom xTV &amp; Club Status
-                </p>
-
-                {/* Top Scouted Preview */}
-                <div className="mt-5 space-y-2.5">
-                  {scoutedList.length === 0 ? (
-                    <div className="text-xs text-[#8ba5b3] py-8 text-center">
-                      No active dossiers. Assign Senior Scouts from Search Players to track targets.
-                    </div>
-                  ) : (
-                    scoutedList.slice(0, 3).map((p) => {
-                      const rep = career.scoutReports[p.id];
-                      return (
-                        <div
-                          key={p.id}
-                          className="p-3 rounded-xl bg-[#07141d]/80 border border-white/8 flex items-center justify-between"
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <PlayerAvatar player={p} size="xs" />
-                            <div className="min-w-0">
-                              <div className="text-xs font-black text-white truncate">{p.knownAs}</div>
-                              <div className="text-[10px] text-[#8ba5b3]">{p.primaryPosition} · {p.clubName}</div>
-                            </div>
-                          </div>
-                          <div className="text-right shrink-0">
-                            <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-[#38f2c8]/20 text-[#38f2c8] border border-[#38f2c8]/40">
-                              Stage {rep?.stage ?? 1}/4
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
-                <span className="text-xs font-bold text-[#38f2c8] flex items-center gap-1.5 group-hover:translate-x-1 transition-transform">
-                  <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white font-mono text-[10px]">✕</kbd>
-                  <span>Enter Scout Report</span>
-                </span>
-                <ChevronRight className="w-5 h-5 text-white/40 group-hover:text-[#38f2c8] transition-colors" />
-              </div>
-            </div>
-
-            {/* Tile 2: SCOUTS */}
-            <div
-              onClick={() => setSubTab('Scouts')}
-              className="fc-panel rounded-2xl p-6 border border-white/10 hover:border-[#38f2c8]/60 cursor-pointer group transition-all duration-300 relative overflow-hidden flex flex-col justify-between min-h-[400px]"
-            >
-              <div>
-                <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#8ba5b3]">
-                  <span className="text-[#38f2c8]">SENIOR NETWORK</span>
-                  <span className="font-mono-num">3 ACTIVE SCOUTS</span>
-                </div>
-                <h3 className="font-display text-2xl lg:text-3xl font-black uppercase tracking-wide text-white mt-2">
-                  Scouts
-                </h3>
-                <p className="text-xs text-[#8ba5b3] mt-1">
-                  Global scouting presence across the Top 5 European leagues
-                </p>
-
-                {/* Senior Scouts Summary */}
-                <div className="mt-5 space-y-2.5">
-                  {[
-                    { name: 'Mateo Fernandez', region: 'Spain & Portugal', exp: 5, judge: 5, targets: 14 },
-                    { name: 'David Wilson', region: 'United Kingdom', exp: 5, judge: 4, targets: 12 },
-                    { name: 'Julian Richter', region: 'Germany & Central Europe', exp: 4, judge: 5, targets: 9 },
-                  ].map((scout, idx) => (
-                    <div
-                      key={idx}
-                      className="p-3 rounded-xl bg-[#07141d]/80 border border-white/8 flex items-center justify-between"
-                    >
-                      <div>
-                        <div className="text-xs font-black text-white">{scout.name}</div>
-                        <div className="text-[10px] text-[#8ba5b3]">{scout.region}</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-amber-300 text-xs font-mono-num">{'★'.repeat(scout.judge)}</div>
-                        <div className="text-[10px] font-mono-num text-[#38f2c8] font-bold">{scout.targets} Found</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
-                <span className="text-xs font-bold text-[#38f2c8] flex items-center gap-1.5 group-hover:translate-x-1 transition-transform">
-                  <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white font-mono text-[10px]">✕</kbd>
-                  <span>Enter Scouts</span>
-                </span>
-                <ChevronRight className="w-5 h-5 text-white/40 group-hover:text-[#38f2c8] transition-colors" />
-              </div>
-            </div>
-
-            {/* Tile 3: SEARCH PLAYERS */}
-            <div
-              onClick={() => setSubTab('Search')}
-              className="fc-panel rounded-2xl p-6 border border-white/10 hover:border-[#38f2c8]/60 cursor-pointer group transition-all duration-300 relative overflow-hidden flex flex-col justify-between min-h-[400px]"
-            >
-              <div>
-                <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#8ba5b3]">
-                  <span className="text-[#38f2c8]">GLOBAL DATABASE</span>
-                  <span className="font-mono-num">2,600+ PLAYERS</span>
-                </div>
-                <h3 className="font-display text-2xl lg:text-3xl font-black uppercase tracking-wide text-white mt-2">
-                  Search Players
-                </h3>
-                <p className="text-xs text-[#8ba5b3] mt-1">
-                  Filter by Position, Age, League, xTV and Transfer Status
-                </p>
-
-                {/* Big Search Callout */}
-                <div className="mt-5 p-4 rounded-xl bg-[#07141d]/80 border border-white/8 space-y-3">
-                  <div className="flex items-center gap-2.5 text-[#38f2c8]">
-                    <Search className="w-5 h-5" />
-                    <span className="text-xs font-black uppercase tracking-wider text-white">Instant Attribute Reveal</span>
-                  </div>
-                  <p className="text-xs text-[#8ba5b3]">
-                    Search wonderkids and established superstars across Premier League, LaLiga, Bundesliga, Serie A, and Ligue 1.
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
-                <span className="text-xs font-bold text-[#38f2c8] flex items-center gap-1.5 group-hover:translate-x-1 transition-transform">
-                  <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white font-mono text-[10px]">✕</kbd>
-                  <span>Search Players</span>
-                </span>
-                <ChevronRight className="w-5 h-5 text-white/40 group-hover:text-[#38f2c8] transition-colors" />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* =================================================================== */}
       {/* VIEW 2 & 4: SCOUT REPORTS / SEARCH PLAYERS (image_0822b203.png)     */}

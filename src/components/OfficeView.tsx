@@ -17,6 +17,7 @@ import {
 import { formatMoney } from '../engine/ratings';
 import { useCareerStore } from '../store/careerStore';
 import { ClubCrest } from './PlayerAvatar';
+import { FinancesScreen } from './landings/FinancesScreen';
 
 type OfficeSubTab = 'Hub' | 'Standings' | 'Calendar' | 'Finances' | 'Objectives';
 
@@ -193,6 +194,10 @@ export const OfficeView: React.FC = () => {
 
   // Determine user rank in their domestic league
   const userRank = career.standings.findIndex((s) => s.clubId === userClub.id) + 1;
+
+  if (subTab === 'Finances') {
+    return <FinancesScreen career={career} onBack={() => setSubTab('Hub')} />;
+  }
 
   return (
     <div className="mx-auto max-w-[1560px] px-4 lg:px-8 py-5 space-y-6">
@@ -714,140 +719,6 @@ export const OfficeView: React.FC = () => {
                 })}
               </div>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* =================================================================== */}
-      {/* VIEW 4: FINANCES & BUDGET (image_bb06eda9.png)                       */}
-      {/* =================================================================== */}
-      {subTab === 'Finances' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          <div className="lg:col-span-5 fc-panel rounded-2xl p-6 space-y-6 border border-white/10 shadow-xl">
-            <div className="flex items-center gap-2.5">
-              <DollarSign className="w-6 h-6 text-[#38f2c8]" />
-              <h3 className="font-display text-2xl font-black uppercase tracking-wide text-white">
-                Financial Ledger
-              </h3>
-            </div>
-
-            {/* Income vs Expenses Donut */}
-            <div className="flex items-center justify-around gap-4 py-2">
-              <svg width="150" height="150" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(240,82,82,0.55)" strokeWidth="12" />
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="40"
-                  fill="none"
-                  stroke="#38f2c8"
-                  strokeWidth="12"
-                  strokeDasharray={`${earnStroke} ${donutDash}`}
-                  transform="rotate(-90 50 50)"
-                />
-                <text
-                  x="50"
-                  y="48"
-                  textAnchor="middle"
-                  fill="#ffffff"
-                  fontSize="14"
-                  fontWeight="900"
-                  fontFamily="Barlow Condensed, sans-serif"
-                >
-                  {earnPct}%
-                </text>
-                <text x="50" y="62" textAnchor="middle" fill="#8ba5b3" fontSize="8" fontWeight="800">
-                  INCOME
-                </text>
-              </svg>
-
-              <div className="space-y-3 text-xs">
-                <div>
-                  <div className="text-[#8ba5b3] uppercase text-[10px] font-bold">Season Profit</div>
-                  <div className={`font-mono-num text-xl font-black ${profit >= 0 ? 'text-[#38f2c8]' : 'text-rose-400'}`}>
-                    {formatMoney(profit, career.settings.currency)}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-[#8ba5b3] uppercase text-[10px] font-bold">Total Earnings</div>
-                  <div className="font-mono-num text-sm font-black text-white">
-                    {formatMoney(earnings, career.settings.currency)}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-[#8ba5b3] uppercase text-[10px] font-bold">Total Expenses</div>
-                  <div className="font-mono-num text-sm font-black text-rose-300">
-                    -{formatMoney(expenses, career.settings.currency)}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="border-t border-white/10 pt-4 space-y-2 text-xs">
-              <div className="flex justify-between">
-                <span className="text-[#8ba5b3]">Club Valuation</span>
-                <strong className="font-mono-num text-white">
-                  {formatMoney(userClub.clubWorthEur, career.settings.currency)}
-                </strong>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#8ba5b3]">Weekly Wage Payroll</span>
-                <strong className="font-mono-num text-white">
-                  {formatMoney(weeklyPayroll, career.settings.currency)}/wk
-                </strong>
-              </div>
-            </div>
-
-            {/* Budget Allocation Slider */}
-            <div className="border-t border-white/10 pt-4 space-y-2.5 text-xs">
-              <div className="flex justify-between font-black uppercase">
-                <span className="text-[#38f2c8]">Transfer Budget ({userClub.budgetSplitTransferPct}%)</span>
-                <span className="text-[#dcd2ff]">Wage Pool ({100 - userClub.budgetSplitTransferPct}%)</span>
-              </div>
-              <input
-                type="range"
-                min={25}
-                max={95}
-                value={userClub.budgetSplitTransferPct}
-                onChange={(e) => updateBudgetSplit(Number(e.target.value))}
-                className="w-full accent-[#38f2c8]"
-              />
-              <div className="flex justify-between font-mono-num text-sm font-black">
-                <span className="text-[#38f2c8]">
-                  {formatMoney(userClub.transferBudgetEur, career.settings.currency)}
-                </span>
-                <span className="text-white">
-                  {formatMoney(userClub.wageBudgetRemainingEur, career.settings.currency)}/wk
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Transactions Ledger */}
-          <div className="lg:col-span-7 fc-panel rounded-2xl p-6 border border-white/10 shadow-xl">
-            <h3 className="font-display text-2xl font-black uppercase tracking-wide text-white mb-4">
-              Club Transactions ({career.transactions.length})
-            </h3>
-            <div className="max-h-[56vh] overflow-y-auto divide-y divide-white/[0.06] text-xs">
-              {career.transactions.map((tx) => (
-                <div key={tx.id} className="py-3 flex items-center justify-between gap-3">
-                  <div>
-                    <div className="font-bold text-white text-sm">{tx.description}</div>
-                    <div className="text-[10px] uppercase text-[#8ba5b3] font-mono-num mt-0.5">
-                      {tx.date} · {tx.category}
-                    </div>
-                  </div>
-                  <div
-                    className={`font-mono-num font-black text-sm ${
-                      tx.amountEur >= 0 ? 'text-[#38f2c8]' : 'text-rose-400'
-                    }`}
-                  >
-                    {tx.amountEur >= 0 ? '+' : ''}
-                    {formatMoney(tx.amountEur, career.settings.currency)}
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       )}

@@ -39,6 +39,7 @@ import {
 } from '../engine/types';
 import { useCareerStore } from '../store/careerStore';
 import { MarqueePlayerCutout, OvrDiamond, PlayerAvatar, positionColorClass } from './PlayerAvatar';
+import { CardTitle, HubCarousel } from './fc/HubCarousel';
 
 type SquadSubTab = 'Hub' | 'TeamManagement' | 'SquadHub' | 'Coaches';
 type MgmtSection = 'Squad' | 'Tactics' | 'Assignments';
@@ -207,11 +208,6 @@ const LANDING_CARDS: { id: LandingCardId; cta: string }[] = [
   { id: 'SquadHub', cta: 'Enter Squad Hub' },
 ];
 
-// Geometry measured from the 1804px-wide reference capture, expressed in vw.
-const CARD_LEFT_VW = 4.55;
-const CARD_WIDTH_VW = 29.6;
-const CARD_STEP_VW = 30.85;
-const VISIBLE_CARDS = 3;
 
 /** Department "ideal" star count shown on the Ideal Quality card (depth + quality). */
 function idealStars(players: number, ovr: number): number {
@@ -294,9 +290,7 @@ const SquadLanding: React.FC<SquadLandingProps> = ({ clubName, squad, lineupDots
       stars: idealStars(players.length, ovr),
     };
   });
-  const offset = Math.max(0, focus - (VISIBLE_CARDS - 1));
 
-  const titleCls = 'text-center font-bold text-white tracking-[-0.01em] text-[clamp(22px,1.9vw,38px)] leading-tight';
   const subCls = 'mt-[1.2vh] text-center font-bold text-[#8ff0cd] text-[clamp(12px,0.98vw,19px)]';
 
   const renderCard = (id: LandingCardId) => {
@@ -304,7 +298,7 @@ const SquadLanding: React.FC<SquadLandingProps> = ({ clubName, squad, lineupDots
       case 'IdealQuality':
         return (
           <>
-            <h3 className={titleCls}>Ideal Quality</h3>
+            <CardTitle>Ideal Quality</CardTitle>
             <div className="mt-[5.6vh] px-[7%]">
               {departments.map((d) => (
                 <div key={d.label} className="flex items-center justify-between border-b border-white/20 py-[1.55vh]">
@@ -330,7 +324,7 @@ const SquadLanding: React.FC<SquadLandingProps> = ({ clubName, squad, lineupDots
       case 'TeamManagement':
         return (
           <>
-            <h3 className={titleCls}>Team Management</h3>
+            <CardTitle>Team Management</CardTitle>
             <div className={`${subCls} uppercase`}>
               {clubName} <span className="normal-case">Default</span>
             </div>
@@ -342,7 +336,7 @@ const SquadLanding: React.FC<SquadLandingProps> = ({ clubName, squad, lineupDots
       case 'TeamSheets':
         return (
           <>
-            <h3 className={titleCls}>Team Sheets</h3>
+            <CardTitle>Team Sheets</CardTitle>
             <div className={subCls}>Created Team Sheets: 1</div>
             <div className="mt-[9vh] flex justify-center">
               <TeamSheetGlyph />
@@ -356,7 +350,7 @@ const SquadLanding: React.FC<SquadLandingProps> = ({ clubName, squad, lineupDots
       case 'SquadHub':
         return (
           <>
-            <h3 className={titleCls}>Squad Hub</h3>
+            <CardTitle>Squad Hub</CardTitle>
             <div className={subCls}>Players: {squad.length}</div>
             <div className="mt-[6.5vh] px-[7%] space-y-[1.2vh]">
               {squad.slice(0, 5).map((p) => (
@@ -378,90 +372,12 @@ const SquadLanding: React.FC<SquadLandingProps> = ({ clubName, squad, lineupDots
   };
 
   return (
-    <div className="relative w-full overflow-hidden select-none h-[calc(100vh-64px)] min-h-[620px]">
-      {/* Arena backdrop — CSS stand-in for the in-game 3D stadium wall (swap for a render when available) */}
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div
-          className="absolute left-[7vw] right-[6.5vw] top-[1.5vh] h-[62vh]"
-          style={{
-            background:
-              'linear-gradient(100deg, rgba(36,66,108,0.95) 0%, rgba(34,82,104,0.92) 36%, rgba(38,124,108,0.92) 70%, rgba(48,150,120,0.95) 100%)',
-            maskImage: 'linear-gradient(180deg, #000 0%, #000 78%, transparent 100%)',
-            WebkitMaskImage: 'linear-gradient(180deg, #000 0%, #000 78%, transparent 100%)',
-          }}
-        />
-        <div
-          className="absolute inset-y-0 left-0 w-[9vw]"
-          style={{ background: 'linear-gradient(90deg, rgba(8,18,26,0.95), rgba(8,18,26,0))' }}
-        />
-        <div
-          className="absolute inset-y-0 right-0 w-[8vw]"
-          style={{ background: 'linear-gradient(270deg, rgba(8,18,26,0.92), rgba(8,18,26,0))' }}
-        />
-        <div
-          className="absolute left-[52vw] top-[-10vh] h-[95vh] w-[1.6vw] rotate-[38deg] opacity-25"
-          style={{ background: 'linear-gradient(180deg, rgba(190,255,235,0.0), rgba(190,255,235,0.5), rgba(190,255,235,0))' }}
-        />
-        <div
-          className="absolute inset-x-0 bottom-0 h-[30vh]"
-          style={{ background: 'linear-gradient(0deg, rgba(6,12,18,0.96) 0%, rgba(8,16,24,0.7) 55%, rgba(8,16,24,0) 100%)' }}
-        />
-      </div>
-      <div
-        className="absolute top-[9vh] h-[63vh] min-h-[440px] transition-transform duration-300 ease-out"
-        style={{ left: `${CARD_LEFT_VW}vw`, transform: `translateX(-${offset * CARD_STEP_VW}vw)` }}
-      >
-        {LANDING_CARDS.map((card, i) => {
-          const focused = i === focus;
-          return (
-            <div
-              key={card.id}
-              role="button"
-              tabIndex={-1}
-              aria-label={card.cta}
-              aria-current={focused}
-              onMouseEnter={() => onFocus(i)}
-              onClick={() => onActivate(i)}
-              className={`absolute top-0 cursor-pointer rounded-[6px] pt-[5.2vh] transition-all duration-200 ${
-                focused ? 'z-10 -translate-y-[0.9vh] h-[calc(100%+1.8vh)]' : 'h-full'
-              }`}
-              style={{
-                left: `${i * CARD_STEP_VW}vw`,
-                width: `${CARD_WIDTH_VW + (focused ? 0.8 : 0)}vw`,
-                marginLeft: focused ? '-0.4vw' : 0,
-                background: focused
-                  ? 'linear-gradient(158deg, rgba(128,146,176,0.62) 0%, rgba(80,98,130,0.58) 46%, rgba(112,106,154,0.56) 100%)'
-                  : 'linear-gradient(180deg, rgba(42,57,82,0.84) 0%, rgba(33,46,68,0.88) 100%)',
-                border: focused ? '2px solid rgba(232,238,255,0.82)' : '1px solid rgba(255,255,255,0.04)',
-                boxShadow: focused
-                  ? '0 0 0 1px rgba(255,255,255,0.12), 0 0 34px rgba(196,210,255,0.28), 0 22px 50px rgba(0,0,0,0.45)'
-                  : '0 18px 40px rgba(0,0,0,0.35)',
-                backdropFilter: 'blur(14px)',
-              }}
-            >
-              {renderCard(card.id)}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* ✕ CTA pill, centred under the focused card */}
-      <button
-        type="button"
-        onClick={() => onActivate(focus)}
-        className="absolute top-[calc(9vh+63vh+4.4vh)] -translate-x-1/2 transition-[left] duration-300 ease-out flex items-center gap-[0.75vw] rounded-[6px] px-[1.6vw] h-[clamp(40px,6.4vh,62px)] font-bold text-[#141824] text-[clamp(13px,1.05vw,20px)] whitespace-nowrap"
-        style={{
-          left: `${CARD_LEFT_VW + (focus - offset) * CARD_STEP_VW + CARD_WIDTH_VW / 2}vw`,
-          background: 'linear-gradient(90deg, #d4fff4 0%, #ece2ff 55%, #e6d9ff 100%)',
-          boxShadow: '0 0 22px rgba(214,200,255,0.45), inset 0 0 0 1px rgba(255,255,255,0.9)',
-        }}
-      >
-        <span className="inline-flex items-center justify-center rounded-full bg-[#141824] text-white w-[clamp(20px,1.6vw,30px)] h-[clamp(20px,1.6vw,30px)] text-[clamp(10px,0.8vw,15px)]">
-          ✕
-        </span>
-        {LANDING_CARDS[focus].cta}
-      </button>
-    </div>
+    <HubCarousel
+      cards={LANDING_CARDS.map((c) => ({ id: c.id, cta: c.cta, render: () => renderCard(c.id) }))}
+      focus={focus}
+      onFocus={onFocus}
+      onActivate={onActivate}
+    />
   );
 };
 
@@ -753,20 +669,7 @@ export const SquadView: React.FC = () => {
     if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
 
-    if (subTab === 'Hub') {
-      const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
-      if (key === 'a' || key === 'ArrowLeft') {
-        e.preventDefault();
-        setHubFocus((f) => Math.max(0, f - 1));
-      } else if (key === 'd' || key === 'ArrowRight') {
-        e.preventDefault();
-        setHubFocus((f) => Math.min(LANDING_CARDS.length - 1, f + 1));
-      } else if ((key === ' ' || key === 'Enter') && !e.repeat) {
-        e.preventDefault();
-        activateHubCard(hubFocus);
-      }
-      return;
-    }
+    if (subTab === 'Hub') return; // HubCarousel owns the landing keys
     if (subTab !== 'SquadHub') {
       if (e.key === 'Escape' || e.key.toLowerCase() === 'b') {
         e.preventDefault();

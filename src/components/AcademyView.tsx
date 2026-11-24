@@ -21,6 +21,9 @@ import { Position } from '../engine/types';
 import { useCareerStore } from '../store/careerStore';
 import { positionColorClass } from './PlayerAvatar';
 
+import { useBackKey } from './fc/HubCarousel';
+import { AcademyLanding } from './landings/AcademyLanding';
+
 type AcademySubTab = 'Hub' | 'Squad' | 'Scouts' | 'Reports' | 'Development';
 
 const SCOUT_COUNTRIES = [
@@ -45,6 +48,8 @@ export const AcademyView: React.FC = () => {
   const playYouthRushTournament = useCareerStore((s) => s.playYouthRushTournament);
 
   const [subTab, setSubTab] = useState<AcademySubTab>('Hub');
+  const [hubFocus, setHubFocus] = useState(0);
+  useBackKey(subTab !== 'Hub', () => setSubTab('Hub'));
   const [missionScoutId, setMissionScoutId] = useState<string | null>(null);
   const [missionCountry, setMissionCountry] = useState('Spain');
   const [missionPos, setMissionPos] = useState<Position | 'ANY'>('ANY');
@@ -57,6 +62,10 @@ export const AcademyView: React.FC = () => {
   const scoutedReports = career.youthProspects.filter((p) => !p.inAcademy);
   const topProspects = [...academySquad].sort((a, b) => b.potRange[1] - a.potRange[1]).slice(0, 3);
   const activeScouts = career.youthScouts.filter((s) => s.hired);
+
+  if (subTab === 'Hub') {
+    return <AcademyLanding career={career} focus={hubFocus} onFocus={setHubFocus} onEnter={setSubTab} />;
+  }
 
   return (
     <div className="mx-auto max-w-[1560px] px-4 lg:px-8 py-5 space-y-6">
@@ -138,239 +147,6 @@ export const AcademyView: React.FC = () => {
         </div>
       )}
 
-      {/* =================================================================== */}
-      {/* VIEW 1: AUTHENTIC FC 27 ACADEMY 3-TILE HUB (image_49b674d7.png)     */}
-      {/* =================================================================== */}
-      {subTab === 'Hub' && (
-        <div className="space-y-6">
-          {/* Academy Atmosphere Showcase Banner */}
-          <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl p-6 min-h-[140px] flex flex-col justify-end">
-            <div
-              className="absolute inset-0 bg-cover bg-center opacity-35 pointer-events-none"
-              style={{ backgroundImage: `url('/assets/art/academy-pitch.png')` }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#071117] via-[#071117]/80 to-transparent pointer-events-none" />
-            <div className="relative z-10 flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <div className="text-[11px] font-black uppercase tracking-widest text-[#38f2c8] flex items-center gap-2">
-                  <Sparkles className="w-3.5 h-3.5 text-[#38f2c8]" />
-                  <span>FC ACADEMY COMPLEX · FLOODLIT TWILIGHT PITCH</span>
-                </div>
-                <h2 className="font-display text-2xl lg:text-3xl font-black uppercase tracking-tight text-white mt-1 leading-none">
-                  Next-Gen Talent Development Center
-                </h2>
-                <p className="text-xs text-[#a4c0ce] mt-1.5 max-w-xl">
-                  Scout wonderkids across 9 global football hubs, assign tailored growth profiles, and compete in bi-monthly Youth Rush 5v5 tournaments to unlock breakthrough development.
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setRushResult(playYouthRushTournament())}
-                  disabled={academySquad.length === 0}
-                  className="fc-btn-primary rounded-xl px-5 py-2.5 text-xs font-black uppercase tracking-wider inline-flex items-center gap-2 shadow-lg hover:scale-105 transition-transform"
-                >
-                  <Trophy className="w-4 h-4 text-[#07131a]" />
-                  <span>Launch Youth Rush 5v5</span>
-                </button>
-              </div>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Tile 1: YOUTH SQUAD (Highest Potential) */}
-            <div
-              onClick={() => setSubTab('Squad')}
-              className="fc-panel rounded-2xl p-6 border border-white/10 hover:border-[#38f2c8]/60 cursor-pointer group transition-all duration-300 relative overflow-hidden flex flex-col justify-between min-h-[400px]"
-            >
-              <div>
-                <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#8ba5b3]">
-                  <span className="text-[#38f2c8]">HIGHEST POTENTIAL</span>
-                  <span className="font-mono-num">{academySquad.length}/16 PROSPECTS</span>
-                </div>
-                <h3 className="font-display text-2xl lg:text-3xl font-black uppercase tracking-wide text-white mt-2">
-                  Youth Squad
-                </h3>
-                <p className="text-xs text-[#8ba5b3] mt-1">
-                  Active wonderkids training in your academy setup
-                </p>
-
-                {/* Top 3 Prospects List */}
-                <div className="mt-5 space-y-2.5">
-                  {topProspects.length === 0 ? (
-                    <div className="text-xs text-[#8ba5b3] py-8 text-center">
-                      No signed academy players. Scout wonderkids in Youth Staff to fill your ranks.
-                    </div>
-                  ) : (
-                    topProspects.map((yp) => (
-                      <div
-                        key={yp.id}
-                        className="p-3 rounded-xl bg-[#07141d]/80 border border-white/8 flex items-center justify-between"
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-black ${positionColorClass(yp.primaryPosition)}`}>
-                            {yp.primaryPosition}
-                          </span>
-                          <div className="min-w-0">
-                            <div className="text-xs font-black text-white truncate">{yp.name}</div>
-                            <div className="text-[10px] text-[#8ba5b3]">
-                              Age {yp.age} · {yp.nationality}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right shrink-0 font-mono-num">
-                          <div className="text-[10px] text-[#8ba5b3] uppercase">POT</div>
-                          <div className="text-xs font-black text-[#38f2c8]">
-                            {yp.potRange[0]}–{yp.potRange[1]}
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
-                <span className="text-xs font-bold text-[#38f2c8] flex items-center gap-1.5 group-hover:translate-x-1 transition-transform">
-                  <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white font-mono text-[10px]">✕</kbd>
-                  <span>Enter Youth Squad</span>
-                </span>
-                <ChevronRight className="w-5 h-5 text-white/40 group-hover:text-[#38f2c8] transition-colors" />
-              </div>
-            </div>
-
-            {/* Tile 2: YOUTH SCOUTS (image_49b674d7.png center tile) */}
-            <div
-              onClick={() => setSubTab('Scouts')}
-              className="fc-panel rounded-2xl p-6 border border-white/10 hover:border-[#38f2c8]/60 cursor-pointer group transition-all duration-300 relative overflow-hidden flex flex-col justify-between min-h-[400px]"
-            >
-              <div>
-                <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#8ba5b3]">
-                  <span className="text-[#38f2c8]">SCOUT NETWORK</span>
-                  <span className="font-mono-num">{activeScouts.length}/3 SCOUTS</span>
-                </div>
-                <h3 className="font-display text-2xl lg:text-3xl font-black uppercase tracking-wide text-white mt-2">
-                  Youth Scouts
-                </h3>
-                <p className="text-xs text-[#8ba5b3] mt-1">
-                  Global talent search network targeting wonderkids
-                </p>
-
-                {/* 3 Scout Network Slots */}
-                <div className="mt-5 space-y-2.5">
-                  {career.youthScouts.map((scout, idx) => (
-                    <div
-                      key={scout.id}
-                      className={`p-3 rounded-xl border flex items-center justify-between ${
-                        scout.hired
-                          ? scout.mission
-                            ? 'bg-[#0e272a]/70 border-[#38f2c8]/40'
-                            : 'bg-[#07141d]/80 border-white/10'
-                          : 'bg-white/5 border-dashed border-white/15'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center font-display font-black text-xs text-[#38f2c8]">
-                          {idx + 1}
-                        </div>
-                        <div className="min-w-0">
-                          <div className="text-xs font-black text-white truncate">
-                            {scout.hired ? scout.name : 'Open Scout Slot'}
-                          </div>
-                          <div className="text-[10px] text-[#8ba5b3]">
-                            {scout.hired
-                              ? scout.mission
-                                ? `Scouting in ${scout.mission.country}`
-                                : 'Available for Mission'
-                              : 'Hire Scout from Pool'}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="text-right shrink-0">
-                        {scout.hired ? (
-                          <div className="text-amber-300 text-xs font-mono-num">
-                            {'★'.repeat(scout.judgement)}
-                          </div>
-                        ) : (
-                          <span className="text-[10px] font-black uppercase text-[#38f2c8]">
-                            HIRE
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
-                <span className="text-xs font-bold text-[#38f2c8] flex items-center gap-1.5 group-hover:translate-x-1 transition-transform">
-                  <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white font-mono text-[10px]">✕</kbd>
-                  <span>Enter Youth Staff</span>
-                </span>
-                <ChevronRight className="w-5 h-5 text-white/40 group-hover:text-[#38f2c8] transition-colors" />
-              </div>
-            </div>
-
-            {/* Tile 3: YOUTH DEVELOPMENT PLAN */}
-            <div
-              onClick={() => setSubTab('Development')}
-              className="fc-panel rounded-2xl p-6 border border-white/10 hover:border-[#38f2c8]/60 cursor-pointer group transition-all duration-300 relative overflow-hidden flex flex-col justify-between min-h-[400px]"
-            >
-              <div>
-                <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#8ba5b3]">
-                  <span className="text-[#38f2c8]">GROWING PROSPECTS</span>
-                  <span className="text-emerald-300 font-bold">DEVELOPMENT 2.0</span>
-                </div>
-                <h3 className="font-display text-2xl lg:text-3xl font-black uppercase tracking-wide text-white mt-2">
-                  Youth Development
-                </h3>
-                <p className="text-xs text-[#8ba5b3] mt-1">
-                  Position retraining, role focuses and growth ETA curves
-                </p>
-
-                {/* Growth Highlights */}
-                <div className="mt-5 space-y-2.5">
-                  {academySquad.slice(0, 3).map((yp) => (
-                    <div
-                      key={yp.id}
-                      className="p-3 rounded-xl bg-[#07141d]/80 border border-white/8 space-y-1.5"
-                    >
-                      <div className="flex items-center justify-between text-xs font-bold">
-                        <span className="text-white truncate">{yp.name}</span>
-                        <span className="font-mono-num text-[#38f2c8]">
-                          {GROWTH_PROFILES[yp.growthProfile].label}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between text-[10px] text-[#8ba5b3]">
-                        <span>ETA to Senior: {Math.max(1, 16 - yp.age)}y</span>
-                        <span className="font-mono-num text-white">Range {yp.ovrRange[0]}–{yp.ovrRange[1]}</span>
-                      </div>
-                      <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
-                        <div
-                          className="h-full bg-gradient-to-r from-[#10c482] to-[#38f2c8]"
-                          style={{ width: `${Math.min(100, (yp.age / 18) * 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
-                <span className="text-xs font-bold text-[#38f2c8] flex items-center gap-1.5 group-hover:translate-x-1 transition-transform">
-                  <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white font-mono text-[10px]">✕</kbd>
-                  <span>Enter Development Plan</span>
-                </span>
-                <ChevronRight className="w-5 h-5 text-white/40 group-hover:text-[#38f2c8] transition-colors" />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* =================================================================== */}
-      {/* VIEW 2: YOUTH SQUAD ROSTER (Full Detail)                            */}
-      {/* =================================================================== */}
       {subTab === 'Squad' && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {academySquad.length === 0 ? (
