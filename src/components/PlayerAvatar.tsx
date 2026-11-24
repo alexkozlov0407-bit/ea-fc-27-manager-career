@@ -16,6 +16,27 @@ export const ClubCrest: React.FC<{ club?: any; size?: number; className?: string
     return <div style={{ width: size, height: size }} className={`shrink-0 ${className}`} />;
   }
 
+  // 1. Prioritize authentic official club crest image from club.crestUrl or clubCrestsMap
+  const crestUrl =
+    club?.crestUrl || (club?.id ? (clubCrestsMap as Record<string, string>)[String(club.id)] : undefined);
+
+  if (crestUrl && !imgFailed) {
+    return (
+      <div
+        className={`relative shrink-0 flex items-center justify-center select-none ${className}`}
+        style={{ width: size, height: size }}
+      >
+        <img
+          src={crestUrl}
+          alt={club?.name ?? 'Club crest'}
+          loading="lazy"
+          onError={() => setImgFailed(true)}
+          className="w-full h-full object-contain drop-shadow"
+        />
+      </div>
+    );
+  }
+
   const idStr = String(club.id || '').toLowerCase();
   const slug = String(club.slug || club.shortName || club.name || '').toLowerCase();
 
@@ -277,27 +298,6 @@ export const ClubCrest: React.FC<{ club?: any; size?: number; className?: string
         <rect x="28" y="18" width="8" height="28" fill="#0052A5" />
         <rect x="18" y="28" width="28" height="8" fill="#0052A5" />
       </svg>
-    );
-  }
-
-  // Real API image crest lookup
-  const crestUrl =
-    club?.crestUrl || (club?.id ? (clubCrestsMap as Record<string, string>)[String(club.id)] : undefined);
-
-  if (crestUrl && !imgFailed) {
-    return (
-      <div
-        className={`relative shrink-0 flex items-center justify-center select-none ${className}`}
-        style={{ width: size, height: size }}
-      >
-        <img
-          src={crestUrl}
-          alt={club?.name ?? 'Club crest'}
-          loading="lazy"
-          onError={() => setImgFailed(true)}
-          className="w-full h-full object-contain drop-shadow"
-        />
-      </div>
     );
   }
 
