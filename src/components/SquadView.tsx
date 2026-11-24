@@ -195,6 +195,276 @@ const KeyHint: React.FC<{ keys: string[]; label: string; sub?: string }> = ({ ke
   </span>
 );
 
+// ---------------------------------------------------------------------------
+// Squad landing carousel — 1:1 with inputs/screenshots/image (11).png
+// Ideal Quality · Team Management · Team Sheets · (peeking) Squad Hub
+// ---------------------------------------------------------------------------
+type LandingCardId = 'IdealQuality' | 'TeamManagement' | 'TeamSheets' | 'SquadHub';
+const LANDING_CARDS: { id: LandingCardId; cta: string }[] = [
+  { id: 'IdealQuality', cta: 'Enter Team Strategy' },
+  { id: 'TeamManagement', cta: 'Enter Team Management' },
+  { id: 'TeamSheets', cta: 'Enter Team Sheets' },
+  { id: 'SquadHub', cta: 'Enter Squad Hub' },
+];
+
+// Geometry measured from the 1804px-wide reference capture, expressed in vw.
+const CARD_LEFT_VW = 4.55;
+const CARD_WIDTH_VW = 29.6;
+const CARD_STEP_VW = 30.85;
+const VISIBLE_CARDS = 3;
+
+/** Department "ideal" star count shown on the Ideal Quality card (depth + quality). */
+function idealStars(players: number, ovr: number): number {
+  if (players === 0) return 0;
+  return Math.max(1, Math.round(2 + players * 0.4 + (ovr - 65) * 0.45));
+}
+
+/** Projects flat pitch coords (x 0..100 L→R, y 0..100 attack→goal) onto the perspective trapezoid. */
+function projectPitch(x: number, y: number): [number, number] {
+  const t = y / 100;
+  const py = 12 + t * 216;
+  const half = 152 + t * (209 - 152);
+  return [230 + (x / 100 - 0.5) * 2 * half, py];
+}
+
+const pitchPath = (pts: [number, number][], close = false) =>
+  pts.map(([x, y], i) => `${i ? 'L' : 'M'}${projectPitch(x, y).map((n) => n.toFixed(1)).join(' ')}`).join(' ') +
+  (close ? ' Z' : '');
+
+const arcPoints = (cx: number, cy: number, r: number, from: number, to: number, aspect = 1): [number, number][] =>
+  Array.from({ length: 25 }, (_, i) => {
+    const a = from + ((to - from) * i) / 24;
+    return [cx + r * Math.cos(a), cy + r * aspect * Math.sin(a)];
+  });
+
+const PerspectivePitch: React.FC<{ dots: { x: number; y: number }[] }> = ({ dots }) => (
+  <svg viewBox="0 0 460 240" className="w-full h-auto" aria-hidden>
+    <g fill="none" stroke="rgba(214,224,238,0.32)" strokeWidth="1.6" strokeLinejoin="round">
+      <path d={pitchPath([[0, 0], [100, 0], [100, 100], [0, 100]], true)} />
+      <path d={pitchPath([[0, 50], [100, 50]])} />
+      <path d={pitchPath(arcPoints(50, 50, 13, 0, Math.PI * 2, 1.15), true)} />
+      {/* Top (attacking) end */}
+      <path d={pitchPath([[28, 0], [28, 15], [72, 15], [72, 0]])} />
+      <path d={pitchPath([[40, 0], [40, 5.5], [60, 5.5], [60, 0]])} />
+      <path d={pitchPath(arcPoints(50, 15, 9, 0, Math.PI, 0.55))} />
+      {/* Bottom (own goal) end */}
+      <path d={pitchPath([[28, 100], [28, 85], [72, 85], [72, 100]])} />
+      <path d={pitchPath([[40, 100], [40, 94.5], [60, 94.5], [60, 100]])} />
+      <path d={pitchPath(arcPoints(50, 85, 9, Math.PI, Math.PI * 2, 0.55))} />
+    </g>
+    {dots.map((d, i) => {
+      const [cx, cy] = projectPitch(8 + d.x * 0.84, 6 + d.y * 0.88);
+      return <circle key={i} cx={cx} cy={cy} r={8.5} fill="#c9d0d9" fillOpacity={0.86} />;
+    })}
+  </svg>
+);
+
+/** White pitch glyph from the Team Sheets card (lines are knocked out in the card colour). */
+const TeamSheetGlyph: React.FC = () => (
+  <svg viewBox="0 0 160 128" className="w-[clamp(96px,8.6vw,156px)] h-auto" aria-hidden>
+    <rect x="0" y="0" width="160" height="128" rx="3" fill="#eceef1" />
+    <g fill="none" stroke="#33445c" strokeWidth="9">
+      <path d="M0 30 H30 V98 H0" />
+      <path d="M160 30 H130 V98 H160" />
+      <line x1="80" y1="0" x2="80" y2="128" />
+      <circle cx="80" cy="64" r="20" />
+    </g>
+  </svg>
+);
+
+interface SquadLandingProps {
+  clubName: string;
+  squad: Player[];
+  lineupDots: { x: number; y: number }[];
+  focus: number;
+  onFocus: (i: number) => void;
+  onActivate: (i: number) => void;
+}
+
+const SquadLanding: React.FC<SquadLandingProps> = ({ clubName, squad, lineupDots, focus, onFocus, onActivate }) => {
+  const departments = (['ATK', 'MID', 'DEF', 'GK'] as Sector[]).map((sector) => {
+    const players = squad.filter((p) => positionToSector(p.primaryPosition) === sector);
+    const ovr = players.length
+      ? Math.round(players.reduce((sum, p) => sum + p.dynamicOvr.dynamicOvr, 0) / players.length)
+      : 0;
+    return {
+      label: { ATK: 'Attack', MID: 'Midfield', DEF: 'Defence', GK: 'Goalkeeping' }[sector],
+      players: players.length,
+      ovr,
+      stars: idealStars(players.length, ovr),
+    };
+  });
+  const offset = Math.max(0, focus - (VISIBLE_CARDS - 1));
+
+  const titleCls = 'text-center font-bold text-white tracking-[-0.01em] text-[clamp(22px,1.9vw,38px)] leading-tight';
+  const subCls = 'mt-[1.2vh] text-center font-bold text-[#8ff0cd] text-[clamp(12px,0.98vw,19px)]';
+
+  const renderCard = (id: LandingCardId) => {
+    switch (id) {
+      case 'IdealQuality':
+        return (
+          <>
+            <h3 className={titleCls}>Ideal Quality</h3>
+            <div className="mt-[5.6vh] px-[7%]">
+              {departments.map((d) => (
+                <div key={d.label} className="flex items-center justify-between border-b border-white/20 py-[1.55vh]">
+                  <div className="min-w-0">
+                    <div className="text-white font-medium text-[clamp(16px,1.42vw,27px)] leading-tight">{d.label}</div>
+                    <div className="text-[#aab5c4] text-[clamp(11px,1.05vw,20px)] leading-snug mt-0.5">
+                      Players: {d.players}
+                      <span className="mx-[0.45em] text-white/30">|</span>
+                      OVR: {d.ovr}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-[0.35vw] shrink-0">
+                    <span className="font-light text-white tabular-nums text-[clamp(26px,2.25vw,44px)] leading-none">
+                      {d.stars}
+                    </span>
+                    <Star className="w-[clamp(20px,1.85vw,36px)] h-[clamp(20px,1.85vw,36px)] fill-[#e6b64c] text-[#e6b64c] -mt-[0.6vh]" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        );
+      case 'TeamManagement':
+        return (
+          <>
+            <h3 className={titleCls}>Team Management</h3>
+            <div className={`${subCls} uppercase`}>
+              {clubName} <span className="normal-case">Default</span>
+            </div>
+            <div className="mt-[9.4vh] px-[3.5%]">
+              <PerspectivePitch dots={lineupDots} />
+            </div>
+          </>
+        );
+      case 'TeamSheets':
+        return (
+          <>
+            <h3 className={titleCls}>Team Sheets</h3>
+            <div className={subCls}>Created Team Sheets: 1</div>
+            <div className="mt-[9vh] flex justify-center">
+              <TeamSheetGlyph />
+            </div>
+            <p className="mt-[6.6vh] mx-auto w-[78%] text-center text-[#cbd3de] text-[clamp(12px,1.05vw,20px)] leading-[1.52]">
+              Use multiple team sheets to bring out the best in your squad. Switch between sheets to keep flexible
+              against various opposition and give all your players a chance to play.
+            </p>
+          </>
+        );
+      case 'SquadHub':
+        return (
+          <>
+            <h3 className={titleCls}>Squad Hub</h3>
+            <div className={subCls}>Players: {squad.length}</div>
+            <div className="mt-[6.5vh] px-[7%] space-y-[1.2vh]">
+              {squad.slice(0, 5).map((p) => (
+                <div key={p.id} className="flex items-center gap-3 border-b border-white/15 pb-[1.2vh]">
+                  <PlayerAvatar player={p} size="sm" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-white font-medium truncate text-[clamp(13px,1.1vw,21px)]">{p.knownAs}</div>
+                    <div className="text-[#aab5c4] text-[clamp(11px,0.9vw,17px)]">{p.primaryPosition}</div>
+                  </div>
+                  <span className="font-light text-white tabular-nums text-[clamp(18px,1.6vw,30px)]">
+                    {p.dynamicOvr.dynamicOvr}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </>
+        );
+    }
+  };
+
+  return (
+    <div className="relative w-full overflow-hidden select-none h-[calc(100vh-64px)] min-h-[620px]">
+      {/* Arena backdrop — CSS stand-in for the in-game 3D stadium wall (swap for a render when available) */}
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div
+          className="absolute left-[7vw] right-[6.5vw] top-[1.5vh] h-[62vh]"
+          style={{
+            background:
+              'linear-gradient(100deg, rgba(36,66,108,0.95) 0%, rgba(34,82,104,0.92) 36%, rgba(38,124,108,0.92) 70%, rgba(48,150,120,0.95) 100%)',
+            maskImage: 'linear-gradient(180deg, #000 0%, #000 78%, transparent 100%)',
+            WebkitMaskImage: 'linear-gradient(180deg, #000 0%, #000 78%, transparent 100%)',
+          }}
+        />
+        <div
+          className="absolute inset-y-0 left-0 w-[9vw]"
+          style={{ background: 'linear-gradient(90deg, rgba(8,18,26,0.95), rgba(8,18,26,0))' }}
+        />
+        <div
+          className="absolute inset-y-0 right-0 w-[8vw]"
+          style={{ background: 'linear-gradient(270deg, rgba(8,18,26,0.92), rgba(8,18,26,0))' }}
+        />
+        <div
+          className="absolute left-[52vw] top-[-10vh] h-[95vh] w-[1.6vw] rotate-[38deg] opacity-25"
+          style={{ background: 'linear-gradient(180deg, rgba(190,255,235,0.0), rgba(190,255,235,0.5), rgba(190,255,235,0))' }}
+        />
+        <div
+          className="absolute inset-x-0 bottom-0 h-[30vh]"
+          style={{ background: 'linear-gradient(0deg, rgba(6,12,18,0.96) 0%, rgba(8,16,24,0.7) 55%, rgba(8,16,24,0) 100%)' }}
+        />
+      </div>
+      <div
+        className="absolute top-[9vh] h-[63vh] min-h-[440px] transition-transform duration-300 ease-out"
+        style={{ left: `${CARD_LEFT_VW}vw`, transform: `translateX(-${offset * CARD_STEP_VW}vw)` }}
+      >
+        {LANDING_CARDS.map((card, i) => {
+          const focused = i === focus;
+          return (
+            <div
+              key={card.id}
+              role="button"
+              tabIndex={-1}
+              aria-label={card.cta}
+              aria-current={focused}
+              onMouseEnter={() => onFocus(i)}
+              onClick={() => onActivate(i)}
+              className={`absolute top-0 cursor-pointer rounded-[6px] pt-[5.2vh] transition-all duration-200 ${
+                focused ? 'z-10 -translate-y-[0.9vh] h-[calc(100%+1.8vh)]' : 'h-full'
+              }`}
+              style={{
+                left: `${i * CARD_STEP_VW}vw`,
+                width: `${CARD_WIDTH_VW + (focused ? 0.8 : 0)}vw`,
+                marginLeft: focused ? '-0.4vw' : 0,
+                background: focused
+                  ? 'linear-gradient(158deg, rgba(128,146,176,0.62) 0%, rgba(80,98,130,0.58) 46%, rgba(112,106,154,0.56) 100%)'
+                  : 'linear-gradient(180deg, rgba(42,57,82,0.84) 0%, rgba(33,46,68,0.88) 100%)',
+                border: focused ? '2px solid rgba(232,238,255,0.82)' : '1px solid rgba(255,255,255,0.04)',
+                boxShadow: focused
+                  ? '0 0 0 1px rgba(255,255,255,0.12), 0 0 34px rgba(196,210,255,0.28), 0 22px 50px rgba(0,0,0,0.45)'
+                  : '0 18px 40px rgba(0,0,0,0.35)',
+                backdropFilter: 'blur(14px)',
+              }}
+            >
+              {renderCard(card.id)}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ✕ CTA pill, centred under the focused card */}
+      <button
+        type="button"
+        onClick={() => onActivate(focus)}
+        className="absolute top-[calc(9vh+63vh+4.4vh)] -translate-x-1/2 transition-[left] duration-300 ease-out flex items-center gap-[0.75vw] rounded-[6px] px-[1.6vw] h-[clamp(40px,6.4vh,62px)] font-bold text-[#141824] text-[clamp(13px,1.05vw,20px)] whitespace-nowrap"
+        style={{
+          left: `${CARD_LEFT_VW + (focus - offset) * CARD_STEP_VW + CARD_WIDTH_VW / 2}vw`,
+          background: 'linear-gradient(90deg, #d4fff4 0%, #ece2ff 55%, #e6d9ff 100%)',
+          boxShadow: '0 0 22px rgba(214,200,255,0.45), inset 0 0 0 1px rgba(255,255,255,0.9)',
+        }}
+      >
+        <span className="inline-flex items-center justify-center rounded-full bg-[#141824] text-white w-[clamp(20px,1.6vw,30px)] h-[clamp(20px,1.6vw,30px)] text-[clamp(10px,0.8vw,15px)]">
+          ✕
+        </span>
+        {LANDING_CARDS[focus].cta}
+      </button>
+    </div>
+  );
+};
+
 export const SquadView: React.FC = () => {
   const career = useCareerStore((s) => s.career);
   const swapSquadPlayers = useCareerStore((s) => s.swapSquadPlayers);
@@ -226,6 +496,7 @@ export const SquadView: React.FC = () => {
   const [importInput, setImportInput] = useState('');
 
   // Squad Hub roster: sub-tab, Action List modal and keyboard routing
+  const [hubFocus, setHubFocus] = useState(0);
   const [rosterTab, setRosterTab] = useState<RosterTab>('Overview');
   const [actionMenu, setActionMenu] = useState<ActionMenuState | null>(null);
   const rosterScrollRef = useRef<HTMLDivElement>(null);
@@ -462,12 +733,47 @@ export const SquadView: React.FC = () => {
     setActionMenu({ ...actionMenu, view: 'list', index: actionIndexOf('kit') });
   };
 
+  const activateHubCard = (i: number) => {
+    setHubFocus(i);
+    const id = LANDING_CARDS[i].id;
+    if (id === 'IdealQuality') setSubTab('Coaches');
+    else if (id === 'TeamManagement') {
+      setSubTab('TeamManagement');
+      setMgmtSection('Squad');
+    } else if (id === 'TeamSheets') {
+      setSubTab('TeamManagement');
+      setMgmtSection('Tactics');
+    } else setSubTab('SquadHub');
+  };
+
   // Assigned every render so the (mount-once) listener always sees fresh state.
   keyHandlerRef.current = (e: KeyboardEvent) => {
-    if (subTab !== 'SquadHub' || showImportModal) return;
+    if (showImportModal) return;
     const tag = (e.target as HTMLElement | null)?.tagName;
     if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+    if (subTab === 'Hub') {
+      const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+      if (key === 'a' || key === 'ArrowLeft') {
+        e.preventDefault();
+        setHubFocus((f) => Math.max(0, f - 1));
+      } else if (key === 'd' || key === 'ArrowRight') {
+        e.preventDefault();
+        setHubFocus((f) => Math.min(LANDING_CARDS.length - 1, f + 1));
+      } else if ((key === ' ' || key === 'Enter') && !e.repeat) {
+        e.preventDefault();
+        activateHubCard(hubFocus);
+      }
+      return;
+    }
+    if (subTab !== 'SquadHub') {
+      if (e.key === 'Escape' || e.key.toLowerCase() === 'b') {
+        e.preventDefault();
+        setSubTab('Hub');
+      }
+      return;
+    }
 
     const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
     const up = k === 'w' || k === 'ArrowUp';
@@ -516,6 +822,19 @@ export const SquadView: React.FC = () => {
     }
   };
 
+  if (subTab === 'Hub') {
+    return (
+      <SquadLanding
+        clubName={club.name}
+        squad={squad}
+        lineupDots={club.lineup.map((s) => ({ x: s.x, y: s.y }))}
+        focus={hubFocus}
+        onFocus={setHubFocus}
+        onActivate={activateHubCard}
+      />
+    );
+  }
+
   return (
     <div className="mx-auto max-w-[1560px] px-4 lg:px-8 py-5 space-y-6">
       {/* Top Breadcrumb Navigation */}
@@ -528,7 +847,7 @@ export const SquadView: React.FC = () => {
           <div className="flex items-center gap-1 bg-[#07131a] p-1 rounded-xl border border-white/10">
             {(
               [
-                ['Hub', 'Overview Hub'],
+                ['Hub', '◯ Squad'],
                 ['TeamManagement', 'Team Management & FC IQ'],
                 ['SquadHub', 'Squad Hub & Growth'],
                 ['Coaches', 'Coaching Staff & Energy'],
@@ -562,181 +881,6 @@ export const SquadView: React.FC = () => {
           </span>
         </div>
       </div>
-
-      {/* =================================================================== */}
-      {/* VIEW 1: AUTHENTIC FC 27 SQUAD 3-TILE HUB (image_bf4c7fee.png)      */}
-      {/* =================================================================== */}
-      {subTab === 'Hub' && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Tile 1: IDEAL QUALITY */}
-            <div
-              onClick={() => {
-                setSubTab('TeamManagement');
-                setMgmtSection('Tactics');
-              }}
-              className="fc-panel rounded-2xl p-6 border border-white/10 hover:border-[#38f2c8]/60 cursor-pointer group transition-all duration-300 relative overflow-hidden flex flex-col justify-between min-h-[380px]"
-            >
-              <div>
-                <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#8ba5b3]">
-                  <span className="text-[#38f2c8]">SQUAD ASSESSMENT</span>
-                  <span>STAR RATINGS</span>
-                </div>
-                <h3 className="font-display text-2xl lg:text-3xl font-black uppercase tracking-wide text-white mt-2">
-                  Ideal Quality
-                </h3>
-                <p className="text-xs text-[#8ba5b3] mt-1">
-                  Department balance across attack, midfield, defence and goalkeeping
-                </p>
-
-                {/* Star Ratings Grid */}
-                <div className="mt-6 space-y-3.5">
-                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#07141d]/70 border border-white/8">
-                    <span className="text-xs font-bold text-white uppercase tracking-wider">Attack</span>
-                    <span className="text-amber-300 font-mono-num font-black text-sm flex items-center gap-1">
-                      <Star className="w-4 h-4 fill-amber-300" /> {starsAtk} / 5.0
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#07141d]/70 border border-white/8">
-                    <span className="text-xs font-bold text-white uppercase tracking-wider">Midfield</span>
-                    <span className="text-amber-300 font-mono-num font-black text-sm flex items-center gap-1">
-                      <Star className="w-4 h-4 fill-amber-300" /> {starsMid} / 5.0
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#07141d]/70 border border-white/8">
-                    <span className="text-xs font-bold text-white uppercase tracking-wider">Defence</span>
-                    <span className="text-amber-300 font-mono-num font-black text-sm flex items-center gap-1">
-                      <Star className="w-4 h-4 fill-amber-300" /> {starsDef} / 5.0
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#07141d]/70 border border-white/8">
-                    <span className="text-xs font-bold text-white uppercase tracking-wider">Goalkeeping</span>
-                    <span className="text-amber-300 font-mono-num font-black text-sm flex items-center gap-1">
-                      <Star className="w-4 h-4 fill-amber-300" /> {starsGk} / 5.0
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
-                <span className="text-xs font-bold text-[#38f2c8] flex items-center gap-1.5 group-hover:translate-x-1 transition-transform">
-                  <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white font-mono text-[10px]">✕</kbd>
-                  <span>Enter Team Strategy</span>
-                </span>
-                <ChevronRight className="w-5 h-5 text-white/40 group-hover:text-[#38f2c8] transition-colors" />
-              </div>
-            </div>
-
-            {/* Tile 2: TEAM MANAGEMENT */}
-            <div
-              onClick={() => {
-                setSubTab('TeamManagement');
-                setMgmtSection('Squad');
-              }}
-              className="fc-panel rounded-2xl p-6 border border-white/10 hover:border-[#38f2c8]/60 cursor-pointer group transition-all duration-300 relative overflow-hidden flex flex-col justify-between min-h-[380px]"
-            >
-              <div>
-                <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#8ba5b3]">
-                  <span className="text-[#38f2c8]">TACTICAL SYSTEM</span>
-                  <span className="font-mono-num text-white">{club.formation}</span>
-                </div>
-                <h3 className="font-display text-2xl lg:text-3xl font-black uppercase tracking-wide text-white mt-2">
-                  Team Management
-                </h3>
-                <p className="text-xs text-[#8ba5b3] mt-1">
-                  {club.tacticalVision} · Line Height {club.defensiveLineHeight} · {club.mentality}
-                </p>
-
-                {/* Mini Pitch Preview */}
-                <div className="mt-5 rounded-xl fc-pitch-surface h-36 relative overflow-hidden border border-white/10">
-                  <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full opacity-30">
-                    <rect x="3" y="3" width="94" height="94" fill="none" stroke="#c8f7dc" strokeWidth="0.5" />
-                    <line x1="3" y1="50" x2="97" y2="50" stroke="#c8f7dc" strokeWidth="0.5" />
-                    <circle cx="50" cy="50" r="12" fill="none" stroke="#c8f7dc" strokeWidth="0.5" />
-                  </svg>
-                  {club.lineup.map((s) => (
-                    <div
-                      key={s.slotIndex}
-                      style={{ left: `${s.x}%`, top: `${s.y}%` }}
-                      className="absolute -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-[#38f2c8] border border-white shadow-[0_0_6px_#38f2c8]"
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
-                <span className="text-xs font-bold text-[#38f2c8] flex items-center gap-1.5 group-hover:translate-x-1 transition-transform">
-                  <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white font-mono text-[10px]">✕</kbd>
-                  <span>Enter Team Management</span>
-                </span>
-                <ChevronRight className="w-5 h-5 text-white/40 group-hover:text-[#38f2c8] transition-colors" />
-              </div>
-            </div>
-
-            {/* Tile 3: TEAM SHEETS */}
-            <div
-              onClick={() => {
-                setSubTab('TeamManagement');
-                setMgmtSection('Tactics');
-              }}
-              className="fc-panel rounded-2xl p-6 border border-white/10 hover:border-[#38f2c8]/60 cursor-pointer group transition-all duration-300 relative overflow-hidden flex flex-col justify-between min-h-[380px]"
-            >
-              <div>
-                <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#8ba5b3]">
-                  <span className="text-[#38f2c8]">TACTIC PRESETS</span>
-                  <span className="text-emerald-300 font-bold">3 SHEETS</span>
-                </div>
-                <h3 className="font-display text-2xl lg:text-3xl font-black uppercase tracking-wide text-white mt-2">
-                  Team Sheets
-                </h3>
-                <p className="text-xs text-[#8ba5b3] mt-1">
-                  Manage active game plans and export 11-digit tactic share codes
-                </p>
-
-                {/* Team Sheets Stack */}
-                <div className="mt-5 space-y-2.5">
-                  <div className="p-3 rounded-xl bg-[#122e2a] border border-[#38f2c8]/40 flex items-center justify-between">
-                    <div>
-                      <div className="text-xs font-black text-white uppercase flex items-center gap-1.5">
-                        <span>Sheet 1 — Default</span>
-                        <span className="px-1.5 py-0.2 rounded text-[9px] font-black bg-[#38f2c8] text-[#07131a]">
-                          ACTIVE
-                        </span>
-                      </div>
-                      <div className="text-[11px] text-[#8ba5b3] mt-0.5 font-mono">
-                        {club.formation} · {club.tacticalVision}
-                      </div>
-                    </div>
-                    <Check className="w-4 h-4 text-[#38f2c8]" />
-                  </div>
-
-                  <div className="p-3 rounded-xl bg-[#07141d]/70 border border-white/8 flex items-center justify-between">
-                    <div>
-                      <div className="text-xs font-bold text-white uppercase">Sheet 2 — Cup Rotation</div>
-                      <div className="text-[11px] text-[#8ba5b3] mt-0.5 font-mono">4-2-3-1 · Gegenpressing</div>
-                    </div>
-                  </div>
-
-                  <div className="p-3 rounded-xl bg-[#07141d]/70 border border-white/8 flex items-center justify-between">
-                    <div>
-                      <div className="text-xs font-bold text-white uppercase">Sheet 3 — Defensive Lock</div>
-                      <div className="text-[11px] text-[#8ba5b3] mt-0.5 font-mono">5-3-2 · Park the Bus</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
-                <span className="text-xs font-bold text-[#38f2c8] flex items-center gap-1.5 group-hover:translate-x-1 transition-transform">
-                  <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white font-mono text-[10px]">✕</kbd>
-                  <span>Enter Team Sheets</span>
-                </span>
-                <ChevronRight className="w-5 h-5 text-white/40 group-hover:text-[#38f2c8] transition-colors" />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* =================================================================== */}
       {/* VIEW 2: TEAM MANAGEMENT & FC IQ TACTICAL BOARD (image_6e08edbc.png) */}
