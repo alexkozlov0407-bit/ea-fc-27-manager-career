@@ -131,6 +131,8 @@ interface CareerStore {
   toggleLoanList: (playerId: number) => void;
   toggleBlockOffers: (playerId: number) => void;
   setJerseyNumber: (playerId: number, jerseyNumber: number) => void;
+  delegateContractRenewal: (playerId: number) => void;
+  releasePlayer: (playerId: number) => void;
   toggleCoachHire: (coachId: string) => void;
 
   // Scouting & Transfers
@@ -841,6 +843,83 @@ export const useCareerStore = create<CareerStore>((set, get) => ({
       career: next,
       toast: blocked ? `Offers for ${p.knownAs} are now blocked.` : `${p.knownAs} is open to offers again.`,
     });
+  },
+
+  delegateContractRenewal: (playerId) => {
+    const career = get().career;
+    if (!career || !career.players[playerId]) return;
+    const existing = career.negotiations.find(
+      (n) => n.type === 'CONTRACT' && n.playerId === playerId && !['COMPLETED', 'COLLAPSED', 'REJECTED'].includes(n.stage)
+    );
+    let negotiations = career.negotiations;
+    let target = existing;
+    if (!target) {
+      const { negotiation, error } = initiateNegotiation(career, playerId, 'CONTRACT');
+      if (!negotiation) {
+        set({ toast: error || 'Unable to start contract talks.' });
+        return;
+      }
+      target = negotiation;
+      negotiations = [negotiation, ...negotiations];
+    }
+    const delegated = {
+      ...target,
+      stage: 'DELEGATED' as const,
+      daysOpen: 0,
+      managerDialogue: 'Delegated to your Technical Director. Advance 2 days for the result.',
+    };
+    const next = { ...career, negotiations: negotiations.map((n) => (n.id === delegated.id ? delegated : n)) };
+    persistActiveCareer(next);
+    set({ career: next, toast: `Technical Director is handling ${career.players[playerId].knownAs}'s renewal.` });
+  },
+
+  releasePlayer: (playerId) => {
+    const career = get().career;
+    if (!career) return;
+    const p = career.players[playerId];
+    const club = career.clubs[career.userClubId];
+    if (!p || p.clubId !== club.id) return;
+    const roster = Object.values(career.players).filter((x) => x.clubId === club.id);
+    if (roster.length <= 16) {
+      set({ toast: 'You need at least 16 players in the squad.' });
+      return;
+    }
+    if (p.primaryPosition === 'GK' && roster.filter((x) => x.primaryPosition === 'GK').length <= 2) {
+      set({ toast: 'You must keep at least two goalkeepers.' });
+      return;
+    }
+    // Pay off half of the remaining contract; the player joins the league's lowest-prestige club on a free.
+    const [y, m] = career.currentDate.split('-').map(Number);
+    const monthsLeft = Math.max(0, (p.contractEndYear - y) * 12 + (6 - m) + 1);
+    const compensation = Math.round(p.weeklyWageEur * Math.min(52, monthsLeft * 4.33) * 0.5);
+    const destination = Object.values(career.clubs)
+      .filter((c) => c.id !== club.id && c.leagueId === club.leagueId)
+      .sort((a, b) => a.domesticPrestige - b.domesticPrestige)[0];
+    if (!destination) return;
+    const players = { ...career.players, [p.id]: { ...p, clubId: destination.id, clubName: destination.name, transferListed: false, loanListed: false } };
+    const remaining = roster.filter((x) => x.id !== p.id).map((x) => players[x.id]);
+    const { lineup, benchIds } = buildLineupForFormation(club.formation, remaining);
+    const nextClub = {
+      ...club,
+      lineup,
+      benchIds,
+      transferBudgetEur: club.transferBudgetEur - compensation,
+      captainId: club.captainId === p.id ? lineup[0]?.playerId ?? null : club.captainId,
+    };
+    const next = {
+      ...career,
+      players,
+      clubs: { ...career.clubs, [club.id]: nextClub },
+      negotiations: career.negotiations.map((n) =>
+        n.playerId === p.id && !['COMPLETED', 'COLLAPSED', 'REJECTED'].includes(n.stage) ? { ...n, stage: 'COLLAPSED' as const } : n
+      ),
+      transactions: [
+        { id: `tx-release-${p.id}-${Date.now()}`, date: career.currentDate, category: 'Wages' as const, description: `Contract termination — ${p.knownAs}`, amountEur: -compensation },
+        ...career.transactions,
+      ],
+    };
+    persistActiveCareer(next);
+    set({ career: next, toast: `${p.knownAs} released (${formatMoney(compensation, career.settings.currency)} paid off) and joined ${destination.name}.` });
   },
 
   setJerseyNumber: (playerId, jerseyNumber) => {
