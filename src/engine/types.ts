@@ -251,6 +251,9 @@ export interface Club {
   relationships: Record<number, number>; // clubId -> -2..10
   coaches: Coach[];
   boardConfidence: number; // 0..100
+  competitionLabel?: string;
+  coachSlotsFilled?: number;
+  coachSlotsTotal?: number;
 }
 
 export interface YouthScout {
@@ -414,6 +417,8 @@ export interface Fixture {
   awayShots: number;
   events: MatchEvent[];
   weather: 'Clear' | 'Overcast' | 'Rain' | 'Night';
+  competitionName?: string;
+  kickoffTime?: string;
 }
 
 export interface MatchEvent {
@@ -454,6 +459,7 @@ export interface InboxChoice {
 
 export interface InboxMessage {
   id: string;
+  clubId?: number | string;
   date: string;
   category: 'BOARD' | 'TRANSFER' | 'PLAYER' | 'EVENT' | 'PRESS' | 'SCOUT' | 'YOUTH';
   sender: string;
@@ -486,12 +492,36 @@ export interface FinancialTransaction {
   amountEur: number; // positive = income, negative = expense
 }
 
+export interface BroadcastStory {
+  id: string;
+  clubId?: number | string;
+  source: string;
+  sourceType: 'GOAL' | 'ATHLETIC' | 'OPTA';
+  dateLabel: string;
+  isNew: boolean;
+  headline: string;
+  artVariant: 'striker-green' | 'tunnel-night' | 'touchline-tactics';
+  image?: string;
+  statLeftValue: string;
+  statLeftLabel: string;
+  statRightValue: string;
+  statRightLabel: string;
+  snippet: string;
+  fullArticle: string;
+  likesLabel: string;
+  commentsCountLabel: string;
+  comments: { user: string; handle: string; text: string; time: string }[];
+}
+
 export interface CareerSettings {
   currency: CurrencyCode;
   energyRecovery: EnergyRecoveryPolicy;
   liveSimSpeedMs: number;
   autoPauseOnOffer: boolean;
   simulationDepth: 'LaLiga + European Pool' | 'Only LALIGA EA SPORTS';
+  stopOnTransferOffers?: boolean;
+  stopOnTrainingReady?: boolean;
+  stopOnInjuryUpdate?: boolean;
 }
 
 export interface LiveMatchState {
@@ -563,4 +593,6 @@ export interface CareerState {
   pendingEventModalId: string | null;
   seasonCompleted: boolean;
   lastSavedAt: string;
+  stories?: BroadcastStory[];
+  likedStoryIds?: Record<string, boolean>;
 }

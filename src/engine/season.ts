@@ -416,6 +416,7 @@ export function createInitialCareerState(
   };
 }
 
+
 function getDailyEnergyRecovery(policy: EnergyRecoveryPolicy): { energyGain: number; sharpnessDelta: number } {
   if (policy === 'Aggressive') return { energyGain: 7, sharpnessDelta: -1 };
   if (policy === 'Conservative') return { energyGain: 3, sharpnessDelta: 2 };
@@ -1040,4 +1041,32 @@ export function advanceToNextSeason(state: CareerState, rng: () => number = Math
     seasonCompleted: false,
     lastSavedAt: new Date().toISOString(),
   };
+}
+
+
+export function formatHubBannerDate(dateStr: string): string {
+  const d = new Date(`${dateStr}T00:00:00Z`);
+  return d
+    .toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric',
+      timeZone: 'UTC',
+    })
+    .toUpperCase();
+}
+
+export function formatFixtureMonthDay(dateStr: string): string {
+  const d = new Date(`${dateStr}T00:00:00Z`);
+  return d.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
+export function formatOrdinal(n: number): string {
+  const s = ['TH', 'ST', 'ND', 'RD'];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
