@@ -125,6 +125,8 @@ interface CareerStore {
   ) => void;
   toggleTransferList: (playerId: number) => void;
   toggleLoanList: (playerId: number) => void;
+  toggleBlockOffers: (playerId: number) => void;
+  setJerseyNumber: (playerId: number, jerseyNumber: number) => void;
   toggleCoachHire: (coachId: string) => void;
 
   // Scouting & Transfers
@@ -804,6 +806,43 @@ export const useCareerStore = create<CareerStore>((set, get) => ({
     };
     persistActiveCareer(next);
     set({ career: next });
+  },
+
+  toggleBlockOffers: (playerId) => {
+    const career = get().career;
+    if (!career || !career.players[playerId]) return;
+    const p = career.players[playerId];
+    const blocked = !p.offersBlocked;
+    const next = {
+      ...career,
+      players: { ...career.players, [playerId]: { ...p, offersBlocked: blocked } },
+    };
+    persistActiveCareer(next);
+    set({
+      career: next,
+      toast: blocked ? `Offers for ${p.knownAs} are now blocked.` : `${p.knownAs} is open to offers again.`,
+    });
+  },
+
+  setJerseyNumber: (playerId, jerseyNumber) => {
+    const career = get().career;
+    if (!career || !career.players[playerId]) return;
+    const p = career.players[playerId];
+    const num = Math.round(jerseyNumber);
+    if (num < 1 || num > 99) return;
+    const taken = Object.values(career.players).find(
+      (o) => o.id !== playerId && o.clubId === p.clubId && o.jerseyNumber === num
+    );
+    if (taken) {
+      set({ toast: `#${num} is already worn by ${taken.knownAs}.` });
+      return;
+    }
+    const next = {
+      ...career,
+      players: { ...career.players, [playerId]: { ...p, jerseyNumber: num } },
+    };
+    persistActiveCareer(next);
+    set({ career: next, toast: `${p.knownAs} will now wear #${num}.` });
   },
 
   toggleCoachHire: (coachId) => {

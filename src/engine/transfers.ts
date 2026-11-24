@@ -587,6 +587,7 @@ export function runDailyAiTransferMarket(
     const userSquad = Object.values(players).filter((p) => p.clubId === userClub.id && !p.injury);
     const candidates = userSquad.filter(
       (p) =>
+        !p.offersBlocked &&
         (p.transferListed || (p.baseOvr >= 76 && rng() < 0.35)) &&
         !state.negotiations.some((n) => n.playerId === p.id && n.stage !== 'COLLAPSED')
     );
