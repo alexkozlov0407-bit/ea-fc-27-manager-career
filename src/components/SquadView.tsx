@@ -1,36 +1,18 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  AlertTriangle,
-  ArrowLeftRight,
-  Award,
   BatteryCharging,
   Check,
-  ChevronRight,
-  Copy,
   Handshake,
-  Layers,
-  Maximize2,
-  Share2,
-  Shield,
-  Sliders,
-  Sparkles,
   Star,
-  TrendingDown,
-  TrendingUp,
   Users,
-  Zap,
 } from 'lucide-react';
 import { GROWTH_PROFILES } from '../engine/growth';
 import {
-  ALL_POSITIONS,
-  FORMATIONS,
   formatMoney,
   positionToSector,
-  TARGET_MINUTE_SHARE,
 } from '../engine/ratings';
 import {
   EnergyRecoveryPolicy,
-  FormationId,
   Mentality,
   Player,
   Position,
@@ -38,8 +20,9 @@ import {
   TacticalVision,
 } from '../engine/types';
 import { useCareerStore } from '../store/careerStore';
-import { MarqueePlayerCutout, OvrDiamond, PlayerAvatar, positionColorClass } from './PlayerAvatar';
+import { OvrDiamond, PlayerAvatar, positionColorClass } from './PlayerAvatar';
 import { CardTitle, HubCarousel } from './fc/HubCarousel';
+import { TeamManagementScreen } from './landings/TeamManagementScreen';
 
 type SquadSubTab = 'Hub' | 'TeamManagement' | 'SquadHub' | 'Coaches';
 type MgmtSection = 'Squad' | 'Tactics' | 'Assignments';
@@ -63,41 +46,6 @@ const MENTALITIES: Mentality[] = [
 
 const BUILD_UP_STYLES = ['Short Passing', 'Balanced', 'Direct Passing', 'Long Ball'] as const;
 
-// FC IQ Role Pros and Cons mapping
-const ROLE_PROS_CONS: Record<string, { pros: string[]; cons: string[] }> = {
-  'Inside Forward': {
-    pros: ['Cuts inside onto stronger foot to attack the box', 'Direct attacking runs beyond defensive line'],
-    cons: ['Leaves wide flank exposed during transition', 'Demands high agility and shooting composure'],
-  },
-  'Deep-Lying Playmaker': {
-    pros: ['Dictates passing tempo from deep midfield pivot', 'Exceptional vision and diagonal distribution'],
-    cons: ['Slower recovery against aggressive fast breaks', 'Minimal goalscoring presence inside 18-yard box'],
-  },
-  'Inverted Wingback': {
-    pros: ['Tucks into central midfield With Ball for overloads', 'Protects against central counter-attacks'],
-    cons: ['Leaves wide flanks susceptible to overlap crosses', 'High stamina and tactical awareness required'],
-  },
-  'Box Crasher': {
-    pros: ['Aggressive late surges into 18-yard box', 'Aerial and second-ball poacher threat'],
-    cons: ['Elevated match stamina consumption', 'Can leave defensive midfield pocket exposed'],
-  },
-  'Ball-Playing Keeper': {
-    pros: ['Sweeper-keeper positioning off the goal-line', 'Initiates quick build-up under high press'],
-    cons: ['Vulnerable to speculative long-range chips', 'Requires high composure and passing accuracy'],
-  },
-  'Poacher': {
-    pros: ['Clinical finishing on the shoulder of last defender', 'Pure focus on converting box chances'],
-    cons: ['Zero contribution to deeper build-up play', 'Easily isolated if midfield is pinned back'],
-  },
-  'Target Forward': {
-    pros: ['Aerial dominance and hold-up outlet for teammates', 'Brings wingers and attacking midfielders into play'],
-    cons: ['Lower mobility against pacey centre-backs', 'Less effective in rapid counter-attack transitions'],
-  },
-  'Half Winger': {
-    pros: ['Operates between central midfield and wide flank', 'Generates creative overloads in half-spaces'],
-    cons: ['High tactical stamina demand across 90 mins', 'Defensive coverage requires coordinated fullback'],
-  },
-};
 
 // ---------------------------------------------------------------------------
 // Squad Hub roster (v1.2.0): 4 horizontal sub-tabs + Player Actions modal
@@ -399,17 +347,11 @@ export const SquadView: React.FC = () => {
 
   const [subTab, setSubTab] = useState<SquadSubTab>('Hub');
   const [mgmtSection, setMgmtSection] = useState<MgmtSection>('Squad');
-  const [pitchPhase, setPitchPhase] = useState<'WITHOUT_BALL' | 'WITH_BALL'>('WITHOUT_BALL');
   const [selectedPlayerId, setSelectedPlayerId] = useState<number | null>(null);
-  const [swapSourceId, setSwapSourceId] = useState<number | null>(null);
-  const [dragPlayerId, setDragPlayerId] = useState<number | null>(null);
   const [drawerTab, setDrawerTab] = useState<'DynamicOVR' | 'Attributes' | 'Development'>('DynamicOVR');
   const [retrainPos, setRetrainPos] = useState<Position>('CM');
   const [buildUpStyle, setBuildUpStyle] = useState<string>('Short Passing');
-  const [tacticCode, setTacticCode] = useState<string>('SYq8wc1YsaoP');
-  const [codeCopied, setCodeCopied] = useState(false);
-  const [showImportModal, setShowImportModal] = useState(false);
-  const [importInput, setImportInput] = useState('');
+  const tacticCode = 'SYq8wc1YsaoP';
 
   // Squad Hub roster: sub-tab, Action List modal and keyboard routing
   const [hubFocus, setHubFocus] = useState(0);
@@ -500,34 +442,11 @@ export const SquadView: React.FC = () => {
   }, [career]);
 
   if (!career || !clubData) return null;
-  const { club, squad, reserves, clubMatches, starsAtk, starsMid, starsDef, starsGk, radarStats } = clubData;
+  const { club, squad, radarStats } = clubData;
 
   const activePlayer: Player | undefined =
     (selectedPlayerId ? career.players[selectedPlayerId] : undefined) ??
     (club.lineup[10]?.playerId ? career.players[club.lineup[10].playerId] : squad[0]);
-
-  const handlePlayerClick = (playerId: number) => {
-    setSelectedPlayerId(playerId);
-    if (swapSourceId !== null) {
-      if (swapSourceId !== playerId) {
-        swapSquadPlayers(swapSourceId, playerId);
-      }
-      setSwapSourceId(null);
-    }
-  };
-
-  const copyCode = () => {
-    navigator.clipboard?.writeText(tacticCode);
-    setCodeCopied(true);
-    setTimeout(() => setCodeCopied(false), 2000);
-  };
-
-  const handleImport = () => {
-    if (!importInput.trim()) return;
-    setTacticCode(importInput.trim().toUpperCase());
-    setShowImportModal(false);
-    setImportInput('');
-  };
 
   const renderFitnessColor = (fit: number) =>
     fit >= 78 ? 'bg-[#38f2c8]' : fit >= 58 ? 'bg-amber-400' : 'bg-rose-500';
@@ -548,13 +467,6 @@ export const SquadView: React.FC = () => {
       return `${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`;
     })
     .join(' ');
-
-  const currentRoleNotes = activePlayer
-    ? ROLE_PROS_CONS[activePlayer.roleTitle] || {
-        pros: ['Maintains tactical positional discipline', 'Supports structured phase transitions'],
-        cons: ['Restricted roaming movement', 'Performance tied to team match fitness'],
-      }
-    : null;
 
   // ------------------------------------------------------------------------
   // Squad Hub roster focus + Player Actions (Action List)
@@ -664,12 +576,11 @@ export const SquadView: React.FC = () => {
 
   // Assigned every render so the (mount-once) listener always sees fresh state.
   keyHandlerRef.current = (e: KeyboardEvent) => {
-    if (showImportModal) return;
     const tag = (e.target as HTMLElement | null)?.tagName;
     if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
 
-    if (subTab === 'Hub') return; // HubCarousel owns the landing keys
+    if (subTab === 'Hub' || subTab === 'TeamManagement') return; // owned by HubCarousel / TeamManagementScreen
     if (subTab !== 'SquadHub') {
       if (e.key === 'Escape' || e.key.toLowerCase() === 'b') {
         e.preventDefault();
@@ -738,494 +649,8 @@ export const SquadView: React.FC = () => {
     );
   }
 
-  return (
-    <div className="mx-auto max-w-[1560px] px-4 lg:px-8 py-5 space-y-6">
-      {/* Top Breadcrumb Navigation */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
-        <div className="flex items-center gap-4">
-          <h1 className="font-display text-3xl lg:text-4xl font-black uppercase tracking-tight text-white leading-none">
-            Squad
-          </h1>
-          <div className="h-6 w-px bg-white/20" />
-          <div className="flex items-center gap-1 bg-[#07131a] p-1 rounded-xl border border-white/10">
-            {(
-              [
-                ['Hub', '◯ Squad'],
-                ['TeamManagement', 'Team Management & FC IQ'],
-                ['SquadHub', 'Squad Hub & Growth'],
-                ['Coaches', 'Coaching Staff & Energy'],
-              ] as const
-            ).map(([key, label]) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setSubTab(key)}
-                className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
-                  subTab === key
-                    ? 'fc-panel-active text-white border border-[#38f2c8]/60 shadow-[0_0_15px_rgba(56,242,200,0.2)]'
-                    : 'text-[#8ea5b3] hover:text-white hover:bg-white/5'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3 text-xs text-[#8ba5b3]">
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-[#38f2c8]" />
-            <span>Energy Recovery:</span>
-            <strong className="text-[#38f2c8] uppercase">{career.settings.energyRecovery}</strong>
-          </span>
-          <span className="text-white/30">·</span>
-          <span>
-            Formation: <strong className="text-white">{club.formation}</strong>
-          </span>
-        </div>
-      </div>
-
-      {/* =================================================================== */}
-      {/* VIEW 2: TEAM MANAGEMENT & FC IQ TACTICAL BOARD (image_6e08edbc.png) */}
-      {/* =================================================================== */}
-      {subTab === 'TeamManagement' && (
-        <div className="space-y-5">
-          {/* Internal Subtabs: Squad | Tactics | Assignments */}
-          <div className="flex items-center justify-between border-b border-white/10 pb-3">
-            <div className="flex items-center gap-2">
-              {(
-                [
-                  ['Squad', 'Squad & Pitch'],
-                  ['Tactics', 'Tactical Radar & Presets'],
-                  ['Assignments', 'Set-Piece Assignments'],
-                ] as const
-              ).map(([sec, label]) => (
-                <button
-                  key={sec}
-                  type="button"
-                  onClick={() => setMgmtSection(sec)}
-                  className={`px-4 py-2 rounded-lg text-xs font-extrabold uppercase tracking-wider transition-all ${
-                    mgmtSection === sec
-                      ? 'fc-panel-active text-white border border-[#38f2c8]/50'
-                      : 'text-[#8ba5b3] hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            {/* 11-digit Tactic Share Code pill */}
-            <div className="flex items-center gap-2 bg-[#091a24] px-3 py-1.5 rounded-lg border border-white/15 text-xs">
-              <span className="text-[#8ba5b3]">Tactic Code:</span>
-              <span className="font-mono font-bold text-[#38f2c8]">{tacticCode}</span>
-              <button
-                type="button"
-                onClick={copyCode}
-                className="hover:text-white text-[#8ba5b3] transition-colors"
-                title="Copy Code"
-              >
-                {codeCopied ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowImportModal(true)}
-                className="text-[10px] font-black uppercase text-[#38f2c8] hover:underline ml-1"
-              >
-                Import
-              </button>
-            </div>
-          </div>
-
-          {/* SECTION A: SQUAD & 2D PITCH WITH FC IQ ROLES */}
-          {mgmtSection === 'Squad' && (
-            <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-              {/* Pitch & Substitutes (Left 8 cols) */}
-              <div className="xl:col-span-8 space-y-4">
-                {/* Tactical Selector Bar */}
-                <div className="fc-panel rounded-xl px-4 py-3 flex flex-wrap items-center justify-between gap-3 border border-white/10">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <label className="text-[11px] uppercase tracking-wider text-[#8ba5b3] font-bold">
-                      Formation
-                    </label>
-                    <select
-                      aria-label="Formation"
-                      value={club.formation}
-                      onChange={(e) => changeFormation(e.target.value as FormationId)}
-                      className="rounded-lg border border-white/15 bg-[#0a1822] px-3 py-1.5 text-xs font-bold text-white focus:border-[#38f2c8] focus:outline-none"
-                    >
-                      {(Object.keys(FORMATIONS) as FormationId[]).map((f) => (
-                        <option key={f} value={f}>
-                          {f}
-                        </option>
-                      ))}
-                    </select>
-
-                    <select
-                      aria-label="Tactical Vision"
-                      value={club.tacticalVision}
-                      onChange={(e) =>
-                        updateClubTactics(e.target.value as TacticalVision, club.mentality, club.defensiveLineHeight)
-                      }
-                      className="rounded-lg border border-white/15 bg-[#0a1822] px-3 py-1.5 text-xs font-bold text-[#38f2c8] focus:border-[#38f2c8] focus:outline-none"
-                    >
-                      {VISIONS.map((v) => (
-                        <option key={v} value={v}>
-                          {v}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    {swapSourceId !== null ? (
-                      <button
-                        type="button"
-                        onClick={() => setSwapSourceId(null)}
-                        className="rounded-lg bg-amber-400/20 border border-amber-300/60 px-3 py-1.5 text-xs font-bold text-amber-200"
-                      >
-                        Swapping {career.players[swapSourceId]?.knownAs} — Click target (Cancel)
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        disabled={!activePlayer}
-                        onClick={() => activePlayer && setSwapSourceId(activePlayer.id)}
-                        className="fc-btn-secondary rounded-lg px-3.5 py-1.5 text-xs font-bold inline-flex items-center gap-1.5 border border-white/15 hover:border-[#38f2c8]/50"
-                      >
-                        <ArrowLeftRight className="w-3.5 h-3.5 text-[#38f2c8]" />
-                        <span>Swap Selected</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* 2D Interactive Pitch */}
-                <div className="relative rounded-2xl fc-pitch-surface h-[490px] overflow-hidden select-none border border-white/15 shadow-2xl">
-                  {/* Pitch markings SVG */}
-                  <svg
-                    viewBox="0 0 100 100"
-                    preserveAspectRatio="none"
-                    className="absolute inset-0 w-full h-full opacity-30 pointer-events-none"
-                  >
-                    <rect x="3" y="3" width="94" height="94" fill="none" stroke="#c8f7dc" strokeWidth="0.45" />
-                    <line x1="3" y1="50" x2="97" y2="50" stroke="#c8f7dc" strokeWidth="0.45" />
-                    <circle cx="50" cy="50" r="11" fill="none" stroke="#c8f7dc" strokeWidth="0.45" />
-                    <rect x="26" y="3" width="48" height="15" fill="none" stroke="#c8f7dc" strokeWidth="0.45" />
-                    <rect x="26" y="82" width="48" height="15" fill="none" stroke="#c8f7dc" strokeWidth="0.45" />
-                  </svg>
-
-                  {/* 11 Starting XI Nodes */}
-                  {club.lineup.map((slot) => {
-                    const p = slot.playerId ? career.players[slot.playerId] : null;
-                    if (!p) return null;
-                    const leftPct = pitchPhase === 'WITH_BALL' ? slot.withBallX : slot.x;
-                    const topPct = pitchPhase === 'WITH_BALL' ? slot.withBallY : slot.y;
-                    const isSelected = activePlayer?.id === p.id;
-                    const isSwapSrc = swapSourceId === p.id;
-                    const isCaptain = club.captainId === p.id;
-                    const dyn = p.dynamicOvr;
-
-                    return (
-                      <button
-                        key={slot.slotIndex}
-                        type="button"
-                        draggable
-                        onDragStart={() => setDragPlayerId(p.id)}
-                        onDragOver={(e) => e.preventDefault()}
-                        onDrop={() => {
-                          if (dragPlayerId && dragPlayerId !== p.id) {
-                            swapSquadPlayers(dragPlayerId, p.id);
-                          }
-                          setDragPlayerId(null);
-                        }}
-                        onClick={() => handlePlayerClick(p.id)}
-                        style={{ left: `${leftPct}%`, top: `${topPct}%` }}
-                        className={`absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center transition-all duration-300 group focus:outline-none ${
-                          isSelected ? 'z-20 scale-110' : 'z-10 hover:scale-105'
-                        }`}
-                      >
-                        <div className="flex items-center gap-1">
-                          <span
-                            className={`text-[10px] font-black uppercase drop-shadow ${
-                              dyn.positionPenalty < 0 ? 'text-amber-300' : 'text-white/90'
-                            }`}
-                          >
-                            {slot.position}
-                          </span>
-                          <div
-                            className={`relative rounded-full p-[2px] transition-all ${
-                              isSwapSrc
-                                ? 'ring-2 ring-amber-300'
-                                : isSelected
-                                ? 'ring-2 ring-[#38f2c8] shadow-[0_0_20px_rgba(56,242,200,0.8)]'
-                                : ''
-                            }`}
-                          >
-                            <PlayerAvatar player={p} clubColor={club.primaryColor} size="sm" />
-                            {p.injury && (
-                              <span
-                                title={`${p.injury.type} (${p.injury.aggravationRiskPct}% risk)`}
-                                className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-400 text-[#121212] text-[10px] font-black"
-                              >
-                                !
-                              </span>
-                            )}
-                          </div>
-                          <span
-                            className={`font-display text-lg font-black tabular-nums leading-none drop-shadow ${
-                              dyn.totalDelta > 0
-                                ? 'text-[#38f2c8]'
-                                : dyn.totalDelta < 0
-                                ? 'text-rose-300'
-                                : 'text-white'
-                            }`}
-                          >
-                            {dyn.dynamicOvr}
-                          </span>
-                        </div>
-
-                        {/* Player Name Pill + Captain [C] */}
-                        <div
-                          className={`mt-1 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wide flex items-center gap-1 max-w-[110px] truncate shadow ${
-                            isSelected
-                              ? 'bg-white text-[#071117]'
-                              : 'bg-[#07141b]/90 text-white border border-white/15'
-                          }`}
-                        >
-                          {isCaptain && (
-                            <span className="inline-block px-1 rounded-[2px] bg-amber-300 text-[#071117] text-[9px] font-black">
-                              C
-                            </span>
-                          )}
-                          <span className="truncate">{p.jerseyName || p.knownAs}</span>
-                        </div>
-
-                        {/* Match Fitness Bar */}
-                        <div className="mt-0.5 w-14 h-1 rounded-full bg-black/60 overflow-hidden">
-                          <div
-                            className={`h-full ${renderFitnessColor(p.matchFitness)}`}
-                            style={{ width: `${p.matchFitness}%` }}
-                          />
-                        </div>
-                      </button>
-                    );
-                  })}
-
-                  {/* With Ball / Without Ball Toggle matching FC 27 */}
-                  <div className="absolute bottom-4 left-4 flex items-center gap-1 rounded-xl bg-[#07141b]/90 border border-white/15 p-1 shadow-lg">
-                    <button
-                      type="button"
-                      onClick={() => setPitchPhase('WITHOUT_BALL')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
-                        pitchPhase === 'WITHOUT_BALL'
-                          ? 'bg-white text-[#071117]'
-                          : 'text-[#9bb4c2] hover:text-white'
-                      }`}
-                    >
-                      Without Ball
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPitchPhase('WITH_BALL')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
-                        pitchPhase === 'WITH_BALL'
-                          ? 'bg-white text-[#071117]'
-                          : 'text-[#9bb4c2] hover:text-white'
-                      }`}
-                    >
-                      With Ball
-                    </button>
-                  </div>
-                </div>
-
-                {/* Substitutes Tray */}
-                <div className="fc-panel rounded-xl p-4 border border-white/10">
-                  <div className="flex items-center justify-between mb-2.5">
-                    <span className="text-xs font-black uppercase tracking-wider text-[#38f2c8]">
-                      Substitutes ({club.benchIds.length})
-                    </span>
-                    <span className="text-[11px] text-[#8ba5b3]">
-                      Drag onto pitch or click Swap Selected
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-2">
-                    {club.benchIds.map((bid) => {
-                      const p = career.players[bid];
-                      if (!p) return null;
-                      const isSel = activePlayer?.id === p.id;
-                      return (
-                        <button
-                          key={p.id}
-                          type="button"
-                          draggable
-                          onDragStart={() => setDragPlayerId(p.id)}
-                          onDragOver={(e) => e.preventDefault()}
-                          onDrop={() => {
-                            if (dragPlayerId && dragPlayerId !== p.id) {
-                              swapSquadPlayers(dragPlayerId, p.id);
-                            }
-                            setDragPlayerId(null);
-                          }}
-                          onClick={() => handlePlayerClick(p.id)}
-                          className={`rounded-xl p-2 text-center border transition-all ${
-                            isSel
-                              ? 'fc-panel-active border-[#38f2c8]'
-                              : 'border-white/10 bg-[#0a1822]/80 hover:bg-white/[0.08]'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between text-[10px] font-bold">
-                            <span className={positionColorClass(p.primaryPosition)}>{p.primaryPosition}</span>
-                            <span className="font-mono-num text-white">{p.dynamicOvr.dynamicOvr}</span>
-                          </div>
-                          <div className="my-1.5 flex justify-center relative">
-                            <PlayerAvatar player={p} clubColor={club.primaryColor} size="xs" />
-                            {p.injury && (
-                              <span className="absolute -top-1 right-0.5 h-3.5 w-3.5 rounded-full bg-amber-400 text-[#091017] text-[9px] font-black leading-[14px]">
-                                !
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-[10px] font-bold text-white truncate">{p.jerseyName || p.knownAs}</div>
-                          <div className="mt-1 h-1 rounded-full bg-white/10 overflow-hidden">
-                            <div
-                              className={`h-full ${renderFitnessColor(p.matchFitness)}`}
-                              style={{ width: `${p.matchFitness}%` }}
-                            />
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {/* FC IQ Player Inspector with Role Checklist (Right 4 cols) */}
-              {activePlayer && (
-                <div className="xl:col-span-4 fc-panel rounded-2xl p-5 border border-white/10 space-y-4">
-                  {/* Player Banner with Real Cutout Showcase */}
-                  <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#091a24] via-[#0d2834] to-[#07131a] p-4 border border-white/10 flex items-center justify-between">
-                    <div className="relative z-10 min-w-0 pr-2">
-                      <div className="text-[11px] font-black uppercase tracking-wider text-[#38f2c8]">
-                        {[activePlayer.primaryPosition, ...activePlayer.otherPositions].join(' · ')}
-                      </div>
-                      <h3 className="font-display text-2xl font-black uppercase tracking-wide text-white truncate">
-                        {activePlayer.knownAs}
-                      </h3>
-                      <div className="text-xs text-[#8ba5b3] font-mono-num mt-0.5">
-                        Base <strong className="text-white">{activePlayer.baseOvr}</strong> · POT{' '}
-                        <strong className="text-[#38f2c8]">{activePlayer.potential}</strong>
-                      </div>
-                      <div className="mt-2.5">
-                        <OvrDiamond
-                          ovr={activePlayer.dynamicOvr.dynamicOvr}
-                          delta={activePlayer.dynamicOvr.totalDelta}
-                          size="md"
-                        />
-                      </div>
-                    </div>
-                    {/* High-res Cutout */}
-                    <div className="relative shrink-0 h-32 w-28 flex items-end justify-end pointer-events-none -mb-4 -mr-2">
-                      <MarqueePlayerCutout
-                        name={activePlayer.knownAs}
-                        className="h-32 w-auto object-contain object-bottom filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.85)]"
-                        useFallback={true}
-                      />
-                    </div>
-                  </div>
-
-                  {/* FC IQ Role & Focus Checklist matching image_8a05a206.png */}
-                  <div className="rounded-xl border border-[#38f2c8]/30 bg-[#091f24]/70 p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-black uppercase tracking-wider text-[#38f2c8] flex items-center gap-1.5">
-                        <Sparkles className="w-4 h-4 text-[#38f2c8]" />
-                        <span>FC IQ Role &amp; Focus</span>
-                      </span>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-[#38f2c8]/20 text-[#38f2c8] border border-[#38f2c8]/40">
-                        {activePlayer.roleFamiliarity}
-                      </span>
-                    </div>
-
-                    <div className="text-sm font-black text-white uppercase">
-                      {activePlayer.roleTitle}
-                    </div>
-
-                    {/* Role Pros & Cons checklist */}
-                    {currentRoleNotes && (
-                      <div className="space-y-1.5 pt-1 text-xs">
-                        {currentRoleNotes.pros.map((pro, i) => (
-                          <div key={i} className="flex items-start gap-2 text-[#b8fff0]">
-                            <span className="text-[#38f2c8] font-black shrink-0">✓</span>
-                            <span>{pro}</span>
-                          </div>
-                        ))}
-                        {currentRoleNotes.cons.map((con, i) => (
-                          <div key={i} className="flex items-start gap-2 text-[#e2b7b7]">
-                            <span className="text-rose-400 font-black shrink-0">!</span>
-                            <span>{con}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 3-Pillar Dynamic OVR Breakdown */}
-                  <div className="grid grid-cols-3 gap-2 rounded-xl border border-white/10 bg-[#0a1822]/90 p-3 text-center">
-                    <div>
-                      <div className="text-[10px] uppercase text-[#8ba5b3] font-bold">Form</div>
-                      <div className={`font-mono-num text-xs font-black ${deltaColor(activePlayer.dynamicOvr.formDelta)}`}>
-                        {formatDelta(activePlayer.dynamicOvr.formDelta)} OVR
-                      </div>
-                      <div className="text-[11px] font-bold text-white mt-0.5">{activePlayer.dynamicOvr.formLabel}</div>
-                    </div>
-                    <div className="border-x border-white/10">
-                      <div className="text-[10px] uppercase text-[#8ba5b3] font-bold">Morale</div>
-                      <div className={`font-mono-num text-xs font-black ${deltaColor(activePlayer.dynamicOvr.moraleDelta)}`}>
-                        {formatDelta(activePlayer.dynamicOvr.moraleDelta)} OVR
-                      </div>
-                      <div className="text-[11px] font-bold text-white mt-0.5">{activePlayer.dynamicOvr.moraleLabel}</div>
-                    </div>
-                    <div>
-                      <div className="text-[10px] uppercase text-[#8ba5b3] font-bold">Fitness</div>
-                      <div className={`font-mono-num text-xs font-black ${deltaColor(activePlayer.dynamicOvr.fitnessDelta)}`}>
-                        {formatDelta(activePlayer.dynamicOvr.fitnessDelta)} OVR
-                      </div>
-                      <div className="text-[11px] font-bold text-white mt-0.5">{activePlayer.matchFitness}%</div>
-                    </div>
-                  </div>
-
-                  {/* 6 Face Attributes */}
-                  <div className="grid grid-cols-2 gap-2 text-xs pt-1">
-                    {(
-                      [
-                        ['PAC', activePlayer.cardFacets.pac, activePlayer.dynamicOvr.facetDeltas.pac],
-                        ['SHO', activePlayer.cardFacets.sho, activePlayer.dynamicOvr.facetDeltas.sho],
-                        ['PAS', activePlayer.cardFacets.pas, activePlayer.dynamicOvr.facetDeltas.pas],
-                        ['DRI', activePlayer.cardFacets.dri, activePlayer.dynamicOvr.facetDeltas.dri],
-                        ['DEF', activePlayer.cardFacets.def, activePlayer.dynamicOvr.facetDeltas.def],
-                        ['PHY', activePlayer.cardFacets.phy, activePlayer.dynamicOvr.facetDeltas.phy],
-                      ] as const
-                    ).map(([label, base, d]) => (
-                      <div key={label} className="flex items-center justify-between p-2 rounded-lg bg-white/5">
-                        <span className="font-bold text-[#8ba5b3]">{label}</span>
-                        <span className="font-mono-num font-black text-white">
-                          {base}{' '}
-                          {d !== 0 && (
-                            <span className={`text-[10px] ml-1 ${d > 0 ? 'text-[#38f2c8]' : 'text-rose-400'}`}>
-                              {d > 0 ? `+${d}` : d}
-                            </span>
-                          )}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* SECTION B: TACTICS PRESETS & FC IQ RADAR CHART */}
-          {mgmtSection === 'Tactics' && (
+  if (subTab === 'TeamManagement') {
+    const tacticsSection = (
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
               {/* Left 6 cols: Radar Chart & Tactical Analytics */}
               <div className="xl:col-span-6 fc-panel rounded-2xl p-6 border border-white/10 space-y-6">
@@ -1413,10 +838,8 @@ export const SquadView: React.FC = () => {
                 </div>
               </div>
             </div>
-          )}
-
-          {/* SECTION C: ASSIGNMENTS (CAPTAIN & SET PIECES) */}
-          {mgmtSection === 'Assignments' && (
+    );
+    const assignmentsSection = (
             <div className="fc-panel rounded-2xl p-6 border border-white/10 space-y-6">
               <div>
                 <h3 className="font-display text-2xl font-black uppercase text-white">
@@ -1501,9 +924,70 @@ export const SquadView: React.FC = () => {
                 </div>
               </div>
             </div>
-          )}
+    );
+    return (
+      <TeamManagementScreen
+        career={career}
+        club={club}
+        squad={squad}
+        section={mgmtSection}
+        onSection={setMgmtSection}
+        tacticCode={tacticCode}
+        tacticsContent={tacticsSection}
+        assignmentsContent={assignmentsSection}
+        onSwap={swapSquadPlayers}
+        onFormation={changeFormation}
+        onBack={() => setSubTab('Hub')}
+      />
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-[1560px] px-4 lg:px-8 py-5 space-y-6">
+      {/* Top Breadcrumb Navigation */}
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
+        <div className="flex items-center gap-4">
+          <h1 className="font-display text-3xl lg:text-4xl font-black uppercase tracking-tight text-white leading-none">
+            Squad
+          </h1>
+          <div className="h-6 w-px bg-white/20" />
+          <div className="flex items-center gap-1 bg-[#07131a] p-1 rounded-xl border border-white/10">
+            {(
+              [
+                ['Hub', '◯ Squad'],
+                ['TeamManagement', 'Team Management & FC IQ'],
+                ['SquadHub', 'Squad Hub & Growth'],
+                ['Coaches', 'Coaching Staff & Energy'],
+              ] as const
+            ).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setSubTab(key)}
+                className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
+                  subTab === key
+                    ? 'fc-panel-active text-white border border-[#38f2c8]/60 shadow-[0_0_15px_rgba(56,242,200,0.2)]'
+                    : 'text-[#8ea5b3] hover:text-white hover:bg-white/5'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
-      )}
+
+        <div className="flex items-center gap-3 text-xs text-[#8ba5b3]">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-[#38f2c8]" />
+            <span>Energy Recovery:</span>
+            <strong className="text-[#38f2c8] uppercase">{career.settings.energyRecovery}</strong>
+          </span>
+          <span className="text-white/30">·</span>
+          <span>
+            Formation: <strong className="text-white">{club.formation}</strong>
+          </span>
+        </div>
+      </div>
 
       {/* =================================================================== */}
       {/* VIEW 3: SQUAD HUB ROSTER (v1.2.0)                                   */}
@@ -2210,42 +1694,6 @@ export const SquadView: React.FC = () => {
         </div>
       )}
 
-      {/* Import Tactic Share Code Modal */}
-      {showImportModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="fc-panel rounded-2xl p-6 max-w-md w-full border border-white/20 shadow-2xl space-y-4">
-            <h3 className="font-display text-xl font-black uppercase text-white">
-              Import FC IQ Tactic Code
-            </h3>
-            <p className="text-xs text-[#8ba5b3]">
-              Paste an 11-digit tactic share code from EA Sports FC 27 or another career save:
-            </p>
-            <input
-              type="text"
-              placeholder="e.g. SYq8wc1YsaoP"
-              value={importInput}
-              onChange={(e) => setImportInput(e.target.value)}
-              className="w-full rounded-xl border border-white/20 bg-[#08131b] px-4 py-2.5 text-sm font-mono text-white tracking-widest uppercase focus:border-[#38f2c8] focus:outline-none"
-            />
-            <div className="flex justify-end gap-2.5 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowImportModal(false)}
-                className="fc-btn-secondary rounded-lg px-4 py-2 text-xs font-bold uppercase"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleImport}
-                className="fc-btn-primary rounded-lg px-5 py-2 text-xs font-black uppercase"
-              >
-                Apply Tactic
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -429,3 +429,68 @@ export function useBackKey(active: boolean, onBack: () => void) {
     return () => window.removeEventListener('keydown', onKey);
   }, [active]);
 }
+
+/**
+ * Layer-3 breadcrumb header (e.g. "Office | Finances", "Squad | Team Management") with L1/R1 sub-tabs.
+ * Gaps are measured from the FC 27 captures: parent → title 2.45vw, title → divider 2.35vw, divider → tabs 2.3vw.
+ */
+export const LayerHeader: React.FC<{
+  parent: string;
+  title: string;
+  tabs: readonly string[];
+  active: string;
+  onTab: (tab: string) => void;
+  right?: React.ReactNode;
+}> = ({ parent, title, tabs, active, onTab, right }) => (
+  <header className="relative h-[13vh] min-h-[90px]">
+    <img
+      src="/assets/branding/mc-logo-transparent.png"
+      alt="Manager Career"
+      className="absolute left-[1.95vw] top-[4.4vh] w-[clamp(44px,3.8vw,70px)] h-[clamp(44px,3.8vw,70px)] rounded-full object-contain"
+    />
+    <div className="absolute left-[8vw] top-[5.6vh] flex items-center">
+      <span className="text-[clamp(13px,1.1vw,21px)] text-white/75">{parent}</span>
+      <span className="ml-[2.45vw] text-[clamp(17px,1.5vw,28px)] font-bold">{title}</span>
+      <span className="ml-[2.35vw] h-[4vh] w-px bg-white/30" />
+      <nav className="relative ml-[2.3vw] flex gap-[2.3vw]" aria-label={`${title} sections`}>
+        <div className="absolute left-[0.7vw] -top-[4.6vh] flex gap-[0.5vw]">
+          {['L1', 'R1'].map((b) => (
+            <span key={b} className="rounded-md bg-white/15 px-[0.35vw] text-[clamp(8px,0.6vw,11px)] font-bold text-white/70">
+              {b}
+            </span>
+          ))}
+        </div>
+        {tabs.map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => onTab(t)}
+            className={`text-[clamp(13px,1.12vw,21px)] ${active === t ? 'font-bold text-white' : 'text-white/60 hover:text-white/90'}`}
+          >
+            {t}
+          </button>
+        ))}
+      </nav>
+    </div>
+    {right}
+  </header>
+);
+
+/** Full-screen layer background (blue → green menu wash with faint light facets). */
+export const LayerBackdrop: React.FC = () => (
+  <>
+    <div
+      aria-hidden
+      className="absolute inset-0 pointer-events-none"
+      style={{ background: 'linear-gradient(112deg, #1a2244 0%, #1c2a57 22%, #1b3f60 46%, #1c5f58 70%, #22805a 88%, #2c935e 100%)' }}
+    />
+    <div
+      aria-hidden
+      className="absolute inset-0 pointer-events-none opacity-60"
+      style={{
+        backgroundImage:
+          'linear-gradient(128deg, transparent 54%, rgba(255,255,255,0.05) 54.2%, rgba(255,255,255,0.05) 54.5%, transparent 54.7%), linear-gradient(32deg, transparent 70%, rgba(170,255,220,0.06) 70.2%, rgba(170,255,220,0.06) 70.6%, transparent 70.8%), radial-gradient(60% 50% at 8% 40%, rgba(70,60,140,0.35), transparent 70%)',
+      }}
+    />
+  </>
+);

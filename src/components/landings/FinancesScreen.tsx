@@ -3,7 +3,7 @@ import { BarChart3, Star } from 'lucide-react';
 import { formatMoney } from '../../engine/ratings';
 import { CareerState, FinancialTransaction } from '../../engine/types';
 import { ClubCrest } from '../PlayerAvatar';
-import { PadGlyph } from '../fc/HubCarousel';
+import { LayerHeader, PadGlyph } from '../fc/HubCarousel';
 
 /**
  * Office › Finances layer — 1:1 with inputs/screenshots/image (9).png.
@@ -109,53 +109,34 @@ export const FinancesScreen: React.FC<Props> = ({ career, onBack }) => {
       />
 
       {/* ------------------------------------------------------------- Header */}
-      <header className="relative h-[13vh] min-h-[90px]">
-        <img
-          src="/assets/branding/mc-logo-transparent.png"
-          alt="Manager Career"
-          className="absolute left-[1.95vw] top-[4.4vh] w-[clamp(44px,3.8vw,70px)] h-[clamp(44px,3.8vw,70px)] rounded-full object-contain"
-        />
-        <span className="absolute left-[9.4vw] top-[1.6vh] rounded-md bg-white/15 px-[0.35vw] text-[clamp(8px,0.6vw,11px)] font-bold text-white/70">L2</span>
-        <span className="absolute left-[8vw] top-[6.6vh] text-[clamp(13px,1.1vw,21px)] text-white/75">Office</span>
-        <span className="absolute left-[14vw] top-[6vh] text-[clamp(17px,1.5vw,28px)] font-bold">Finances</span>
-        <span className="absolute left-[23.1vw] top-[6.2vh] h-[4vh] w-px bg-white/30" />
-        <div className="absolute left-[25.4vw] top-[1.4vh] flex gap-[0.5vw]">
-          {['L1', 'R1'].map((b) => (
-            <span key={b} className="rounded-md bg-white/15 px-[0.35vw] text-[clamp(8px,0.6vw,11px)] font-bold text-white/70">{b}</span>
-          ))}
-        </div>
-        <nav className="absolute left-[25.4vw] top-[6.7vh] flex gap-[2.3vw]" aria-label="Finances sections">
-          {FIN_TABS.map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setTab(t)}
-              className={`text-[clamp(13px,1.12vw,21px)] ${tab === t ? 'font-bold text-white' : 'text-white/60 hover:text-white/90'}`}
-            >
-              {t}
-            </button>
-          ))}
-        </nav>
-        <div className="absolute right-[1.3vw] top-[5.2vh] flex items-center gap-[0.8vw]">
-          <ClubCrest club={club} size={38} />
-          <div className="w-[12vw]">
-            <div className="flex items-center justify-between text-[clamp(12px,1.1vw,20px)] text-white/85">
-              <span className="truncate">{club.name}</span>
-              <span className="inline-flex items-center justify-center w-[1.2vw] h-[1.2vw] min-w-[16px] min-h-[16px] rounded-full bg-[#1e2a20] border border-[#e6c34a]">
-                <Star className="w-[60%] h-[60%] fill-[#e6c34a] text-[#e6c34a]" />
-              </span>
-            </div>
-            <div className="mt-[0.6vh] flex gap-[3px]">
-              {[0, 1, 2, 3].map((i) => (
-                <span
-                  key={i}
-                  className={`h-[6px] rounded-[1px] ${i === 0 ? 'flex-[3]' : 'flex-1'} ${i < filledSegments ? 'bg-[#34d058]' : 'bg-white/20'}`}
-                />
-              ))}
+      <LayerHeader
+        parent="Office"
+        title="Finances"
+        tabs={FIN_TABS}
+        active={tab}
+        onTab={(t) => setTab(t as FinTab)}
+        right={
+          <div className="absolute right-[1.3vw] top-[5.2vh] flex items-center gap-[0.8vw]">
+            <ClubCrest club={club} size={38} />
+            <div className="w-[12vw]">
+              <div className="flex items-center justify-between text-[clamp(12px,1.1vw,20px)] text-white/85">
+                <span className="truncate">{club.name}</span>
+                <span className="inline-flex items-center justify-center w-[1.2vw] h-[1.2vw] min-w-[16px] min-h-[16px] rounded-full bg-[#1e2a20] border border-[#e6c34a]">
+                  <Star className="w-[60%] h-[60%] fill-[#e6c34a] text-[#e6c34a]" />
+                </span>
+              </div>
+              <div className="mt-[0.6vh] flex gap-[3px]">
+                {[0, 1, 2, 3].map((i) => (
+                  <span
+                    key={i}
+                    className={`h-[6px] rounded-[1px] ${i === 0 ? 'flex-[3]' : 'flex-1'} ${i < filledSegments ? 'bg-[#34d058]' : 'bg-white/20'}`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      </header>
+        }
+      />
 
       {/* ------------------------------------------------------------- Body */}
       {tab === 'Overview' && (
