@@ -9,7 +9,7 @@ import { diffDays } from '../engine/season';
 import { useCareerStore } from '../store/careerStore';
 import { ClubCrest, PlayerAvatar } from './PlayerAvatar';
 import { NegotiationCall } from './transfers/NegotiationCall';
-import { NEGOTIATION_TABS, NegotiationTab, NegotiationsBoard, negotiationsForTab } from './transfers/NegotiationsBoard';
+import { NEGOTIATION_TABS, NegotiationTab, NegotiationsBoard, needsResponse, negotiationsForTab } from './transfers/NegotiationsBoard';
 
 type TransferSubTab = NegotiationTab | 'Shortlist' | 'History';
 const TABS: { id: TransferSubTab; label: string }[] = [
@@ -25,7 +25,7 @@ export const TransfersView: React.FC = () => {
   const startNegotiation = useCareerStore((s) => s.startNegotiation);
   const toggleShortlist = useCareerStore((s) => s.toggleShortlist);
 
-  const [subTab, setSubTab] = useState<TransferSubTab>('Active');
+  const [subTab, setSubTab] = useState<TransferSubTab>('Buying');
 
   // A/D switch lists (the action popup and the live call capture their own keys).
   const tabRef = useRef(subTab);
@@ -57,13 +57,16 @@ export const TransfersView: React.FC = () => {
     History: career.transferHistory.length,
     ...Object.fromEntries(NEGOTIATION_TABS.map((t) => [t.id, negotiationsForTab(career, t.id).length])),
   };
+  const badges: Record<string, number> = Object.fromEntries(
+    NEGOTIATION_TABS.map((t) => [t.id, negotiationsForTab(career, t.id).filter(needsResponse).length])
+  );
 
   return (
     <div className="relative text-white">
       {/* Breadcrumb header: Transfers | <title> | list tabs (A / D) */}
       <div className="relative h-[13vh] min-h-[84px]">
         <div className="absolute left-[3.4vw] top-[4.6vh] flex items-center">
-          <span className="text-[clamp(13px,1.1vw,21px)] text-white/75">Transfers</span>
+          <span className="text-[clamp(13px,1.1vw,21px)] text-white/75">Home</span>
           <span className="ml-[2.45vw] text-[clamp(17px,1.5vw,28px)] font-bold whitespace-nowrap">
             {isNegTab ? 'Active Negotiations' : subTab === 'Shortlist' ? 'Shortlist' : 'Transfer History'}
           </span>
@@ -85,7 +88,11 @@ export const TransfersView: React.FC = () => {
                   }`}
                 >
                   {t.label}
-                  {counts[t.id] > 0 && <span className="ml-[0.35vw] text-[0.78em] text-[#8ff0cd]">{counts[t.id]}</span>}
+                  {(badges[t.id] ?? 0) > 0 && (
+                    <sup className="ml-[0.25vw] inline-flex items-center justify-center rounded-full bg-[#f2d14a] text-[#1a1606] font-bold w-[1.15vw] h-[1.15vw] min-w-[16px] min-h-[16px] text-[clamp(9px,0.66vw,12px)] -translate-y-[0.6vh]">
+                      {badges[t.id]}
+                    </sup>
+                  )}
                 </button>
               </React.Fragment>
             ))}

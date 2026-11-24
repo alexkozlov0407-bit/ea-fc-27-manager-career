@@ -342,6 +342,10 @@ export interface NegotiationOffer {
   squadRole: SquadRole;
   signingBonusEur: number;
   releaseClauseEur: number;
+  /** Paid to the player's agent on completion (contract talks). */
+  agentFeeEur?: number;
+  /** Per-goal / clean-sheet performance bonus offered in contract talks. */
+  performanceBonusEur?: number;
 }
 
 export interface TransferNegotiation {

@@ -703,6 +703,33 @@ export function advanceSingleDay(
 
   // 5. Delegated Negotiations Resolution & Multi-Day Negotiations
   negotiations = negotiations.map((neg) => {
+    if (neg.stage === 'DELEGATED' && neg.type === 'CONTRACT') {
+      const daysOpen = neg.daysOpen + 1;
+      if (daysOpen < 2) return { ...neg, daysOpen };
+      // The Technical Director agrees the renewal on the player's stated demands.
+      const completedNeg: TransferNegotiation = {
+        ...neg,
+        daysOpen,
+        stage: 'COMPLETED',
+        lastUpdatedDate: nextDate,
+        currentOffer: { ...neg.currentOffer, wageEur: neg.askingWageEur, contractYears: neg.desiredYears, squadRole: neg.desiredRole },
+        managerDialogue: `Your Technical Director agreed a ${neg.desiredYears}-year renewal at ${formatMoney(neg.askingWageEur, state.settings.currency)}/wk.`,
+      };
+      const res = completeTransferInState({ ...state, clubs, players }, completedNeg);
+      clubs = res.clubs;
+      players = res.players;
+      inbox.unshift({
+        id: `msg-del-renew-${neg.id}`,
+        date: nextDate,
+        category: 'TRANSFER',
+        sender: 'Technical Director',
+        subject: `Contract Renewed: ${players[neg.playerId]?.knownAs ?? 'Player'}`,
+        body: `${players[neg.playerId]?.knownAs ?? 'The player'} has signed a ${neg.desiredYears}-year deal worth ${formatMoney(neg.askingWageEur, state.settings.currency)}/wk.`,
+        read: false,
+        playerId: neg.playerId,
+      });
+      return completedNeg;
+    }
     if (neg.stage === 'DELEGATED') {
       const daysOpen = neg.daysOpen + 1;
       if (daysOpen >= 2) {

@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Check, Clock, Info, X } from 'lucide-react';
+import { Check, Clock, Info } from 'lucide-react';
 import { calculatePlayerInterest, formatMoney } from '../../engine/ratings';
 import { computeOfferPayments } from '../../engine/transfers';
 import { CareerState, Player, TransferNegotiation } from '../../engine/types';
@@ -12,22 +12,25 @@ import { PadGlyph, PlayerBust } from '../fc/HubCarousel';
  * and inputs/screenshots/image (1).png (Transfer Action popup).
  */
 
-export type NegotiationTab = 'Active' | 'LoansIn' | 'LoansOut' | 'Contracts';
+export type NegotiationTab = 'Buying' | 'Selling' | 'LoansIn' | 'LoansOut' | 'Contracts';
 export const NEGOTIATION_TABS: { id: NegotiationTab; label: string }[] = [
-  { id: 'Active', label: 'Active Negotiations' },
+  { id: 'Buying', label: 'Buying' },
+  { id: 'Selling', label: 'Selling' },
   { id: 'LoansIn', label: 'Incoming Loans' },
   { id: 'LoansOut', label: 'Outgoing Loans' },
   { id: 'Contracts', label: 'Contract Renewals' },
 ];
 
 export function negotiationsForTab(career: CareerState, tab: NegotiationTab): TransferNegotiation[] {
-  const types = { Active: ['BUY', 'SELL'], LoansIn: ['LOAN_IN'], LoansOut: ['LOAN_OUT'], Contracts: ['CONTRACT'] }[tab];
+  const types = { Buying: ['BUY'], Selling: ['SELL'], LoansIn: ['LOAN_IN'], LoansOut: ['LOAN_OUT'], Contracts: ['CONTRACT'] }[tab];
   return career.negotiations.filter((n) => types.includes(n.type));
 }
 
-type SortKey = 'Default' | 'Pos' | 'OVR' | 'Age' | 'Value';
-const SORTS: SortKey[] = ['Default', 'Pos', 'OVR', 'Age', 'Value'];
-const POS_ORDER = ['GK', 'RB', 'RWB', 'CB', 'LB', 'LWB', 'CDM', 'CM', 'RM', 'LM', 'CAM', 'RW', 'LW', 'CF', 'ST'];
+/** Deals waiting on the manager (yellow "!" — counted in the tab badge). */
+export const needsResponse = (n: TransferNegotiation) => n.stage === 'CLUB_TALKS' || n.stage === 'HIJACKED';
+
+type SortKey = 'Default' | 'Club' | 'OVR' | 'Age' | 'Value';
+const SORTS: SortKey[] = ['Default', 'Club', 'OVR', 'Age', 'Value'];
 const CLOSED = ['COMPLETED', 'COLLAPSED', 'REJECTED', 'AGREED'];
 
 const shortName = (p: Player) => {
@@ -38,13 +41,13 @@ const shortName = (p: Player) => {
 function statusTitle(n: TransferNegotiation): string {
   switch (n.stage) {
     case 'ENQUIRY':
-      return 'ENQUIRY SENT';
+      return 'AWAITING RESPONSE';
     case 'CLUB_TALKS':
       return n.type === 'SELL' || n.type === 'LOAN_OUT' ? 'OFFER RECEIVED' : 'CLUB NEGOTIATION';
     case 'PLAYER_TALKS':
-      return n.type === 'CONTRACT' ? 'CONTRACT RENEWAL' : 'CONTRACT TALKS';
+      return n.type === 'CONTRACT' ? 'CONTRACT RENEWAL' : 'PLAYER NEGOTIATION';
     case 'DELEGATED':
-      return 'DELEGATED TO DIRECTOR';
+      return 'AWAITING RESPONSE';
     case 'HIJACKED':
       return 'RIVAL BID RECEIVED';
     case 'AGREED':
@@ -58,26 +61,33 @@ function statusTitle(n: TransferNegotiation): string {
   }
 }
 
-/** Status column glyph: yellow ! = your move, green shield ✓ = agreed, red shield ✕ = ended, blue clock = delegated. */
+/**
+ * Status column glyph (FC 27 set): yellow ! = your move · orange ! = rival bid · blue shield + clock = awaiting
+ * the other side · blue person + clock = player talks · green shield ✓ = agreed · grey shield − = ended.
+ */
 export const StatusGlyph: React.FC<{ n: TransferNegotiation; size?: string }> = ({ n, size = 'w-[1.9vw] h-[1.9vw] min-w-[22px] min-h-[22px]' }) => {
-  if (n.stage === 'COMPLETED' || n.stage === 'AGREED')
+  const shield = (fill: string, inner: React.ReactNode) => (
+    <span className={`relative inline-flex items-center justify-center ${size}`}>
+      <svg viewBox="0 0 24 28" className="absolute inset-0 w-full h-full"><path d="M2 3 C8 1 16 1 22 3 V15 C22 21 16 25 12 27 C8 25 2 21 2 15 Z" fill={fill} /></svg>
+      {inner}
+    </span>
+  );
+  const clockBadge = (
+    <span className="absolute -right-[18%] -bottom-[12%] inline-flex items-center justify-center w-[58%] h-[58%] rounded-full bg-white border-2 border-[#3d8ef0]">
+      <Clock className="w-[80%] h-[80%] text-[#3d8ef0]" strokeWidth={3} />
+    </span>
+  );
+  if (n.stage === 'COMPLETED' || n.stage === 'AGREED') return shield('#2fbf5b', <Check className="relative w-[55%] h-[55%] text-white" strokeWidth={3.5} />);
+  if (n.stage === 'COLLAPSED' || n.stage === 'REJECTED') return shield('#8d949c', <span className="relative h-[12%] w-[46%] rounded bg-white" />);
+  if (n.stage === 'ENQUIRY' || n.stage === 'DELEGATED') return shield('#2f86f0', clockBadge);
+  if (n.stage === 'PLAYER_TALKS')
     return (
       <span className={`relative inline-flex items-center justify-center ${size}`}>
-        <svg viewBox="0 0 24 28" className="absolute inset-0 w-full h-full"><path d="M2 3 H22 V16 L12 26 L2 16 Z" fill="#2fbf5b" /></svg>
-        <Check className="relative w-[55%] h-[55%] text-white" strokeWidth={3.5} />
-      </span>
-    );
-  if (n.stage === 'COLLAPSED' || n.stage === 'REJECTED')
-    return (
-      <span className={`relative inline-flex items-center justify-center ${size}`}>
-        <svg viewBox="0 0 24 28" className="absolute inset-0 w-full h-full"><path d="M2 3 H22 V16 L12 26 L2 16 Z" fill="#e8492f" /></svg>
-        <X className="relative w-[55%] h-[55%] text-white" strokeWidth={3.5} />
-      </span>
-    );
-  if (n.stage === 'DELEGATED')
-    return (
-      <span className={`inline-flex items-center justify-center rounded-full bg-[#3d8ef0] ${size}`}>
-        <Clock className="w-[60%] h-[60%] text-white" strokeWidth={2.6} />
+        <svg viewBox="0 0 24 24" className="absolute inset-0 w-full h-full" aria-hidden>
+          <circle cx="12" cy="7" r="5" fill="#2f86f0" />
+          <path d="M2 23 C3 16 7 13.5 12 13.5 C17 13.5 21 16 22 23 Z" fill="#2f86f0" />
+        </svg>
+        {clockBadge}
       </span>
     );
   return (
@@ -103,13 +113,18 @@ export const NegotiationsBoard: React.FC<BoardProps> = ({ career, tab, daysToClo
   const cur = career.settings.currency;
   const userClub = career.clubs[career.userClubId];
 
+  /** Club on the other side of the deal (buyer when selling, seller when buying, own club for renewals). */
+  const counterpartId = (n: TransferNegotiation) =>
+    n.type === 'CONTRACT' ? career.userClubId : n.fromClubId === career.userClubId ? n.toClubId : n.fromClubId;
+  const ownPlayers = tab === 'Selling' || tab === 'LoansOut' || tab === 'Contracts';
+
   const negs = negotiationsForTab(career, tab)
     .map((n) => ({ n, p: career.players[n.playerId] }))
     .filter((x): x is { n: TransferNegotiation; p: Player } => Boolean(x.p));
   if (sort !== 'Default') {
     negs.sort((a, b) =>
-      sort === 'Pos'
-        ? POS_ORDER.indexOf(a.p.primaryPosition) - POS_ORDER.indexOf(b.p.primaryPosition)
+      sort === 'Club'
+        ? (career.clubs[counterpartId(a.n)]?.name ?? '').localeCompare(career.clubs[counterpartId(b.n)]?.name ?? '')
         : sort === 'OVR'
         ? b.p.dynamicOvr.dynamicOvr - a.p.dynamicOvr.dynamicOvr
         : sort === 'Age'
@@ -154,11 +169,9 @@ export const NegotiationsBoard: React.FC<BoardProps> = ({ career, tab, daysToClo
   }, []);
 
   const sortArrow = (k: SortKey) => (sort === k ? ' ▲' : '');
-  const grid = 'grid grid-cols-[4.4vw_3.2vw_3.6vw_minmax(0,1fr)_4.2vw_3.8vw_7.4vw_4.6vw] items-center whitespace-nowrap';
+  const grid = 'grid grid-cols-[4.6vw_6.2vw_minmax(0,1fr)_4.6vw_4vw_7.6vw_4.6vw] items-center whitespace-nowrap';
   const focusedClub = focused ? career.clubs[focused.p.clubId] : undefined;
-  const counterpartClub = focused
-    ? career.clubs[focused.n.fromClubId === career.userClubId ? focused.n.toClubId : focused.n.fromClubId] ?? focusedClub
-    : undefined;
+  const counterpartClub = focused ? career.clubs[counterpartId(focused.n)] ?? focusedClub : undefined;
   const interest =
     focused && (focused.n.type === 'BUY' || focused.n.type === 'LOAN_IN')
       ? calculatePlayerInterest(focused.p, userClub, focusedClub, focused.n.desiredRole, focused.n.currentOffer.wageEur || focused.n.askingWageEur)
@@ -170,8 +183,7 @@ export const NegotiationsBoard: React.FC<BoardProps> = ({ career, tab, daysToClo
       {/* ---------------------------------------------- List */}
       <div className="absolute left-[3.4vw] top-[2vh] w-[45.4vw]">
         <div className={`${grid} h-[4.6vh] border-b border-white/15 text-white/80 text-[clamp(11px,0.98vw,18px)]`}>
-          <span className="pl-[1vw]">Pos{sortArrow('Pos') || (sort === 'Default' ? ' ▲' : '')}</span>
-          <span>Team</span>
+          <span className="pl-[0.6vw]">{tab === 'Selling' || tab === 'LoansOut' ? 'From' : 'Club'}{sortArrow('Club') || (sort === 'Default' ? ' ▲' : '')}</span>
           <span />
           <span>Name</span>
           <span className="text-center">OVR{sortArrow('OVR')}</span>
@@ -184,8 +196,10 @@ export const NegotiationsBoard: React.FC<BoardProps> = ({ career, tab, daysToClo
             <div className="py-[8vh] text-center text-white/60 text-[clamp(12px,1.05vw,20px)]">
               {tab === 'Contracts'
                 ? 'No contract renewals in progress. Open Squad Hub › Player Actions › Contract Renewal to start one.'
-                : tab === 'Active'
+                : tab === 'Buying'
                 ? 'No active negotiations. Find targets in Scouting to make an approach.'
+                : tab === 'Selling'
+                ? 'No offers for your players. Transfer-list a player to attract bids.'
                 : 'No loan negotiations in progress.'}
             </div>
           )}
@@ -213,9 +227,17 @@ export const NegotiationsBoard: React.FC<BoardProps> = ({ career, tab, daysToClo
                     : undefined
                 }
               >
-                <span className={`pl-[1vw] ${isFocused ? 'font-bold' : ''}`}>{p.primaryPosition}</span>
-                <span><ClubCrest club={career.clubs[p.clubId]} size={26} /></span>
-                <span className="h-full flex items-end overflow-hidden"><PlayerBust src={p.headshotUrl} alt={p.knownAs} /></span>
+                <span className={`h-full flex items-center justify-center ${isFocused ? '' : 'bg-black/15'}`}>
+                  <ClubCrest club={career.clubs[counterpartId(n)]} size={30} />
+                </span>
+                <span className="relative h-full flex items-end overflow-hidden">
+                  {ownPlayers && (
+                    <span className="absolute left-[0.4vw] top-1/2 -translate-y-1/2 font-display font-light text-white/20 text-[clamp(26px,2.6vw,50px)] leading-none">
+                      {p.jerseyNumber}
+                    </span>
+                  )}
+                  <span className="relative ml-auto"><PlayerBust src={p.headshotUrl} alt={p.knownAs} /></span>
+                </span>
                 <span className={`truncate pl-[0.6vw] ${isFocused ? 'font-bold' : ''}`}>{shortName(p)}</span>
                 <span className="flex justify-center">
                   <span className="relative inline-flex items-center justify-center w-[2.6vw] h-[2.6vw] min-w-[30px] min-h-[30px]">
@@ -261,15 +283,38 @@ export const NegotiationsBoard: React.FC<BoardProps> = ({ career, tab, daysToClo
               <div className="flex items-center gap-[1.4vw]">
                 <ClubCrest club={counterpartClub} size={58} />
                 <div className="min-w-0">
-                  <div className="text-white/75 text-[clamp(11px,1.02vw,19px)] truncate">{counterpartClub?.name ?? focused.n.counterpartClubName}</div>
+                  <div className="text-white/75 text-[clamp(11px,1.02vw,19px)] truncate">{counterpartClub?.name || focused.n.counterpartClubName}</div>
                   <div className="flex items-center gap-[0.8vw]">
                     <StatusGlyph n={focused.n} size="w-[1.7vw] h-[1.7vw] min-w-[20px] min-h-[20px]" />
                     <span className="font-expanded font-black text-[clamp(15px,1.6vw,30px)] truncate">{statusTitle(focused.n)}</span>
                   </div>
                 </div>
               </div>
-              <div className="my-[1.8vh] h-px bg-white/25" />
-              <p className="text-[clamp(12px,1.25vw,23px)] leading-snug">{focused.n.managerDialogue}</p>
+              <div className="mt-[2.4vh] grid grid-cols-2 gap-[2vw]">
+                {(focused.n.type === 'CONTRACT' || focused.n.stage === 'PLAYER_TALKS'
+                  ? ([
+                      ['Wage Demand', `${formatMoney(focused.n.askingWageEur, cur)}/wk`],
+                      ['Contract', `${focused.n.desiredYears} Years · ${focused.n.desiredRole}`],
+                    ] as const)
+                  : ([
+                      [focused.n.type === 'SELL' || focused.n.type === 'LOAN_OUT' ? 'Transfer Offer' : 'Asking Price', formatMoney(focused.n.askingFeeEur, cur)],
+                      [
+                        'Bonuses',
+                        [
+                          focused.n.currentOffer.achievementBonusEur ? `${formatMoney(focused.n.currentOffer.achievementBonusEur, cur)} Add-Ons` : '',
+                          focused.n.currentOffer.sellOnClausePct ? `${focused.n.currentOffer.sellOnClausePct}% Sell-On` : '',
+                        ]
+                          .filter(Boolean)
+                          .join(' · ') || 'No Bonuses',
+                      ],
+                    ] as const)
+                ).map(([label, value], i) => (
+                  <div key={label}>
+                    <div className="text-white/85 text-[clamp(12px,1.12vw,21px)]">{label}</div>
+                    <div className={`mt-[0.6vh] truncate ${i === 0 ? 'font-expanded font-black text-[clamp(22px,2.3vw,44px)]' : 'text-[clamp(16px,1.55vw,29px)]'}`}>{value}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </>

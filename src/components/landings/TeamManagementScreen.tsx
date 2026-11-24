@@ -2,7 +2,9 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Check } from 'lucide-react';
 import { FORMATIONS } from '../../engine/ratings';
 import { CareerState, Club, FormationId, Player, TacticalSlot } from '../../engine/types';
-import { LayerBackdrop, LayerHeader, PadGlyph, PagerDots, PlayerBust } from '../fc/HubCarousel';
+import { LayerBackdrop, LayerHeader, PadGlyph } from '../fc/HubCarousel';
+import { FullProfile } from '../squad/SquadHubScreen';
+import { accelerationType, heightLabel } from '../squad/playerFormat';
 
 /**
  * Squad › Team Management — Starting XI layer, 1:1 with
@@ -93,6 +95,7 @@ interface Props {
   onSwap: (a: number, b: number) => void;
   onFormation: (f: FormationId) => void;
   onBack: () => void;
+  onGoSquadHub: () => void;
 }
 
 export const TeamManagementScreen: React.FC<Props> = ({
@@ -107,12 +110,15 @@ export const TeamManagementScreen: React.FC<Props> = ({
   onSwap,
   onFormation,
   onBack,
+  onGoSquadHub,
 }) => {
   const [phase, setPhase] = useState<Phase>('WITHOUT_BALL');
   const [cursor, setCursor] = useState<Cursor>({ zone: 'pitch', slot: club.lineup.length - 1 });
   const [swapSource, setSwapSource] = useState<number | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [formationList, setFormationList] = useState<number | null>(null);
+  const [editingTactic, setEditingTactic] = useState(false);
+  const [profileFor, setProfileFor] = useState<number | null>(null);
   const benchScrollRef = useRef<HTMLDivElement>(null);
 
   const formations = Object.keys(FORMATIONS) as FormationId[];
@@ -123,13 +129,20 @@ export const TeamManagementScreen: React.FC<Props> = ({
     ...subs.map((p) => ({ p, kind: 'SUB' as const })),
     ...reserves.map((p) => ({ p, kind: 'RES' as const })),
   ];
+  const BENCH_COLS = 6;
+  /** Grid position of a bench index (subs and reserves are separate grids of 6 per row). */
+  const benchPos = (i: number) => {
+    const res = i >= subs.length;
+    const local = res ? i - subs.length : i;
+    return { res, row: Math.floor(local / BENCH_COLS), col: local % BENCH_COLS };
+  };
 
   const slotXY = (s: TacticalSlot) => (phase === 'WITH_BALL' ? [s.withBallX, s.withBallY] : [s.x, s.y]) as [number, number];
   const focusedPlayer: Player | undefined =
     cursor.zone === 'pitch'
       ? (club.lineup[cursor.slot]?.playerId ? career.players[club.lineup[cursor.slot].playerId!] : undefined)
       : bench[cursor.index]?.p;
-  const focusedSlot = cursor.zone === 'pitch' ? club.lineup[cursor.slot] : undefined;
+  const focusedSlot = cursor.zone === 'pitch' ? club.lineup[cursor.slot] : club.lineup.find((s) => s.playerId === focusedPlayer?.id);
 
   useEffect(() => {
     if (!notice) return;
@@ -137,12 +150,9 @@ export const TeamManagementScreen: React.FC<Props> = ({
     return () => window.clearTimeout(t);
   }, [notice]);
 
-  // Keep the focused bench card in view.
   useLayoutEffect(() => {
     if (cursor.zone !== 'bench') return;
-    benchScrollRef.current
-      ?.querySelector<HTMLElement>(`[data-bench-index="${cursor.index}"]`)
-      ?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    benchScrollRef.current?.querySelector<HTMLElement>(`[data-bench-index="${cursor.index}"]`)?.scrollIntoView({ block: 'nearest' });
   }, [cursor]);
 
   // ---- actions -------------------------------------------------------------
@@ -162,7 +172,6 @@ export const TeamManagementScreen: React.FC<Props> = ({
     const srcOnBench = club.benchIds.includes(swapSource);
     const tgtOnBench = club.benchIds.includes(target.id);
     if (!srcInXI && !tgtInXI && srcOnBench === tgtOnBench) {
-      // Two substitutes (or two reserves) have no positions to exchange.
       setNotice('Pick a player from the Starting XI (or a sub ↔ reserve) to swap with.');
       setSwapSource(null);
       return;
@@ -173,24 +182,35 @@ export const TeamManagementScreen: React.FC<Props> = ({
 
   const move = (dir: 'up' | 'down' | 'left' | 'right') => {
     if (cursor.zone === 'bench') {
-      if (dir === 'left') setCursor({ zone: 'bench', index: Math.max(0, cursor.index - 1) });
-      else if (dir === 'right') setCursor({ zone: 'bench', index: Math.min(bench.length - 1, cursor.index + 1) });
-      else if (dir === 'up') {
-        // Back onto the pitch: nearest deep-lying token to the card's horizontal position.
-        const el = benchScrollRef.current?.querySelector<HTMLElement>(`[data-bench-index="${cursor.index}"]`);
-        const box = benchScrollRef.current?.getBoundingClientRect();
-        const cardX = el && box ? ((el.getBoundingClientRect().left + el.offsetWidth / 2) / window.innerWidth) * 100 : 50;
-        let best = 0;
-        let bestScore = Infinity;
-        club.lineup.forEach((s, i) => {
-          const [x, y] = slotXY(s);
-          const score = Math.abs(x - cardX) + (100 - y) * 1.4;
-          if (score < bestScore) {
-            bestScore = score;
-            best = i;
-          }
-        });
-        setCursor({ zone: 'pitch', slot: best });
+      const { res, row, col } = benchPos(cursor.index);
+      const groupStart = res ? subs.length : 0;
+      const groupLen = res ? reserves.length : subs.length;
+      const local = cursor.index - groupStart;
+      if (dir === 'left') setCursor({ zone: 'bench', index: Math.max(groupStart, cursor.index - 1) });
+      else if (dir === 'right') setCursor({ zone: 'bench', index: Math.min(groupStart + groupLen - 1, cursor.index + 1) });
+      else if (dir === 'down') {
+        if (local + BENCH_COLS < groupLen) setCursor({ zone: 'bench', index: cursor.index + BENCH_COLS });
+        else if (!res && reserves.length) setCursor({ zone: 'bench', index: subs.length + Math.min(col, reserves.length - 1) });
+      } else if (dir === 'up') {
+        if (row > 0) setCursor({ zone: 'bench', index: cursor.index - BENCH_COLS });
+        else if (res && subs.length) {
+          const lastRow = Math.floor((subs.length - 1) / BENCH_COLS);
+          setCursor({ zone: 'bench', index: Math.min(subs.length - 1, lastRow * BENCH_COLS + col) });
+        } else {
+          // Back onto the pitch: deepest token nearest this column.
+          const colX = ((col + 0.5) / BENCH_COLS) * 100;
+          let best = 0;
+          let bestScore = Infinity;
+          club.lineup.forEach((s, i) => {
+            const [x, y] = slotXY(s);
+            const score = Math.abs(x - colX) + (100 - y) * 1.4;
+            if (score < bestScore) {
+              bestScore = score;
+              best = i;
+            }
+          });
+          setCursor({ zone: 'pitch', slot: best });
+        }
       }
       return;
     }
@@ -213,7 +233,7 @@ export const TeamManagementScreen: React.FC<Props> = ({
     });
     if (best >= 0) setCursor({ zone: 'pitch', slot: best });
     else if (dir === 'down' && bench.length) {
-      setCursor({ zone: 'bench', index: Math.min(bench.length - 1, Math.round((cx / 100) * Math.min(bench.length - 1, 9))) });
+      setCursor({ zone: 'bench', index: Math.min(subs.length - 1, Math.round((cx / 100) * (BENCH_COLS - 1))) });
     }
   };
 
@@ -230,13 +250,18 @@ export const TeamManagementScreen: React.FC<Props> = ({
     };
     const dir =
       k === 'w' || k === 'ArrowUp' ? 'up' : k === 's' || k === 'ArrowDown' ? 'down' : k === 'a' || k === 'ArrowLeft' ? 'left' : k === 'd' || k === 'ArrowRight' ? 'right' : null;
-    const isConfirm = k === ' ' || k === 'Enter';
+    const isConfirm = (k === ' ' || k === 'Enter') && !e.repeat;
     const isBack = k === 'Escape' || k === 'b';
 
+    if (profileFor !== null) {
+      swallow();
+      if (isBack || k === 't') setProfileFor(null);
+      return;
+    }
     if (formationList !== null) {
       swallow();
       if (isBack) setFormationList(null);
-      else if (isConfirm && !e.repeat) {
+      else if (isConfirm) {
         onFormation(formations[formationList]);
         setFormationList(null);
         setSwapSource(null);
@@ -246,19 +271,34 @@ export const TeamManagementScreen: React.FC<Props> = ({
       }
       return;
     }
-
     if (k === 'q' || k === '[' || k === 'e' || k === ']') {
       swallow();
       const d = k === 'q' || k === '[' ? -1 : 1;
       onSection(SECTIONS[(SECTIONS.indexOf(section) + d + SECTIONS.length) % SECTIONS.length]);
       setSwapSource(null);
+      setEditingTactic(false);
       return;
     }
     if (/^[1-8]$/.test(k)) return swallow();
     if (isBack) {
       swallow();
-      if (swapSource !== null) setSwapSource(null);
+      if (editingTactic) setEditingTactic(false);
+      else if (swapSource !== null) setSwapSource(null);
       else onBack();
+      return;
+    }
+
+    if (section === 'Tactics' && !editingTactic) {
+      if (isConfirm) {
+        swallow();
+        setEditingTactic(true);
+      } else if (k === 'r') {
+        swallow();
+        setPhase((p) => (p === 'WITH_BALL' ? 'WITHOUT_BALL' : 'WITH_BALL'));
+      } else if (k === 't' || k === 'y') {
+        swallow();
+        setFormationList(Math.max(0, formations.indexOf(club.formation)));
+      }
       return;
     }
     if (section !== 'Squad') return;
@@ -266,18 +306,22 @@ export const TeamManagementScreen: React.FC<Props> = ({
     if (dir) {
       swallow();
       move(dir);
-    } else if (isConfirm && !e.repeat) {
+    } else if (isConfirm) {
       swallow();
       confirm();
-    } else if (k === 'r') {
+    } else if (k === 'c') {
       swallow();
       setPhase((p) => (p === 'WITH_BALL' ? 'WITHOUT_BALL' : 'WITH_BALL'));
     } else if (k === 'f') {
       swallow();
       onSection('Tactics');
-    } else if (k === 't' || k === 'y') {
+      setEditingTactic(true);
+    } else if (k === 't' && focusedPlayer) {
       swallow();
-      setFormationList(Math.max(0, formations.indexOf(club.formation)));
+      setProfileFor(focusedPlayer.id);
+    } else if (k === 'r') {
+      swallow();
+      onGoSquadHub();
     }
   };
   useEffect(() => {
@@ -286,7 +330,14 @@ export const TeamManagementScreen: React.FC<Props> = ({
     return () => window.removeEventListener('keydown', onKey, true);
   }, []);
 
-  const swapName = swapSource !== null ? career.players[swapSource]?.knownAs : null;
+  const benchFocused = cursor.zone === 'bench';
+  const profilePlayer = profileFor !== null ? career.players[profileFor] : undefined;
+
+  const tokenProps = (p: Player) => ({
+    focused: focusedPlayer?.id === p.id,
+    swapSource: swapSource === p.id,
+    captain: club.captainId === p.id,
+  });
 
   return (
     <div className="fixed inset-0 z-40 overflow-hidden text-white select-none">
@@ -299,23 +350,110 @@ export const TeamManagementScreen: React.FC<Props> = ({
         onTab={(t) => {
           onSection(t as MgmtSection);
           setSwapSource(null);
+          setEditingTactic(false);
         }}
       />
 
-      {section !== 'Squad' && (
-        <div className="absolute inset-x-0 top-[13vh] bottom-[7vh] overflow-y-auto px-[5vw] pb-[2vh]">
-          <div className="mx-auto max-w-[1560px]">{section === 'Tactics' ? tacticsContent : assignmentsContent}</div>
-        </div>
-      )}
-
+      {/* ============================================ SQUAD (image (2) + bench-focus capture) */}
       {section === 'Squad' && (
         <>
-          {/* Tactic preset: name · code · Active */}
-          <div className="absolute inset-x-0 top-[12vh] text-center">
-            <h1 className="font-expanded font-black uppercase tracking-[0.01em] text-[clamp(24px,2.55vw,48px)] leading-none">
-              {club.name} Default
-            </h1>
-            <div className="mt-[1.4vh] flex items-center justify-center gap-[1.3vw] text-[clamp(12px,1vw,19px)]">
+          <div
+            className="absolute left-[4.7vw] top-[12.4vh] w-[52vw] h-[46vh] transition-[filter,opacity] duration-300"
+            style={benchFocused ? { filter: 'saturate(0.25) brightness(0.75)', opacity: 0.45 } : undefined}
+          >
+            <GreenPitch />
+            {club.lineup.map((slot, i) => {
+              const p = slot.playerId ? career.players[slot.playerId] : null;
+              if (!p) return null;
+              const [x, y] = slotXY(slot);
+              const [lx, ly] = flatPitchPct(x, y);
+              return (
+                <div
+                  key={slot.slotIndex}
+                  className="absolute -translate-x-1/2 -translate-y-[62%] transition-[left,top] duration-500 ease-out"
+                  style={{ left: `${lx}%`, top: `${ly}%` }}
+                >
+                  <BustToken
+                    player={p}
+                    position={slot.position}
+                    size="pitch"
+                    {...tokenProps(p)}
+                    onHover={() => setCursor({ zone: 'pitch', slot: i })}
+                    onClick={() => {
+                      const already = cursor.zone === 'pitch' && cursor.slot === i;
+                      setCursor({ zone: 'pitch', slot: i });
+                      if (already) confirm();
+                    }}
+                  />
+                </div>
+              );
+            })}
+          </div>
+          {!benchFocused && (
+            <div className="absolute left-[4.7vw] top-[59.4vh] flex items-center gap-[1.2vw] text-[clamp(12px,1.02vw,19px)]">
+              <span>{phase === 'WITH_BALL' ? 'With Ball' : 'Without Ball'}</span>
+              <button type="button" onClick={() => setPhase((p) => (p === 'WITH_BALL' ? 'WITHOUT_BALL' : 'WITH_BALL'))} className="flex items-center gap-[0.4vw] text-white/80">
+                <span className="inline-flex items-center justify-center rounded-full bg-white/25 font-bold w-[clamp(16px,1.25vw,24px)] h-[clamp(16px,1.25vw,24px)] text-[clamp(8px,0.65vw,12px)]">C</span>
+                Switch View
+              </button>
+            </div>
+          )}
+
+          {/* Substitutes / Reserves panel: slides up over the pitch when the cursor is in it */}
+          <div
+            className="absolute left-[4.7vw] w-[52vw] bottom-[8.6vh] rounded-[6px] px-[1.7vw] pt-[2.4vh] transition-[top] duration-300 ease-out"
+            style={{ top: benchFocused ? '41.2vh' : '63.6vh', background: 'rgba(30,42,62,0.92)' }}
+          >
+            <div ref={benchScrollRef} className="h-full overflow-y-auto pb-[2vh]">
+              {(
+                [
+                  ['Substitutes', subs, 0],
+                  ['Reserves', reserves, subs.length],
+                ] as const
+              ).map(([title, list, offset]) =>
+                list.length ? (
+                  <div key={title} className="mb-[2.4vh]">
+                    <div className="font-bold text-[#38f2c8] text-[clamp(13px,1.15vw,22px)]">{title}</div>
+                    <div className="mt-[1.4vh] grid grid-cols-6 gap-y-[2.6vh]">
+                      {list.map((p, j) => (
+                        <div key={p.id} data-bench-index={offset + j} className="flex justify-center">
+                          <BustToken
+                            player={p}
+                            position={p.primaryPosition}
+                            size="bench"
+                            {...tokenProps(p)}
+                            onHover={() => setCursor({ zone: 'bench', index: offset + j })}
+                            onClick={() => {
+                              const already = cursor.zone === 'bench' && cursor.index === offset + j;
+                              setCursor({ zone: 'bench', index: offset + j });
+                              if (already) confirm();
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null
+              )}
+            </div>
+          </div>
+
+          {focusedPlayer && (
+            <PlayerDetailPanel
+              p={focusedPlayer}
+              slot={focusedSlot}
+              notice={swapSource !== null ? `Swapping ${career.players[swapSource]?.knownAs ?? ''} — pick a player and press ✕` : notice}
+            />
+          )}
+        </>
+      )}
+
+      {/* ============================================ TACTICS (image (5)) */}
+      {section === 'Tactics' && !editingTactic && (
+        <>
+          <div className="absolute inset-x-0 top-[13.4vh] text-center">
+            <h1 className="font-expanded font-black uppercase tracking-[0.01em] text-[clamp(24px,2.55vw,48px)] leading-none">{club.name} Default</h1>
+            <div className="mt-[1.6vh] flex items-center justify-center gap-[1.3vw] text-[clamp(12px,1vw,19px)]">
               <span className="text-white/70">Code: {tacticCode}</span>
               <span className="inline-flex items-center gap-[0.4vw] text-[#3fe07a]">
                 <span className="inline-flex items-center justify-center rounded-full bg-[#3fe07a] w-[1.15vw] h-[1.15vw] min-w-[15px] min-h-[15px]">
@@ -325,41 +463,13 @@ export const TeamManagementScreen: React.FC<Props> = ({
               </span>
             </div>
           </div>
-
-          {/* Left: tactic summary (image (6) list style) */}
-          <div className="absolute left-[4.2vw] top-[30vh] w-[19vw]">
-            {[
-              ['Formation', club.formation.toUpperCase()],
-              ['Tactical Vision', club.tacticalVision.toUpperCase()],
-              ['Build-Up Style', (BUILD_UP[club.tacticalVision] ?? 'Balanced').toUpperCase()],
-              ['Defensive Approach', lineLabel(club.defensiveLineHeight).toUpperCase()],
-            ].map(([label, value]) => (
-              <div key={label} className="flex items-center justify-between border-b border-white/15 py-[2.1vh]">
-                <span className="text-white text-[clamp(12px,1.1vw,20px)]">{label}</span>
-                <span className="font-bold tracking-wide text-[clamp(11px,0.98vw,18px)] text-right">{value}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Pitch */}
-          <div className="absolute left-1/2 top-[29vh] -translate-x-1/2 w-[50vw]" style={{ aspectRatio: `${VB_W} / ${VB_H}` }}>
+          <div className="absolute left-1/2 top-[31vh] -translate-x-1/2 w-[41.5vw]" style={{ aspectRatio: `${VB_W} / ${VB_H}` }}>
             <PitchTurf />
-            {/* Without / With Ball pager */}
-            <div className="absolute right-0 -top-[7.4vh] flex flex-col items-end gap-[0.6vh]">
-              <span className="font-medium text-[clamp(14px,1.35vw,26px)]">{phase === 'WITH_BALL' ? 'With Ball' : 'Without Ball'}</span>
-              <PagerDots
-                count={2}
-                index={phase === 'WITH_BALL' ? 1 : 0}
-                onCycle={() => setPhase((p) => (p === 'WITH_BALL' ? 'WITHOUT_BALL' : 'WITH_BALL'))}
-              />
-            </div>
-
-            {club.lineup.map((slot, i) => {
+            {club.lineup.map((slot) => {
               const p = slot.playerId ? career.players[slot.playerId] : null;
               if (!p) return null;
               const [x, y] = slotXY(slot);
               const [lx, ly] = slotPct(x, y);
-              const focused = cursor.zone === 'pitch' && cursor.slot === i;
               return (
                 <RoleCard
                   key={slot.slotIndex}
@@ -367,145 +477,78 @@ export const TeamManagementScreen: React.FC<Props> = ({
                   slot={slot}
                   leftPct={lx}
                   topPct={ly}
-                  focused={focused}
-                  swapSource={swapSource === p.id}
+                  focused={false}
+                  swapSource={false}
                   captain={club.captainId === p.id}
-                  onHover={() => setCursor({ zone: 'pitch', slot: i })}
-                  onClick={() => {
-                    setCursor({ zone: 'pitch', slot: i });
-                    if (focused) confirm();
-                  }}
+                  onHover={() => {}}
+                  onClick={() => setEditingTactic(true)}
                 />
               );
             })}
           </div>
-
-          {/* Right: focused player readout */}
-          {focusedPlayer && (
-            <div className="absolute right-[4.2vw] top-[30vh] w-[18vw]">
-              <div className="text-[#8ff0cd] font-bold text-[clamp(11px,0.95vw,18px)]">
-                {focusedSlot ? `${focusedSlot.position} · ${focusedSlot.roleTitle || focusedPlayer.roleTitle}` : `${focusedPlayer.primaryPosition} · ${bench[(cursor as { index: number }).index]?.kind === 'SUB' ? 'Substitute' : 'Reserve'}`}
+          <div className="absolute left-1/2 top-[72.6vh] -translate-x-1/2 grid grid-cols-3 w-[39vw] text-center">
+            {(
+              [
+                ['Formation', club.formation.toUpperCase()],
+                ['Build-Up Style', BUILD_UP[club.tacticalVision] ?? 'Balanced'],
+                ['Defensive Approach', lineLabel(club.defensiveLineHeight)],
+              ] as const
+            ).map(([label, value]) => (
+              <div key={label}>
+                <div className="text-white/85 text-[clamp(12px,1.02vw,19px)]">{label}</div>
+                <div className="mt-[2vh] font-bold text-[clamp(18px,1.68vw,32px)]">{value}</div>
               </div>
-              <div className="mt-[0.6vh] flex items-center justify-between gap-[1vw]">
-                <span className="font-bold truncate text-[clamp(18px,1.7vw,32px)]">{focusedPlayer.knownAs}</span>
-                <OvrDiamond ovr={focusedPlayer.dynamicOvr.dynamicOvr} delta={focusedPlayer.dynamicOvr.totalDelta} size="lg" />
-              </div>
-              {(
-                [
-                  ['Form', focusedPlayer.dynamicOvr.formLabel, focusedPlayer.dynamicOvr.formDelta],
-                  ['Morale', focusedPlayer.dynamicOvr.moraleLabel, focusedPlayer.dynamicOvr.moraleDelta],
-                  ['Match Fitness', `${focusedPlayer.matchFitness}%`, focusedPlayer.dynamicOvr.fitnessDelta],
-                ] as const
-              ).map(([label, value, d]) => (
-                <div key={label} className="flex items-center justify-between border-b border-white/15 py-[1.6vh] text-[clamp(12px,1.02vw,19px)]">
-                  <span className="text-white/75">{label}</span>
-                  <span>
-                    {value}
-                    <span className="ml-[0.6vw] font-bold" style={{ color: deltaTone(d) }}>
-                      {d > 0 ? `+${d}` : d} OVR
-                    </span>
-                  </span>
-                </div>
-              ))}
-              <div className="mt-[2vh] min-h-[6vh] text-[clamp(11px,0.95vw,18px)]">
-                {swapName ? (
-                  <span className="text-amber-200">
-                    Swapping <strong className="text-white">{swapName}</strong> — move to a player and press ✕
-                  </span>
-                ) : notice ? (
-                  <span className="text-amber-200">{notice}</span>
-                ) : (
-                  <span className="text-white/55">Press ✕ to pick this player for a swap</span>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Substitutes & Reserves ribbon */}
-          <div className="absolute left-[4.2vw] right-[4.2vw] top-[74vh]">
-            <div className="flex items-baseline gap-[1.2vw] text-[clamp(11px,0.95vw,18px)] font-bold">
-              <span className="text-[#38f2c8]">Substitutes ({subs.length})</span>
-              <span className="text-white/45">Reserves ({reserves.length})</span>
-            </div>
-            <div ref={benchScrollRef} className="mt-[1vh] flex gap-[0.7vw] overflow-x-auto pb-[0.8vh] pt-[0.8vh] px-[0.4vw]">
-              {bench.map(({ p, kind }, i) => {
-                const focused = cursor.zone === 'bench' && cursor.index === i;
-                const isSrc = swapSource === p.id;
-                const firstReserve = kind === 'RES' && (i === 0 || bench[i - 1].kind === 'SUB');
-                return (
-                  <React.Fragment key={p.id}>
-                    {firstReserve && <div className="shrink-0 w-px self-stretch bg-white/25 mx-[0.4vw]" aria-hidden />}
-                    <button
-                      type="button"
-                      data-bench-index={i}
-                      onMouseEnter={() => setCursor({ zone: 'bench', index: i })}
-                      onClick={() => {
-                        setCursor({ zone: 'bench', index: i });
-                        if (focused) confirm();
-                      }}
-                      className={`relative shrink-0 w-[7.2vw] min-w-[92px] rounded-[5px] px-[0.5vw] pt-[0.7vh] pb-[1vh] text-left transition-all duration-150 ${
-                        kind === 'RES' && !focused && !isSrc ? 'opacity-75' : ''
-                      }`}
-                      style={{
-                        background: focused
-                          ? 'linear-gradient(158deg, rgba(128,146,176,0.66), rgba(80,98,130,0.6) 50%, rgba(112,106,154,0.58))'
-                          : isSrc
-                          ? 'linear-gradient(158deg, rgba(180,140,60,0.45), rgba(60,52,40,0.7))'
-                          : 'linear-gradient(180deg, rgba(42,57,82,0.86), rgba(30,42,62,0.9))',
-                        border: focused ? '2px solid rgba(232,238,255,0.85)' : isSrc ? '2px solid #f5c344' : '1px solid rgba(255,255,255,0.06)',
-                        boxShadow: focused ? '0 0 20px rgba(196,210,255,0.35)' : 'none',
-                      }}
-                    >
-                      <div className="flex items-center justify-between font-bold text-[clamp(10px,0.85vw,16px)]">
-                        <span className="text-white/80">{p.primaryPosition}</span>
-                        <span style={{ color: deltaTone(p.dynamicOvr.totalDelta) }}>{p.dynamicOvr.dynamicOvr}</span>
-                      </div>
-                      <div className="flex justify-center -mt-[0.2vh]">
-                        <PlayerBust src={p.headshotUrl} alt={p.knownAs} />
-                      </div>
-                      <div className="mt-[0.4vh] truncate text-center font-bold uppercase text-[clamp(9px,0.72vw,13px)]">
-                        {p.jerseyName || p.knownAs}
-                      </div>
-                      <div className="mt-[0.6vh] h-[3px] rounded-full bg-white/15 overflow-hidden">
-                        <div
-                          className={`h-full ${p.matchFitness >= 78 ? 'bg-[#38f2c8]' : p.matchFitness >= 58 ? 'bg-amber-400' : 'bg-rose-500'}`}
-                          style={{ width: `${p.matchFitness}%` }}
-                        />
-                      </div>
-                      {isSrc && (
-                        <span className="absolute -top-[1.1vh] left-1/2 -translate-x-1/2 rounded bg-[#f5c344] px-[0.4vw] text-[clamp(8px,0.6vw,11px)] font-black text-[#1a1406]">
-                          SWAP
-                        </span>
-                      )}
-                    </button>
-                  </React.Fragment>
-                );
-              })}
-            </div>
+            ))}
           </div>
+          <button
+            type="button"
+            onClick={() => setEditingTactic(true)}
+            className="absolute left-1/2 top-[85.8vh] -translate-x-1/2 h-[5.9vh] min-h-[40px] px-[1.6vw] rounded-[5px] flex items-center gap-[0.8vw] font-bold text-[#141824] text-[clamp(14px,1.25vw,24px)]"
+            style={{ background: 'linear-gradient(90deg, #d4fff4 0%, #ece2ff 60%, #e6d9ff 100%)', boxShadow: '0 0 26px rgba(214,200,255,0.55)' }}
+          >
+            <PadGlyph shape="cross" dark /> Edit Tactic
+          </button>
         </>
       )}
 
-      {/* Console controller bar */}
+      {((section === 'Tactics' && editingTactic) || section === 'Assignments') && (
+        <div className="absolute inset-x-0 top-[13vh] bottom-[7vh] overflow-y-auto px-[5vw] pb-[2vh]">
+          <div className="mx-auto max-w-[1560px]">{section === 'Tactics' ? tacticsContent : assignmentsContent}</div>
+        </div>
+      )}
+
+      {/* ============================================ Controller bar */}
       <div className="absolute left-[2vw] bottom-[2vh] flex flex-wrap items-center gap-[2vw] text-white/90 text-[clamp(12px,1vw,19px)]">
         {section === 'Squad' && (
-          <span className="flex items-center gap-[0.5vw]">
-            <PadGlyph shape="cross" /> Select / Swap
-          </span>
+          <span className="flex items-center gap-[0.5vw]"><PadGlyph shape="cross" /> Select / Swap</span>
         )}
-        <button type="button" onClick={() => (swapSource !== null ? setSwapSource(null) : onBack())} className="flex items-center gap-[0.5vw]">
+        {section === 'Tactics' && !editingTactic && (
+          <button type="button" onClick={() => setEditingTactic(true)} className="flex items-center gap-[0.5vw]"><PadGlyph shape="cross" /> Edit Tactic</button>
+        )}
+        <button
+          type="button"
+          onClick={() => (editingTactic ? setEditingTactic(false) : swapSource !== null ? setSwapSource(null) : onBack())}
+          className="flex items-center gap-[0.5vw]"
+        >
           <PadGlyph shape="circle" /> Back
         </button>
         {section === 'Squad' && (
           <>
-            <button type="button" onClick={() => onSection('Tactics')} className="flex items-center gap-[0.5vw]">
-              <PadGlyph shape="square" /> Tactic Details
+            <button type="button" onClick={() => { onSection('Tactics'); setEditingTactic(true); }} className="flex items-center gap-[0.5vw]">
+              <PadGlyph shape="square" /> Edit Active Tactic
             </button>
-            <button
-              type="button"
-              onClick={() => setFormationList(Math.max(0, formations.indexOf(club.formation)))}
-              className="flex items-center gap-[0.5vw]"
-            >
+            <button type="button" onClick={() => focusedPlayer && setProfileFor(focusedPlayer.id)} className="flex items-center gap-[0.5vw]">
+              <PadGlyph shape="triangle" /> Full Profile
+            </button>
+            <button type="button" onClick={onGoSquadHub} className="flex items-center gap-[0.5vw]">
+              <span className="inline-flex items-center justify-center rounded-full bg-white/25 font-bold w-[clamp(18px,1.4vw,26px)] h-[clamp(18px,1.4vw,26px)] text-[clamp(9px,0.72vw,14px)]">R</span>
+              Go to Squad Hub
+            </button>
+          </>
+        )}
+        {section === 'Tactics' && !editingTactic && (
+          <>
+            <button type="button" onClick={() => setFormationList(Math.max(0, formations.indexOf(club.formation)))} className="flex items-center gap-[0.5vw]">
               <PadGlyph shape="triangle" /> Formation List
             </button>
             <span className="flex items-center gap-[0.5vw] text-white/70">
@@ -537,11 +580,7 @@ export const TeamManagementScreen: React.FC<Props> = ({
                   className={`flex items-center gap-[0.8vw] rounded-[5px] px-[1.4vw] h-[clamp(40px,6vh,58px)] min-w-[18vw] text-[clamp(13px,1.1vw,21px)] ${
                     focused ? 'font-bold text-[#141824]' : 'text-white border border-white/25 bg-black/80'
                   }`}
-                  style={
-                    focused
-                      ? { background: 'linear-gradient(90deg, #d4fff4 0%, #ece2ff 55%, #e6d9ff 100%)', boxShadow: '0 0 22px rgba(214,200,255,0.45)' }
-                      : undefined
-                  }
+                  style={focused ? { background: 'linear-gradient(90deg, #d4fff4 0%, #ece2ff 55%, #e6d9ff 100%)', boxShadow: '0 0 22px rgba(214,200,255,0.45)' } : undefined}
                 >
                   {focused && <PadGlyph shape="cross" dark />}
                   {f}
@@ -552,6 +591,209 @@ export const TeamManagementScreen: React.FC<Props> = ({
           </div>
         </div>
       )}
+
+      {profilePlayer && <FullProfile career={career} p={profilePlayer} onClose={() => setProfileFor(null)} />}
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// Squad tab: flat green pitch, headshot tokens and the player detail panel
+// ---------------------------------------------------------------------------
+/** Gentle perspective for the Squad-tab pitch (top edge 82% of the bottom edge). */
+function flatPitchPct(x: number, y: number): [number, number] {
+  const t = Math.min(1, Math.max(0, (y - 8) / 86));
+  const half = 41 + t * 8;
+  return [50 + ((x - 50) / 50) * half * 0.94, 7 + t * 86];
+}
+
+const GreenPitch: React.FC = () => {
+  const P = (x: number, y: number) => {
+    const t = y / 100;
+    const half = 41 + t * 8;
+    return `${50 + ((x - 50) / 50) * half},${2 + t * 96}`;
+  };
+  const poly = (pts: [number, number][]) => pts.map(([x, y]) => P(x, y)).join(' ');
+  return (
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full" aria-hidden>
+      <defs>
+        <clipPath id="tm-turf">
+          <polygon points={poly([[0, 0], [100, 0], [100, 100], [0, 100]])} />
+        </clipPath>
+      </defs>
+      <g clipPath="url(#tm-turf)">
+        {Array.from({ length: 10 }, (_, i) => (
+          <rect key={i} x="0" y={i * 10} width="100" height="10" fill={i % 2 ? '#1d7a4c' : '#22875a'} />
+        ))}
+      </g>
+      <g fill="none" stroke="rgba(235,255,240,0.55)" strokeWidth="0.35" vectorEffect="non-scaling-stroke">
+        <polygon points={poly([[0, 0], [100, 0], [100, 100], [0, 100]])} />
+        <polyline points={poly([[0, 50], [100, 50]])} />
+        <polyline points={poly([[30, 0], [30, 16], [70, 16], [70, 0]])} />
+        <polyline points={poly([[30, 100], [30, 84], [70, 84], [70, 100]])} />
+        <polyline points={poly([[42, 0], [42, 6], [58, 6], [58, 0]])} />
+        <polyline points={poly([[42, 100], [42, 94], [58, 94], [58, 100]])} />
+        <polyline points={poly(Array.from({ length: 33 }, (_, i) => [50 + 11 * Math.cos((i / 32) * Math.PI * 2), 50 + 13 * Math.sin((i / 32) * Math.PI * 2)] as [number, number]))} />
+      </g>
+    </svg>
+  );
+};
+
+/** Headshot token: position + OVR, bust, fitness bar and name (pill when focused). */
+const BustToken: React.FC<{
+  player: Player;
+  position: string;
+  size: 'pitch' | 'bench';
+  focused: boolean;
+  swapSource: boolean;
+  captain: boolean;
+  onHover: () => void;
+  onClick: () => void;
+}> = ({ player, position, size, focused, swapSource, captain, onHover, onClick }) => {
+  const d = player.dynamicOvr;
+  const fit = player.matchFitness;
+  const bustH = size === 'pitch' ? 'h-[6.6vh]' : 'h-[6.2vh]';
+  return (
+    <button type="button" onMouseEnter={onHover} onClick={onClick} className="relative flex flex-col items-center w-[7.6vw] min-w-[86px]" aria-label={`${player.knownAs}, ${position}`}>
+      <div className="relative flex items-end">
+        <span className={`absolute -left-[1.6vw] bottom-[0.6vh] font-bold text-[clamp(9px,0.78vw,15px)] ${d.positionPenalty < 0 ? 'text-amber-300' : 'text-white/90'}`}>{position}</span>
+        {player.headshotUrl ? (
+          <img src={player.headshotUrl} alt="" className={`${bustH} w-auto object-contain object-bottom`} />
+        ) : (
+          <svg viewBox="0 0 100 92" className={`${bustH} w-auto`}>
+            <ellipse cx="50" cy="34" rx="19" ry="23" fill="rgba(214,222,234,0.35)" />
+            <path d="M8 92 C10 66 28 58 50 58 C72 58 90 66 92 92 Z" fill="rgba(214,222,234,0.28)" />
+          </svg>
+        )}
+        <span
+          className="absolute -right-[1.9vw] top-[0.4vh] font-expanded font-black text-[clamp(12px,1.12vw,21px)]"
+          style={{ color: d.totalDelta > 0 ? '#38f2c8' : d.totalDelta < 0 ? '#ff8a7a' : '#fff' }}
+        >
+          {d.dynamicOvr}
+        </span>
+      </div>
+      <span className="w-[5.2vw] min-w-[56px] h-[3px] rounded-full bg-black/40 overflow-hidden">
+        <span className="block h-full" style={{ width: `${fit}%`, background: fit >= 78 ? '#3fe07a' : fit >= 58 ? '#f5c344' : '#ff5a4f' }} />
+      </span>
+      <span
+        className={`mt-[0.5vh] flex items-center gap-[0.3vw] rounded-full font-expanded font-black uppercase whitespace-nowrap text-[clamp(8px,0.7vw,13px)] ${
+          focused ? 'bg-white text-[#141824] px-[0.5vw] py-[0.15vh]' : swapSource ? 'bg-[#f5c344] text-[#1a1406] px-[0.5vw] py-[0.15vh]' : ''
+        }`}
+      >
+        {focused && <PadGlyph shape="cross" dark />}
+        {captain && <span className={`rounded-[2px] px-[0.2vw] ${focused ? 'bg-[#141824] text-white' : 'bg-[#f5c344] text-[#141824]'}`}>C</span>}
+        {(player.jerseyName || player.knownAs.split(' ').slice(-1)[0]).slice(0, 14)}
+      </span>
+    </button>
+  );
+};
+
+const PlayerDetailPanel: React.FC<{ p: Player; slot?: TacticalSlot; notice: string | null }> = ({ p, slot, notice }) => {
+  const d = p.dynamicOvr;
+  const fitnessLabel = p.matchFitness >= 85 ? 'Sharp' : p.matchFitness >= 70 ? 'Fit' : p.matchFitness >= 55 ? 'Tired' : 'Exhausted';
+  const readiness = p.injury ? `Injured · ${p.injury.daysRemaining}d` : p.matchFitness < 60 ? 'Tired' : 'Ready to Play';
+  const facets: [string, keyof Player['cardFacets']][] = [
+    ['Pace', 'pac'],
+    ['Shooting', 'sho'],
+    ['Passing', 'pas'],
+    ['Dribbling', 'dri'],
+    ['Defending', 'def'],
+    ['Physical', 'phy'],
+  ];
+  const bio: [string, React.ReactNode][] = [
+    ['Age', p.age],
+    ['Height', heightLabel(p.heightCm)],
+    ['Role', slot?.roleTitle || '-'],
+    ['Focus', slot?.focus || '-'],
+    ['Acceleration T', accelerationType(p)],
+    ['Foot', p.preferredFoot],
+  ];
+  const stars = (n: number) => (
+    <span className="tracking-[0.05em]">
+      <span className="text-[#d9b45a]">{'★'.repeat(n)}</span>
+      <span className="text-white/25">{'★'.repeat(Math.max(0, 5 - n))}</span>
+    </span>
+  );
+  const chip = (label: string, delta: number) => (
+    <span className="flex items-center gap-[0.5vw]">
+      <span className="text-white/80">{label}</span>
+      <span className="rounded-[3px] bg-white/10 px-[0.4vw] text-[0.9em]" style={{ color: deltaTone(delta) === 'rgba(255,255,255,0.85)' ? undefined : deltaTone(delta) }}>
+        {delta > 0 ? `+${delta}` : delta} OVR
+      </span>
+    </span>
+  );
+  return (
+    <div className="absolute left-[59.3vw] right-[4.8vw] top-[12.7vh] bottom-[8.6vh] rounded-[6px] px-[2.4vw] pt-[2.6vh]" style={{ background: 'rgba(32,44,64,0.9)' }}>
+      <div className="flex items-end gap-[1.4vw] border-b border-white/15 pb-[1vh]">
+        <div className="shrink-0 h-[10.4vh] w-[6.7vw] flex items-end justify-center overflow-hidden">
+          {p.headshotUrl && <img src={p.headshotUrl} alt="" className="h-full w-auto object-contain object-bottom" />}
+        </div>
+        <div className="flex-1 min-w-0 pb-[0.6vh]">
+          <div className="text-white/60 text-[clamp(11px,1vw,19px)]">{[p.primaryPosition, ...p.otherPositions.slice(0, 2)].join(' • ')}</div>
+          <div className="flex items-center gap-[0.5vw]">
+            <span className="inline-flex items-center justify-center rounded-[2px] bg-white/85 px-[0.25vw] text-[#1a2230] font-bold text-[clamp(8px,0.62vw,12px)]">{p.nationality.slice(0, 3).toUpperCase()}</span>
+            <span className="font-expanded font-black uppercase truncate text-[clamp(15px,1.4vw,27px)]">{p.knownAs.split(' ').slice(-1)[0]}</span>
+          </div>
+          <div className="text-white/75 text-[clamp(11px,1vw,19px)]">
+            Baseline OVR <b className="ml-[0.6vw] mr-[2vw] text-white">{p.baseOvr}</b> Potential <b className="ml-[0.4vw] text-white">{p.potential}</b>
+          </div>
+        </div>
+        <span className="relative shrink-0 flex items-center justify-center w-[4.6vw] h-[4.6vw] min-w-[52px] min-h-[52px] mb-[1vh]">
+          <span className="absolute inset-[14%] rotate-45 rounded-[4px] border-2" style={{ borderColor: deltaTone(d.totalDelta) === 'rgba(255,255,255,0.85)' ? 'rgba(255,255,255,0.6)' : deltaTone(d.totalDelta) }} />
+          {d.totalDelta > 0 && <span className="absolute -top-[0.6vh] text-[#45e07c] text-[clamp(9px,0.8vw,15px)]">▲</span>}
+          <span className="relative font-expanded font-black text-[clamp(20px,2vw,38px)]">{d.dynamicOvr}</span>
+        </span>
+      </div>
+
+      <div className="mt-[1.6vh] grid grid-cols-3 text-[clamp(11px,1vw,19px)]">
+        <div>{chip('Form', d.formDelta)}<div className="mt-[0.6vh] font-medium">{d.formLabel}</div></div>
+        <div>{chip('Morale', d.moraleDelta)}<div className="mt-[0.6vh] font-medium text-[#45e07c]">{d.moraleLabel}</div></div>
+        <div>{chip('Match Fitness', d.fitnessDelta)}<div className="mt-[0.6vh] font-medium">{fitnessLabel}</div></div>
+      </div>
+      <div className={`mt-[1.4vh] rounded-[3px] bg-black/15 py-[0.7vh] text-center text-[clamp(12px,1.1vw,21px)] ${readiness === 'Ready to Play' ? '' : 'text-amber-300'}`}>
+        {notice ?? readiness}
+      </div>
+
+      <div className="mt-[2vh] grid grid-cols-2 text-[clamp(11px,1vw,19px)]">
+        <div className="border-r border-white/20 pr-[1.6vw]">
+          {facets.map(([label, k]) => (
+            <div key={k} className="flex items-center h-[5.25vh]">
+              <span className="w-[8vw] text-white/75">{label}</span>
+              <span className="w-[3vw] font-medium">{p.cardFacets[k]}</span>
+              {d.facetDeltas[k] !== 0 && <span style={{ color: deltaTone(d.facetDeltas[k]) }}>{d.facetDeltas[k] > 0 ? `+${d.facetDeltas[k]}` : d.facetDeltas[k]}</span>}
+            </div>
+          ))}
+          <div className="flex items-center h-[5.25vh] border-t border-white/15">
+            <span className="w-[8vw] text-white/75">Skill Moves</span>
+            {stars(p.skillMoves)}
+          </div>
+        </div>
+        <div className="pl-[1.2vw]">
+          {bio.map(([label, value]) => (
+            <div key={label} className="flex items-center h-[5.25vh]">
+              <span className="w-[7.6vw] truncate text-white/75">{label}</span>
+              <span className="truncate font-medium">{value}</span>
+            </div>
+          ))}
+          <div className="flex items-center h-[5.25vh] border-t border-white/15">
+            <span className="w-[7.6vw] text-white/75">Weak Foot</span>
+            {stars(p.weakFoot)}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-[1.4vh] text-right text-white/70 text-[clamp(11px,0.98vw,18px)]">PlayStyles</div>
+      <div className="mt-[1vh] flex justify-between">
+        {Array.from({ length: 10 }, (_, i) => {
+          const ps = p.playStyles[i];
+          return (
+            <span key={i} className="relative inline-flex items-center justify-center w-[2.4vw] h-[2.4vw] min-w-[26px] min-h-[26px]" title={ps}>
+              <span className={`absolute inset-[14%] rotate-45 rounded-[3px] ${ps ? 'bg-white' : 'bg-white/15'}`} />
+              {ps && <span className="relative font-black text-[#1a2230] text-[clamp(7px,0.6vw,11px)]">{ps.replace(/[^A-Za-z ]/g, '').split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()}</span>}
+            </span>
+          );
+        })}
+      </div>
     </div>
   );
 };

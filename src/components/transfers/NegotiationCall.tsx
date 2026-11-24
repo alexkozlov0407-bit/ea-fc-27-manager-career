@@ -19,13 +19,17 @@ import { PadGlyph, PlayerBust } from '../fc/HubCarousel';
 const CURRENCY_RATE = { EUR: 1, USD: 1.1, GBP: 0.85 } as const;
 const ACHIEVEMENT_BONUS = [0, 2_000_000, 5_000_000, 10_000_000];
 const SIGNING_BONUS = [0, 500_000, 1_500_000, 3_000_000];
+const AGENT_FEE = [0, 250_000, 750_000, 1_500_000];
+const PERFORMANCE_BONUS = [0, 5_000, 10_000, 25_000];
 const ROLES: SquadRole[] = ['Crucial', 'Important', 'Rotation', 'Sporadic', 'Prospect'];
 const HOLD_MS = 800;
 
-type RowId = 'start' | 'fee' | 'instalments' | 'exchange' | 'bonus' | 'sellOn' | 'clauses' | 'wage' | 'role' | 'years' | 'signing';
+type RowId = 'start' | 'fee' | 'instalments' | 'exchange' | 'bonus' | 'sellOn' | 'clauses' | 'wage' | 'role' | 'years' | 'signing' | 'agent' | 'performance';
 interface Row {
   id: RowId;
   label: string;
+  /** One-line explanation shown inside the focused row (player talks). */
+  desc?: string;
   value: string;
   adjust?: (dir: -1 | 1) => void;
   /** Free amount entry via ▢ Edit Terms (EUR). */
@@ -86,12 +90,11 @@ export const NegotiationCall: React.FC<{ negotiation: TransferNegotiation; onClo
     ? [
         {
           id: 'wage',
-          label: 'Weekly Wage',
+          label: 'Wage',
           value: full(draft.wageEur),
           adjust: (d) => setDraft((o) => ({ ...o, wageEur: Math.max(3_000, o.wageEur + d * wageStep) })),
           amount: { get: () => draft.wageEur, set: (v) => setDraft((o) => ({ ...o, wageEur: Math.max(3_000, v) })) },
         },
-        { id: 'role', label: 'Squad Role', value: draft.squadRole.toUpperCase(), adjust: (d) => setDraft((o) => ({ ...o, squadRole: cycle(ROLES, o.squadRole, d) })) },
         {
           id: 'years',
           label: 'Contract Length',
@@ -100,11 +103,35 @@ export const NegotiationCall: React.FC<{ negotiation: TransferNegotiation; onClo
         },
         {
           id: 'signing',
-          label: 'Signing Bonus',
-          value: draft.signingBonusEur ? full(draft.signingBonusEur) : 'NONE',
+          label: 'Sign-On Fee',
+          desc: 'One-time fee paid to the player upon completion.',
+          value: full(draft.signingBonusEur),
           adjust: (d) => setDraft((o) => ({ ...o, signingBonusEur: cycle(SIGNING_BONUS, o.signingBonusEur, d) })),
+          amount: { get: () => draft.signingBonusEur, set: (v) => setDraft((o) => ({ ...o, signingBonusEur: Math.max(0, v) })) },
         },
-        { id: 'clauses', label: 'Other Clauses', value: 'INCLUDED' },
+        {
+          id: 'agent',
+          label: 'Agent Fee',
+          desc: "One-time fee paid to the player's agent upon completion.",
+          value: full(draft.agentFeeEur ?? 0),
+          adjust: (d) => setDraft((o) => ({ ...o, agentFeeEur: cycle(AGENT_FEE, o.agentFeeEur ?? 0, d) })),
+          amount: { get: () => draft.agentFeeEur ?? 0, set: (v) => setDraft((o) => ({ ...o, agentFeeEur: Math.max(0, v) })) },
+        },
+        {
+          id: 'role',
+          label: 'Squad Status',
+          desc: 'The role the player is promised in your squad.',
+          value: draft.squadRole.toUpperCase(),
+          adjust: (d) => setDraft((o) => ({ ...o, squadRole: cycle(ROLES, o.squadRole, d) })),
+        },
+        {
+          id: 'performance',
+          label: 'Performance Bonus',
+          desc: 'Paid for each goal or clean sheet.',
+          value: draft.performanceBonusEur ? `${full(draft.performanceBonusEur)} / GOAL` : 'NONE',
+          adjust: (d) => setDraft((o) => ({ ...o, performanceBonusEur: cycle(PERFORMANCE_BONUS, o.performanceBonusEur ?? 0, d) })),
+        },
+        { id: 'clauses', label: 'Other Clauses', value: 'NONE' },
       ]
     : [
         {
@@ -158,7 +185,6 @@ export const NegotiationCall: React.FC<{ negotiation: TransferNegotiation; onClo
       ? userClub.transferBudgetEur + paidNowEur
       : userClub.transferBudgetEur - paidNowEur
     : 0;
-  const wageDelta = player && userClub && player.clubId === userClub.id ? draft.wageEur - player.weeklyWageEur : draft.wageEur;
 
   // ---- actions --------------------------------------------------------------
   const submit = () => {
@@ -259,18 +285,20 @@ export const NegotiationCall: React.FC<{ negotiation: TransferNegotiation; onClo
   if (!career || !player || !userClub) return null;
 
   const title =
-    negotiation.type === 'CONTRACT'
-      ? 'RENEW CONTRACT'
+    isPlayerTalks
+      ? 'PLAYER NEGOTIATION'
       : negotiation.type === 'SELL'
       ? 'SELL PLAYER'
-      : isPlayerTalks
-      ? 'CONTRACT OFFER'
       : negotiation.type === 'LOAN_IN'
       ? 'LOAN PLAYER'
       : 'TRANSFER PLAYER';
-  const callSubtitle = negotiation.type === 'CONTRACT' || negotiation.stage === 'PLAYER_TALKS'
-    ? `${player.knownAs}'s Representative`
+  // Player talks are with the player himself ("Brian Madjo · Man Utd Player"); club talks with the manager.
+  const playerClub = career.clubs[player.clubId];
+  const callName = isPlayerTalks ? player.knownAs : negotiation.counterpartManager;
+  const callSubtitle = isPlayerTalks
+    ? `${playerClub?.name || player.clubName} Player`
     : `${negotiation.counterpartClubName} Manager`;
+  const feesNow = draft.signingBonusEur + (draft.agentFeeEur ?? 0);
   const tension = negotiation.tension;
   const tone = tension < 35 ? '#45e07c' : tension < 70 ? '#f5c344' : '#ff5a4f';
   const statusPill =
@@ -310,7 +338,10 @@ export const NegotiationCall: React.FC<{ negotiation: TransferNegotiation; onClo
                   boxShadow: '0 0 24px rgba(160,200,230,0.18)',
                 }}
               >
-                <span className="font-bold text-[clamp(15px,1.48vw,28px)]">{row.label}</span>
+                <span className="min-w-0">
+                  <span className="block font-bold text-[clamp(15px,1.48vw,28px)]">{row.label}</span>
+                  {row.desc && <span className="mt-[0.4vh] block text-white/75 text-[clamp(10px,0.95vw,18px)]">{row.desc}</span>}
+                </span>
                 <div className="text-right">
                   {editing !== null && row.amount ? (
                     <input
@@ -361,9 +392,9 @@ export const NegotiationCall: React.FC<{ negotiation: TransferNegotiation; onClo
       <div className="absolute left-[7.1vw] w-[42.8vw] top-[75.4vh] text-[clamp(11px,1.02vw,19px)]">
         {isPlayerTalks ? (
           <>
-            <SummaryRow label="Weekly Wage" sub=" / Total Contract" value={`${formatMoney(draft.wageEur, cur)} / ${formatMoney(draft.wageEur * 52 * draft.contractYears + draft.signingBonusEur, cur)}`} />
-            <SummaryRow label="Signing Bonus" value={formatMoney(draft.signingBonusEur, cur)} divider />
-            <SummaryRow label="Wage Budget Remaining" value={`${formatMoney(userClub.wageBudgetRemainingEur - wageDelta, cur)}/wk`} />
+            <SummaryRow label="Weekly Wage" value={formatMoney(draft.wageEur, cur)} />
+            <SummaryRow label="Fees Paid Now" sub=" / Potential Add-Ons" value={formatMoney(feesNow, cur)} valueSub={` / ${formatMoney((draft.performanceBonusEur ?? 0) * 10, cur)}`} divider />
+            <SummaryRow label="Budget Remaining" value={formatMoney(userClub.transferBudgetEur - feesNow, cur)} negative={userClub.transferBudgetEur - feesNow < 0} />
           </>
         ) : (
           <>
@@ -408,11 +439,15 @@ export const NegotiationCall: React.FC<{ negotiation: TransferNegotiation; onClo
       >
         <div className="shrink-0 w-[6.3vw] h-[6.3vw] rounded-[0.9vw] overflow-hidden flex items-end justify-center" style={{ background: 'linear-gradient(180deg, #8fa3c0, #56677f)', boxShadow: '0 0 0 3px rgba(220,205,255,0.85)' }}>
           {/* Manager portrait placeholder (no manager renders in the data set) */}
-          <PlayerBust alt={`${negotiation.counterpartManager} (portrait placeholder)`} />
+          {isPlayerTalks && player.headshotUrl ? (
+            <img src={player.headshotUrl} alt={player.knownAs} className="h-full w-auto object-contain object-bottom" />
+          ) : (
+            <PlayerBust alt={`${negotiation.counterpartManager} (portrait placeholder)`} />
+          )}
         </div>
         <div className="flex-1 min-w-0 text-left">
           <div className="text-[#45e07c] text-[clamp(10px,1vw,18px)]">On call with</div>
-          <div className="truncate font-bold text-[clamp(15px,1.72vw,32px)] leading-tight">{negotiation.counterpartManager}</div>
+          <div className="truncate font-bold text-[clamp(15px,1.72vw,32px)] leading-tight">{callName}</div>
           <div className="truncate text-white/75 text-[clamp(10px,1.08vw,20px)]">{callSubtitle}</div>
         </div>
         <span className="shrink-0 flex items-center gap-[3px] rounded-full bg-[#1b2433] px-[0.8vw] py-[1vh]" aria-hidden>

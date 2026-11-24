@@ -319,7 +319,9 @@ export function evaluateContractOffer(
   const interest = calculatePlayerInterest(player, userClub, sellerClub, offer.squadRole, offer.wageEur);
 
   const wageRatio = offer.wageEur / Math.max(1, negotiation.askingWageEur);
-  const bonusBoost = offer.signingBonusEur >= negotiation.askingWageEur * 10 ? 0.06 : 0;
+  const upfront = offer.signingBonusEur + (offer.agentFeeEur ?? 0) * 0.6;
+  const bonusBoost =
+    (upfront >= negotiation.askingWageEur * 10 ? 0.06 : 0) + ((offer.performanceBonusEur ?? 0) > 0 ? 0.03 : 0);
   const roleOrder: SquadRole[] = ['Prospect', 'Sporadic', 'Rotation', 'Important', 'Crucial'];
   const roleDelta = roleOrder.indexOf(offer.squadRole) - roleOrder.indexOf(negotiation.desiredRole);
 
