@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
-import { Star, User } from 'lucide-react';
-import { formatMoney } from '../engine/ratings';
+import { Star } from 'lucide-react';
 import { NavTab, useCareerStore } from '../store/careerStore';
+import { openHubOverlay } from '../navigation/hubFocus';
 import { ClubCrest } from './PlayerAvatar';
 
-const NAV_TABS: NavTab[] = [
+export const NAV_TABS: NavTab[] = [
   'Central',
   'Notifications',
   'Squad',
@@ -19,12 +19,16 @@ export const TopNavBar: React.FC = () => {
   const career = useCareerStore((s) => s.career);
   const activeTab = useCareerStore((s) => s.activeTab);
   const setActiveTab = useCareerStore((s) => s.setActiveTab);
+  const hubFocus = useCareerStore((s) => s.hubFocus);
+  const setHubFocus = useCareerStore((s) => s.setHubFocus);
 
-  // Keyboard navigation for L1/R1 tab switching
+  // 60% keyboard L1/R1 tab switching (Q / E / [ / ] and 1-8)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+      // Do not switch primary nav tabs while a modal overlay is open on Central
+      if (hubFocus?.activeOverlay !== null) return;
 
       const currentIdx = NAV_TABS.indexOf(activeTab);
       if (e.key === 'q' || e.key === 'Q' || e.key === '[') {
@@ -46,164 +50,147 @@ export const TopNavBar: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeTab, setActiveTab]);
+  }, [activeTab, setActiveTab, hubFocus?.activeOverlay]);
 
   if (!career) return null;
+
   const userClub = career.clubs[career.userClubId];
-  const unreadCount = career.inbox.filter((m) => !m.read).length;
-  const activeNegCount = career.negotiations.filter(
-    (n) => n.stage === 'CLUB_TALKS' || n.stage === 'PLAYER_TALKS' || n.stage === 'DELEGATED' || n.stage === 'HIJACKED'
-  ).length;
-
   const currentIdx = NAV_TABS.indexOf(activeTab);
+  const filledSegments = Math.min(
+    4,
+    Math.max(1, Math.round((userClub.boardConfidence / 100) * 4))
+  );
 
-  // FC 27 4-segment manager rating bar calculation
-  const filledSegments = Math.min(4, Math.max(1, Math.ceil((userClub.boardConfidence / 100) * 4)));
+  const handleOpenClubHub = () => {
+    setActiveTab('Central');
+    setHubFocus((prev) => openHubOverlay(prev, 'fc-hub'));
+  };
 
   return (
-    <header className="sticky top-0 z-30 border-b border-white/10 bg-[#07131a]/95 backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-[1520px] items-center justify-between gap-4 px-4 lg:px-6">
-        {/* Left: Authentic EA FC 27 MC Emblem + Home + Bumper Tabs */}
-        <div className="flex items-center gap-2.5 min-w-0">
-          {/* Official MC Roundel Logo */}
+    <header className="relative z-30 shrink-0 bg-gradient-to-b from-[#080d11]/95 via-[#091117]/88 to-transparent border-b border-white/[0.08]">
+      <div className="mx-auto flex h-[74px] w-full max-w-[1460px] items-end justify-between gap-6 px-6 lg:px-10 pb-2.5">
+        <div className="flex items-end gap-5 min-w-0">
           <button
             type="button"
             onClick={() => setActiveTab('Central')}
-            className="flex items-center gap-2 shrink-0 group focus:outline-none"
+            className="mb-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-[2px] border-white/90 text-white hover:border-[#38f2c8] hover:text-[#38f2c8] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#38f2c8]"
+            aria-label="Manager Career Home"
             title="Manager Career Central Hub"
           >
-            <div className="relative">
-              <img
-                src="/assets/branding/mc-logo.png"
-                alt="Manager Career"
-                className="w-8 h-8 rounded-full object-contain filter drop-shadow hover:scale-105 transition-transform"
-              />
-            </div>
+            <span className="font-expanded text-[13px] font-black italic tracking-tighter leading-none">
+              MC
+            </span>
           </button>
 
-          {/* Home Tab with L2 trigger badge */}
-          <div className="relative flex flex-col items-center">
-            <span className="hidden sm:inline-block rounded bg-white/10 px-1 py-0.2 text-[8px] font-mono-num font-bold text-white/60 mb-0.5 leading-none">
+          <div className="flex flex-col items-center shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('Central');
+                setHubFocus((prev) => openHubOverlay(prev, 'shortcuts'));
+              }}
+              className="mb-1 inline-flex h-[17px] min-w-[22px] items-center justify-center rounded-[5px] bg-white/15 px-1.5 font-mono-num text-[9px] font-bold text-white/75 hover:bg-white/25 hover:text-white transition-colors"
+              title="Shortcuts (Tab)"
+              aria-label="Open L2 Shortcuts"
+            >
               L2
-            </span>
+            </button>
             <button
               type="button"
               onClick={() => setActiveTab('Central')}
-              className={`text-sm font-black uppercase tracking-wide transition-colors ${
-                activeTab === 'Central' ? 'text-white' : 'text-[#8ea5b3] hover:text-white'
-              }`}
+              className="pb-1.5 text-[15px] font-bold tracking-tight text-white hover:text-[#b8fff0] transition-colors whitespace-nowrap shrink-0"
             >
               Home
             </button>
           </div>
 
-          <div className="h-5 w-px bg-white/20 shrink-0 mx-1" />
+          <div className="mb-1.5 h-6 w-px bg-white/18 shrink-0" aria-hidden="true" />
 
-          {/* L1 Bumper Indicator */}
-          <button
-            type="button"
-            onClick={() => setActiveTab(NAV_TABS[(currentIdx - 1 + NAV_TABS.length) % NAV_TABS.length])}
-            className="hidden sm:inline-flex items-center justify-center rounded bg-white/10 hover:bg-white/20 px-1.5 py-0.5 text-[10px] font-mono-num font-bold text-white/70 hover:text-white transition-colors"
-            title="Previous Tab (Q / [)"
-          >
-            L1
-          </button>
+          <div className="flex flex-col min-w-0">
+            <div className="mb-1 flex items-center gap-1.5 pl-1">
+              <button
+                type="button"
+                onClick={() =>
+                  setActiveTab(NAV_TABS[(currentIdx - 1 + NAV_TABS.length) % NAV_TABS.length])
+                }
+                className="inline-flex h-[17px] min-w-[22px] items-center justify-center rounded-[4px] bg-white/15 px-1.5 font-mono-num text-[9px] font-bold text-white/75 hover:bg-white/25 hover:text-white transition-colors"
+                title="Previous Tab (Q)"
+                aria-label="Previous navigation tab (L1 / Q)"
+              >
+                L1
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab(NAV_TABS[(currentIdx + 1) % NAV_TABS.length])}
+                className="inline-flex h-[17px] min-w-[22px] items-center justify-center rounded-[4px] bg-white/15 px-1.5 font-mono-num text-[9px] font-bold text-white/75 hover:bg-white/25 hover:text-white transition-colors"
+                title="Next Tab (E)"
+                aria-label="Next navigation tab (R1 / E)"
+              >
+                R1
+              </button>
+            </div>
 
-          <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar" aria-label="Primary Career Navigation">
-            {NAV_TABS.map((tab) => {
-              const isActive = activeTab === tab;
-              const badge =
-                tab === 'Notifications' && unreadCount > 0
-                  ? unreadCount
-                  : tab === 'Transfers' && activeNegCount > 0
-                  ? activeNegCount
-                  : 0;
-
-              return (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => setActiveTab(tab)}
-                  className={`relative whitespace-nowrap px-3 py-1.5 text-sm font-semibold tracking-wide transition-colors rounded ${
-                    isActive
-                      ? 'text-white bg-white/10 font-black'
-                      : 'text-[#8ea5b3] hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  <span>{tab}</span>
-                  {badge > 0 && (
-                    <span className="ml-1.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-sm bg-[#38f2c8] px-1 font-mono-num text-[10px] font-extrabold text-[#07131a]">
-                      {badge}
-                    </span>
-                  )}
-                  {isActive && (
-                    <span className="absolute bottom-0 left-2 right-2 h-[2px] bg-gradient-to-r from-[#38f2c8] to-[#dcd2ff]" />
-                  )}
-                </button>
-              );
-            })}
-          </nav>
-
-          {/* R1 Bumper Indicator */}
-          <button
-            type="button"
-            onClick={() => setActiveTab(NAV_TABS[(currentIdx + 1) % NAV_TABS.length])}
-            className="hidden sm:inline-flex items-center justify-center rounded bg-white/10 hover:bg-white/20 px-1.5 py-0.5 text-[10px] font-mono-num font-bold text-white/70 hover:text-white transition-colors"
-            title="Next Tab (E / ])"
-          >
-            R1
-          </button>
+            <nav
+              className="flex items-center gap-5 lg:gap-6 overflow-x-auto no-scrollbar"
+              aria-label="Primary Career Navigation"
+            >
+              {NAV_TABS.map((tab) => {
+                const isActive = activeTab === tab;
+                return (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={() => setActiveTab(tab)}
+                    aria-current={isActive ? 'page' : undefined}
+                    className={`relative pb-1.5 text-[14px] tracking-wide transition-colors whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:text-[#38f2c8] ${
+                      isActive
+                        ? 'font-bold text-white'
+                        : 'font-normal text-white/62 hover:text-white/95'
+                    }`}
+                  >
+                    <span>{tab}</span>
+                    {isActive && (
+                      <span
+                        className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#38f2c8] shadow-[0_0_10px_rgba(56,242,200,0.85)]"
+                        aria-hidden="true"
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
         </div>
 
-        {/* Right: Budget + Club Crest + Segmented Rating Bar + FC Hub Profile */}
-        <div className="hidden md:flex items-center gap-4 shrink-0">
-          <div className="text-right leading-tight">
-            <div className="text-[10px] uppercase tracking-wider text-[#7e98a7] font-semibold">
-              Transfer Budget
-            </div>
-            <div className="font-mono-num text-sm font-bold text-[#b8fff0]">
-              {formatMoney(userClub.transferBudgetEur, career.settings.currency)}
-            </div>
-          </div>
-
-          <div className="h-6 w-px bg-white/12" />
-
-          {/* Authentic FC 27 Club Profile & 4-Segment Rating Bar */}
-          <div className="flex items-center gap-2.5">
-            <ClubCrest club={userClub} size={30} />
-            <div className="leading-tight">
-              <div className="text-xs font-bold text-white uppercase tracking-wide truncate max-w-[130px]">
+        <button
+          type="button"
+          onClick={handleOpenClubHub}
+          className="mb-0.5 hidden md:flex items-center gap-3 shrink-0 group text-left rounded-lg px-2 py-1 -mr-2 hover:bg-white/[0.06] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#38f2c8]"
+          title="Open FC HUB / Switch Club (H)"
+          aria-label={`Active club ${userClub.name}. Open FC Hub and club switcher.`}
+        >
+          <ClubCrest club={userClub} size={32} />
+          <div className="min-w-[144px]">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-[14px] font-medium tracking-wide text-white/95 group-hover:text-[#b8fff0] transition-colors whitespace-nowrap">
                 {userClub.name}
-              </div>
-              <div className="flex items-center gap-1.5 mt-1">
-                {/* 4 Segment Rating Meter */}
-                <div className="flex items-center gap-0.5">
-                  {[1, 2, 3, 4].map((seg) => (
-                    <div
-                      key={seg}
-                      className={`h-1.5 w-4 rounded-sm transition-colors ${
-                        seg <= filledSegments ? 'bg-[#10c482]' : 'bg-white/15'
-                      }`}
-                    />
-                  ))}
-                </div>
-                <span className="inline-flex items-center gap-0.5 font-mono-num text-[10px] font-bold text-amber-300">
-                  <Star className="w-2.5 h-2.5 fill-amber-300 text-amber-300" />
-                  {userClub.boardConfidence}
-                </span>
-              </div>
+              </span>
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-[#d8ff4a]/40 bg-[#d8ff4a]/10">
+                <Star className="w-3 h-3 fill-[#d8ff4a] text-[#d8ff4a]" />
+              </span>
+            </div>
+            <div className="mt-1.5 grid grid-cols-4 gap-1" aria-label={`Board confidence ${userClub.boardConfidence}%`}>
+              {[1, 2, 3, 4].map((seg) => (
+                <div
+                  key={seg}
+                  className={`h-[4px] rounded-[1px] transition-colors ${
+                    seg <= filledSegments ? 'bg-[#22d68a]' : 'bg-white/20'
+                  }`}
+                />
+              ))}
             </div>
           </div>
-
-          <div className="h-6 w-px bg-white/12" />
-
-          {/* FC Hub Profile Pill */}
-          <div className="flex items-center gap-1.5 rounded-full bg-white/10 hover:bg-white/15 px-2.5 py-1 text-xs text-white/90 cursor-pointer transition-colors" title="FC Hub (R2)">
-            <User className="w-3.5 h-3.5 text-[#38f2c8]" />
-            <span className="text-[11px] font-bold">FC HUB</span>
-            <span className="rounded bg-black/40 px-1 font-mono-num text-[9px] font-extrabold text-white/70">R2</span>
-          </div>
-        </div>
+        </button>
       </div>
     </header>
   );

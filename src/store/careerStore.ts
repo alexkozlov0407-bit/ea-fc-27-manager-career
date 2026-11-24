@@ -38,7 +38,11 @@ import {
   Position,
   TacticalVision,
   TransferNegotiation,
+  BroadcastStory,
 } from '../engine/types';
+import { INITIAL_HUB_FOCUS, type HubFocusState } from '../navigation/hubFocus';
+
+export type { BroadcastStory };
 
 export type NavTab =
   | 'Central'
@@ -153,6 +157,18 @@ interface CareerStore {
   updateBudgetSplit: (transferPct: number) => void;
   updateSettings: (patch: Partial<CareerSettings>) => void;
   proceedToNextSeason: () => void;
+
+  hubFocus: HubFocusState;
+  setHubFocus: (updater: ((prev: HubFocusState) => HubFocusState) | HubFocusState) => void;
+  activeStoryIdx: number;
+  setActiveStoryIdx: (idx: number) => void;
+  toggleStoryLike: (storyId: string) => void;
+  lastActionNotice: string | null;
+  clearActionNotice: () => void;
+  switchClub: (clubId: number | string) => void;
+  hireCoachForClub: (name: string, specialty: string) => void;
+  respondToTransferOffer: (negotiationId: string, action: 'accept' | 'reject') => void;
+  updateAdvanceSetting: (key: string, val: boolean) => void;
 }
 
 function persistActiveCareer(state: CareerState | null) {
@@ -194,6 +210,9 @@ export const useCareerStore = create<CareerStore>((set, get) => ({
   postMatchSummary: null,
   toast: null,
   savedSlots: loadSlotsFromStorage(),
+  hubFocus: INITIAL_HUB_FOCUS,
+  activeStoryIdx: 0,
+  lastActionNotice: null,
 
   loadDatabase: async () => {
     if (get().database || get().loadingDb) return;
@@ -1362,4 +1381,91 @@ export const useCareerStore = create<CareerStore>((set, get) => ({
       toast: `Welcome to Season ${nextSeason.seasonNumber}! New LaLiga schedule & randomized regens generated.`,
     });
   },
+
+  setHubFocus: (updater) =>
+    set((state) => ({
+      hubFocus: typeof updater === 'function' ? updater(state.hubFocus) : updater,
+    })),
+
+  setActiveStoryIdx: (idx) => set({ activeStoryIdx: idx }),
+
+  toggleStoryLike: (storyId) =>
+    set((state) => {
+      if (!state.career) return {};
+      const liked = state.career.likedStoryIds ?? {};
+      const nextLiked = { ...liked, [storyId]: !liked[storyId] };
+      return {
+        career: { ...state.career, likedStoryIds: nextLiked },
+      };
+    }),
+
+  clearActionNotice: () => set({ lastActionNotice: null }),
+
+  switchClub: (clubId) =>
+    set((state) => {
+      if (!state.career) return {};
+      let cId: number = state.career.userClubId;
+      if (typeof clubId === 'number') {
+        cId = clubId;
+      } else {
+        const found = Object.values(state.career.clubs).find(
+          (c) =>
+            c.slug.toLowerCase() === clubId.toLowerCase() ||
+            c.shortName.toLowerCase() === clubId.toLowerCase() ||
+            c.name.toLowerCase().includes(clubId.toLowerCase())
+        );
+        if (found) cId = found.id;
+      }
+      return {
+        career: { ...state.career, userClubId: cId },
+        lastActionNotice: `Switched active club to ${state.career.clubs[cId]?.name ?? cId}`,
+      };
+    }),
+
+  hireCoachForClub: (name, specialty) =>
+    set((state) => {
+      if (!state.career) return {};
+      const userClub = state.career.clubs[state.career.userClubId];
+      if (!userClub) return {};
+      const filled = Math.min(6, (userClub.coachSlotsFilled ?? userClub.coaches?.length ?? 4) + 1);
+      const updatedClubs = {
+        ...state.career.clubs,
+        [userClub.id]: {
+          ...userClub,
+          coachSlotsFilled: filled,
+        },
+      };
+      return {
+        career: { ...state.career, clubs: updatedClubs },
+        lastActionNotice: `Hired ${name} (${specialty} Coach)`,
+      };
+    }),
+
+  respondToTransferOffer: (negotiationId, action) =>
+    set((state) => {
+      if (!state.career) return {};
+      const nIndex = state.career.negotiations.findIndex((n) => n.id === negotiationId);
+      if (nIndex === -1) return {};
+      const updatedNegotiations = [...state.career.negotiations];
+      if (action === 'accept') {
+        updatedNegotiations[nIndex] = { ...updatedNegotiations[nIndex], stage: 'COMPLETED' };
+      } else {
+        updatedNegotiations[nIndex] = { ...updatedNegotiations[nIndex], stage: 'REJECTED' };
+      }
+      return {
+        career: { ...state.career, negotiations: updatedNegotiations },
+        lastActionNotice: action === 'accept' ? 'Transfer Offer Accepted' : 'Transfer Offer Rejected',
+      };
+    }),
+
+  updateAdvanceSetting: (key, val) =>
+    set((state) => {
+      if (!state.career) return {};
+      return {
+        career: {
+          ...state.career,
+          settings: { ...state.career.settings, [key]: val },
+        },
+      };
+    }),
 }));

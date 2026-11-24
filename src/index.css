@@ -86,11 +86,13 @@
     --fc-bg-deep: #071117;
     --fc-bg-panel: rgba(18, 30, 42, 0.84);
     --fc-bg-panel-solid: #121f2b;
-    --fc-border: rgba(255, 255, 255, 0.11);
-    --fc-border-active: rgba(176, 240, 224, 0.58);
+    --fc-border: rgba(255, 255, 255, 0.14);
+    --fc-border-active: rgba(184, 255, 240, 0.72);
     --fc-mint: #38f2c8;
     --fc-emerald: #10c482;
-    --fc-lavender: #dcd2ff;
+    --fc-stat-green: #38e878;
+    --fc-badge-lime: #d8ff4a;
+    --fc-lavender: #e4dcff;
     --fc-gold: #f5c344;
     --fc-danger: #f05252;
   }
@@ -99,26 +101,36 @@
     box-sizing: border-box;
   }
 
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+  }
+
   body {
     font-family: "Cruyff Sans", "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
     background-color: #071117;
     color: #f1f6f8;
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
   }
 }
 
+/* Official Cruyff Sans families first; matched geometric/condensed/mono backups load only when local fonts are absent */
 .font-display {
-  font-family: "Cruyff Sans Condensed", "Cruyff Sans", "Barlow Condensed", sans-serif;
+  font-family: "Cruyff Sans Condensed", "Barlow Condensed", "Cruyff Sans", sans-serif;
   letter-spacing: 0.02em;
 }
 
 .font-expanded {
-  font-family: "Cruyff Sans Expanded", "Cruyff Sans Condensed", sans-serif;
-  letter-spacing: -0.01em;
+  font-family: "Cruyff Sans Expanded", "Unbounded", "Plus Jakarta Sans", sans-serif;
+  letter-spacing: 0.01em;
+  word-spacing: 0.14em;
 }
 
 .font-condensed {
-  font-family: "Cruyff Sans Condensed", sans-serif;
+  font-family: "Cruyff Sans Condensed", "Barlow Condensed", sans-serif;
 }
 
 .font-mono-num {
@@ -130,47 +142,76 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Signature EA FC 27 reactive emerald-to-navy broadcast stadium backdrop */
+/* Signature EA FC 27 dark studio room outer frame */
 .fc-backdrop {
   background-color: #071117;
   background-image:
-    radial-gradient(62% 72% at 82% 24%, rgba(16, 168, 128, 0.34) 0%, rgba(11, 74, 72, 0.16) 44%, transparent 78%),
-    radial-gradient(50% 60% at 14% 88%, rgba(30, 56, 92, 0.28) 0%, transparent 70%),
-    linear-gradient(128deg, #071017 0%, #0a1b24 44%, #0b2d30 78%, #071820 100%);
+    radial-gradient(56% 52% at 50% 8%, rgba(28, 72, 74, 0.24) 0%, transparent 72%),
+    radial-gradient(48% 36% at 50% 100%, rgba(15, 76, 68, 0.34) 0%, rgba(7, 17, 23, 0.92) 75%),
+    linear-gradient(180deg, #0b0f13 0%, #091318 48%, #071117 100%);
 }
 
-/* Subtle diagonal stadium polygon facet lines */
+/* Subtle diagonal architectural studio wall lines behind the central widescreen LED display */
 .fc-facet-overlay {
   background-image:
-    linear-gradient(125deg, transparent 48%, rgba(56, 242, 200, 0.045) 48.2%, rgba(56, 242, 200, 0.045) 48.6%, transparent 48.8%),
-    linear-gradient(35deg, transparent 62%, rgba(255, 255, 255, 0.03) 62.15%, rgba(255, 255, 255, 0.03) 62.4%, transparent 62.55%);
+    linear-gradient(114deg, transparent 8.2%, rgba(56, 242, 200, 0.14) 8.3%, rgba(56, 242, 200, 0.14) 8.42%, transparent 8.52%),
+    linear-gradient(66deg, transparent 91.48%, rgba(56, 242, 200, 0.14) 91.58%, rgba(56, 242, 200, 0.14) 91.7%, transparent 91.8%),
+    linear-gradient(132deg, transparent 48%, rgba(255, 255, 255, 0.025) 48.1%, transparent 48.25%);
 }
 
+/* Giant widescreen emerald-to-navy broadcast LED wall inside the Career Hub room */
+.fc-hub-screen {
+  background-color: #0c2231;
+  background-image:
+    radial-gradient(58% 84% at 76% 36%, rgba(22, 168, 128, 0.46) 0%, rgba(16, 108, 96, 0.22) 48%, transparent 80%),
+    radial-gradient(62% 72% at 22% 28%, rgba(28, 66, 110, 0.52) 0%, rgba(14, 38, 64, 0.24) 55%, transparent 84%),
+    linear-gradient(135deg, #10263b 0%, #103245 38%, #0e4a47 72%, #0c2b35 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -48px 90px rgba(4, 12, 18, 0.55),
+    0 24px 64px rgba(0, 0, 0, 0.65);
+}
+
+/* Subtle diagonal geometric glass sheen across the LED wall */
+.fc-hub-screen-facets {
+  background-image:
+    linear-gradient(148deg, transparent 0%, rgba(255, 255, 255, 0.03) 34%, transparent 34.4%),
+    linear-gradient(28deg, transparent 58%, rgba(56, 242, 200, 0.06) 58.2%, rgba(56, 242, 200, 0.02) 74%, transparent 74.3%);
+}
+
+/* Frosted glass dark console tile (modals, drawers, overlays) */
 .fc-panel {
-  background: linear-gradient(180deg, rgba(22, 36, 50, 0.86) 0%, rgba(13, 24, 34, 0.90) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.11);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.32);
+  background: linear-gradient(180deg, rgba(18, 30, 42, 0.92) 0%, rgba(11, 20, 29, 0.96) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.52);
 }
 
 .fc-panel-active {
-  background: linear-gradient(96deg, rgba(50, 146, 130, 0.44) 0%, rgba(44, 62, 86, 0.78) 54%, rgba(92, 80, 134, 0.56) 100%);
-  border: 1px solid rgba(186, 245, 232, 0.58);
-  box-shadow: 0 0 0 1px rgba(186, 245, 232, 0.16), 0 8px 24px rgba(0, 0, 0, 0.35);
+  background: linear-gradient(96deg, rgba(56, 242, 200, 0.26) 0%, rgba(32, 54, 72, 0.84) 55%, rgba(124, 108, 178, 0.36) 100%);
+  border: 1px solid rgba(184, 255, 240, 0.65);
+  box-shadow: 0 0 0 1px rgba(56, 242, 200, 0.22), 0 10px 28px rgba(0, 0, 0, 0.38);
 }
 
-/* Signature FC 27 luminous ice-mint to soft-lavender CTA */
+/* Signature FC 27 luminous ice-mint to soft-lavender focused button/CTA */
 .fc-btn-primary {
-  background: linear-gradient(90deg, #b8fff0 0%, #e4dcff 100%);
-  color: #091118;
-  font-weight: 800;
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  box-shadow: 0 4px 20px rgba(164, 245, 230, 0.25);
-  transition: transform 140ms ease, filter 140ms ease, box-shadow 140ms ease;
+  background: linear-gradient(92deg, rgb(184, 255, 240) 0%, rgb(228, 220, 255) 100%);
+  color: #081016;
+  font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 0 0 1px rgba(184, 255, 240, 0.55),
+    0 0 34px rgba(210, 202, 255, 0.42),
+    0 0 22px rgba(56, 242, 200, 0.34),
+    0 10px 26px rgba(0, 0, 0, 0.36);
+  transition: transform 140ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 140ms ease, filter 140ms ease;
 }
 
 .fc-btn-primary:hover:not(:disabled) {
-  filter: brightness(1.06);
-  box-shadow: 0 6px 26px rgba(184, 255, 240, 0.38);
+  filter: brightness(1.04);
+  box-shadow:
+    0 0 0 1px rgba(56, 242, 200, 0.65),
+    0 0 32px rgba(184, 255, 240, 0.48),
+    0 10px 28px rgba(0, 0, 0, 0.38);
 }
 
 .fc-btn-primary:active:not(:disabled) {
@@ -182,30 +223,57 @@
   cursor: not-allowed;
 }
 
+/* Unfocused console action tile */
+.fc-btn-console {
+  background: rgba(8, 13, 18, 0.88);
+  color: #eef5f8;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
+  transition: transform 140ms cubic-bezier(0.16, 1, 0.3, 1), background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.fc-btn-console:hover:not(:disabled) {
+  background: rgba(16, 28, 38, 0.94);
+  border-color: rgba(184, 255, 240, 0.45);
+}
+
 .fc-btn-secondary {
-  background: rgba(16, 28, 40, 0.85);
+  background: rgba(16, 28, 40, 0.86);
   color: #e6f0f4;
   border: 1px solid rgba(255, 255, 255, 0.16);
-  transition: background 140ms ease, border-color 140ms ease;
+  transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
 }
 
 .fc-btn-secondary:hover:not(:disabled) {
-  background: rgba(30, 50, 68, 0.92);
-  border-color: rgba(184, 255, 240, 0.42);
+  background: rgba(28, 46, 62, 0.94);
+  border-color: rgba(56, 242, 200, 0.48);
 }
 
-/* Perspective pitch trapezoid for Team Management */
-.fc-pitch-surface {
-  background:
-    repeating-linear-gradient(
-      0deg,
-      rgba(18, 96, 60, 0.92) 0px,
-      rgba(18, 96, 60, 0.92) 38px,
-      rgba(14, 82, 52, 0.92) 38px,
-      rgba(14, 82, 52, 0.92) 76px
-    );
-  border: 1px solid rgba(154, 232, 192, 0.35);
-  box-shadow: inset 0 0 60px rgba(4, 26, 18, 0.65), 0 18px 40px rgba(0, 0, 0, 0.42);
+/* Focused task row treatment: crisp luminous console highlight */
+.fc-task-focused {
+  background: linear-gradient(92deg, rgb(184, 255, 240) 0%, rgb(228, 220, 255) 100%);
+  color: #081016;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.85),
+    0 0 24px rgba(56, 242, 200, 0.32),
+    0 8px 20px rgba(0, 0, 0, 0.32);
+}
+
+/* Focused newsfeed card / sub-control luminous cyan-mint console ring */
+.fc-card-focused {
+  box-shadow:
+    0 0 0 2px #38f2c8,
+    0 0 32px rgba(56, 242, 200, 0.34),
+    0 24px 52px rgba(0, 0, 0, 0.62);
+}
+
+/* Hide scrollbars cleanly where horizontal nav scrolls on narrow screens */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* Custom slim scrollbar matching FC dark console chrome */
@@ -225,4 +293,13 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(140, 224, 206, 0.52);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
