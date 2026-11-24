@@ -65,7 +65,7 @@ export const HubCarousel: React.FC<HubCarouselProps> = ({ cards, focus, onFocus,
   }, []);
 
   return (
-    <div className="relative w-full overflow-hidden select-none h-[calc(100vh-64px)] min-h-[620px]">
+    <div className="relative w-full overflow-hidden select-none h-[calc(100vh-75px)] min-h-[620px]">
       <ArenaBackdrop />
 
       <div

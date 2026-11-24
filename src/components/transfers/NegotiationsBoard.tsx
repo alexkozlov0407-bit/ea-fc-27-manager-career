@@ -166,7 +166,7 @@ export const NegotiationsBoard: React.FC<BoardProps> = ({ career, tab, daysToClo
   const interestTone = interest ? { 'VERY HIGH': '#45e07c', HIGH: '#9be26a', MEDIUM: '#f5c344', LOW: '#ff6b5a' }[interest.label] : undefined;
 
   return (
-    <div className="relative h-[calc(100vh-57px-13vh)] min-h-[520px]">
+    <div className="relative h-[calc(100vh-75px-13vh)] min-h-[520px]">
       {/* ---------------------------------------------- List */}
       <div className="absolute left-[3.4vw] top-[2vh] w-[45.4vw]">
         <div className={`${grid} h-[4.6vh] border-b border-white/15 text-white/80 text-[clamp(11px,0.98vw,18px)]`}>

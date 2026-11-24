@@ -294,12 +294,12 @@ export const CentralHub: React.FC = () => {
     : `Next Fixture in ${daysToNextMatch} ${daysToNextMatch === 1 ? 'day' : 'days'}`;
 
   return (
-    <div className="relative w-full overflow-hidden select-none h-[calc(100vh-57px)] min-h-[620px] text-white">
+    <div className="relative w-full overflow-hidden select-none h-[calc(100vh-75px)] min-h-[620px] text-white">
       <ArenaBackdrop />
 
-      {/* Content is laid out against the capture's 125px top bar; ours is 57px, so shift by the difference
-          (6.8vh at 1003px) to land every element on the reference's absolute screen position. */}
-      <div className="absolute inset-x-0 top-[6.8vh] bottom-0">
+      {/* Content is laid out against the capture's 125px top bar; ours is 75px, so shift by the difference
+          (5vh at 1003px) to land every element on the reference's absolute screen position. */}
+      <div className="absolute inset-x-0 top-[5vh] bottom-0">
       {/* ------------------------------------------------ Date banner + fixture */}
       <h1 className="absolute left-[10.75vw] top-[5.2vh] font-expanded font-black tracking-[0.005em] leading-none text-[clamp(28px,2.62vw,52px)]">{dateTitle}</h1>
       <div className={`absolute left-[10.75vw] top-[13.2vh] text-[clamp(12px,1.05vw,20px)] ${career.deadlineDayHoursRemaining !== null ? 'text-amber-300' : 'text-[#c3cbd6]'}`}>
